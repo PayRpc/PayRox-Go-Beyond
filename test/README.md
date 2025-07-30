@@ -1,44 +1,58 @@
 # CI Acceptance Tests
 
-This directory contains acceptance tests that should be run in CI to ensure production readiness and comprehensive test coverage.
+This directory contains acceptance tests that should be run in CI to ensure production readiness and
+comprehensive test coverage.
+
+**📋 For Complete Technical Reference**: See
+[`docs/AI_TOOLCHAIN_TECHNICAL_REFERENCE.md`](../docs/AI_TOOLCHAIN_TECHNICAL_REFERENCE.md) for
+comprehensive documentation of the entire PayRox Go Beyond AI-powered ecosystem.
 
 ## Test Files
 
 ### 1. `facet-size-cap.spec.ts`
+
 **Purpose**: Verify all facets respect EIP-170 runtime size limits (≤ 24,576 bytes)
 
 **What it tests**:
+
 - ExampleFacetA runtime bytecode size
 - ExampleFacetB runtime bytecode size
 - Fails build if any facet exceeds limit
 
 **Run with**:
+
 ```bash
 npx hardhat test test/facet-size-cap.spec.ts
 ```
 
-### 2. `orchestrator-integration.spec.ts` 
+### 2. `orchestrator-integration.spec.ts`
+
 **Purpose**: Unit test that Orchestrator properly integrates with IChunkFactory
 
 **What it tests**:
+
 - `orchestrateStage()` calls `IChunkFactory.stage()` and emits `ChunksStaged`
 - `orchestrateStageBatch()` calls `IChunkFactory.stageBatch()` and emits `ChunksStaged`
 - Component noting emits `ComponentNoted` events
 - Orchestration lifecycle emits `OrchestrationStarted` and `OrchestrationCompleted`
 
 **Run with**:
+
 ```bash
 npx hardhat test test/orchestrator-integration.spec.ts
 ```
 
 ### 3. `coverage-boost.spec.ts` ⭐ **NEW**
 
-**Purpose**: Comprehensive coverage enhancement targeting specific uncovered lines across all contracts
+**Purpose**: Comprehensive coverage enhancement targeting specific uncovered lines across all
+contracts
 
 **What it tests**:
 
-- **ExampleFacetB edge cases**: Complex validation scenarios, batch processing limits, toggle state management
-- **DeterministicChunkFactory advanced features**: Fee sweeping, batch operations, edge case handling
+- **ExampleFacetB edge cases**: Complex validation scenarios, batch processing limits, toggle state
+  management
+- **DeterministicChunkFactory advanced features**: Fee sweeping, batch operations, edge case
+  handling
 - **ManifestUtils comprehensive coverage**: Input validation, error handling, edge cases
 - **TestOrderedMerkle complete verification**: All proof validation scenarios and edge cases
 - **System integration patterns**: Cross-contract interactions and state management
@@ -83,7 +97,7 @@ Add these commands to your CI pipeline:
 - name: Run Facet Size Cap Tests
   run: npx hardhat test test/facet-size-cap.spec.ts
 
-- name: Run Orchestrator Integration Tests  
+- name: Run Orchestrator Integration Tests
   run: npx hardhat test test/orchestrator-integration.spec.ts
 
 - name: Run Coverage Enhancement Tests
@@ -101,7 +115,7 @@ Add these commands to your CI pipeline:
   FacetSizeCap
     ExampleFacetA runtime size: 1234 bytes
     ✓ Should verify ExampleFacetA runtime size is within EIP-170 limit
-    ExampleFacetB runtime size: 2345 bytes  
+    ExampleFacetB runtime size: 2345 bytes
     ✓ Should verify ExampleFacetB runtime size is within EIP-170 limit
 ```
 
@@ -177,3 +191,31 @@ Add these commands to your CI pipeline:
 - Verify manifest file exists at `manifests/current.manifest.json`
 - Check manifest generation scripts
 - Ensure proper manifest structure
+
+## AI Toolchain Integration
+
+PayRox Go Beyond includes a complete AI-powered development toolchain:
+
+### 🤖 **FacetForge** (`tools/facetforge/`)
+
+- **Intelligent Contract Analysis**: Complete Solidity parsing and complexity analysis
+- **Automated Chunking**: 3-strategy optimization (function/feature/gas)
+- **Manifest Generation**: PayRox-compatible deployment manifests
+- **CLI Tools**: Command-line interface for contract processing
+
+### 🎨 **AI Assistant** (`tools/ai-assistant/`)
+
+- **Backend Services**: REST API with AI-powered analysis
+- **Frontend Interface**: Modern React UI for contract development
+- **Storage Safety**: Automated storage layout conflict detection
+- **Deployment Simulation**: Full deployment preview and validation
+
+### 🧠 **Core AI Services**
+
+- **ContractRefactorWizard**: AI-powered facet suggestions
+- **FacetSimulator**: Inter-facet interaction testing
+- **StorageLayoutChecker**: Comprehensive storage safety validation
+- **DeploymentAssistant**: Orchestrated deployment configuration
+
+**📖 Complete Documentation**:
+[`docs/AI_TOOLCHAIN_TECHNICAL_REFERENCE.md`](../docs/AI_TOOLCHAIN_TECHNICAL_REFERENCE.md)
