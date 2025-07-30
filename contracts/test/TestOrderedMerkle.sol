@@ -13,7 +13,7 @@ contract TestOrderedMerkle {
     /**
      * @dev Test wrapper for processProof with boolean array
      */
-    function processProof(
+    function processProofBoolArray(
         bytes32[] memory proof,
         bool[] memory isRight,
         bytes32 leaf
@@ -24,7 +24,7 @@ contract TestOrderedMerkle {
     /**
      * @dev Test wrapper for processProof with bitfield
      */
-    function processProof(
+    function processProofBitfield(
         bytes32 leaf,
         bytes32[] memory proof,
         uint256 positions
@@ -35,7 +35,7 @@ contract TestOrderedMerkle {
     /**
      * @dev Test wrapper for verify with boolean array
      */
-    function verify(
+    function verifyBoolArray(
         bytes32[] memory proof,
         bool[] memory isRight,
         bytes32 root,
@@ -47,7 +47,7 @@ contract TestOrderedMerkle {
     /**
      * @dev Test wrapper for verify with bitfield
      */
-    function verify(
+    function verifyBitfield(
         bytes32 leaf,
         bytes32[] memory proof,
         uint256 positions,

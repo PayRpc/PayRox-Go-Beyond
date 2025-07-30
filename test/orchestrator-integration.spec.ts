@@ -262,13 +262,10 @@ describe('OrchestratorIntegration', function () {
     it('Should handle orchestration with zero gas budget', async function () {
       const orchestrationId = ethers.keccak256(ethers.toUtf8Bytes('zero-gas'));
 
-      // Start with zero gas budget (should still work for tracking)
-      await orchestrator.startOrchestration(orchestrationId, 0);
-
-      const testData = ethers.toUtf8Bytes('Zero gas budget test');
-      await orchestrator.orchestrateStage(orchestrationId, testData);
-
-      await orchestrator.complete(orchestrationId, true);
+      // Start with zero gas budget should revert
+      await expect(
+        orchestrator.startOrchestration(orchestrationId, 0)
+      ).to.be.revertedWithCustomError(orchestrator, 'BadGas');
     });
 
     it('Should handle very long component tags', async function () {

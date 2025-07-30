@@ -187,7 +187,7 @@ describe('OrderedMerkle Utilities', function () {
       const proof = [leafB];
       const isRight = [true]; // leafB is on the right
 
-      const result = await orderedMerkle.verify(
+      const result = await orderedMerkle.verifyBoolArray(
         proof,
         isRight,
         expectedRoot,
@@ -206,7 +206,7 @@ describe('OrderedMerkle Utilities', function () {
       const proof = [leafB];
       const positions = 1; // bit 0 = 1, leafB is on the right
 
-      const result = await orderedMerkle.verify(
+      const result = await orderedMerkle.verifyBitfield(
         leafA,
         proof,
         positions,
@@ -232,7 +232,12 @@ describe('OrderedMerkle Utilities', function () {
       const proof = [sib1, level1_right];
       const positions = 2; // binary: 10 = bit1=1 (level1_right on right), bit0=0 (sib1 on left)
 
-      const result = await orderedMerkle.verify(leaf, proof, positions, root);
+      const result = await orderedMerkle.verifyBitfield(
+        leaf,
+        proof,
+        positions,
+        root
+      );
       expect(result).to.be.true;
     });
 
@@ -246,7 +251,7 @@ describe('OrderedMerkle Utilities', function () {
       const proof = [leafB];
       const wrongPositions = 0; // bit 0 = 0, claiming leafB is on the left (wrong!)
 
-      const result = await orderedMerkle.verify(
+      const result = await orderedMerkle.verifyBitfield(
         leafA,
         proof,
         wrongPositions,
@@ -261,7 +266,7 @@ describe('OrderedMerkle Utilities', function () {
       const positions = 0; // No siblings
 
       // For single leaf, root should equal the leaf itself
-      const result = await orderedMerkle.verify(
+      const result = await orderedMerkle.verifyBitfield(
         singleLeaf,
         emptyProof,
         positions,
@@ -277,7 +282,7 @@ describe('OrderedMerkle Utilities', function () {
       const proof = [sibling];
       const positions = 1; // Sibling on right
 
-      const computedRoot = await orderedMerkle.processProof(
+      const computedRoot = await orderedMerkle.processProofBitfield(
         leaf,
         proof,
         positions
@@ -305,7 +310,7 @@ describe('OrderedMerkle Utilities', function () {
         current = ethers.keccak256(ethers.concat([current, siblings[i]]));
       }
 
-      const result = await orderedMerkle.verify(
+      const result = await orderedMerkle.verifyBitfield(
         leaf,
         siblings,
         positions,

@@ -23,15 +23,31 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
+
+    - name: Verify Node.js version
+      run: |
+        echo "Node.js version: $(node --version)"
+        echo "NPM version: $(npm --version)"
     
     - name: Install dependencies
       run: npm ci
-    
+
+    - name: Clear cache
+      run: |
+        npm run clean
+        rm -rf node_modules/.cache
+        rm -rf cache
+        rm -rf artifacts
+      
     - name: Compile contracts
       run: npm run compile
     
     - name: Run tests
       run: npm run test
+      timeout-minutes: 10
+      env:
+        CI: true
+        NODE_ENV: test
     
     - name: Run coverage
       run: npm run coverage
@@ -73,7 +89,11 @@ jobs:
     #     myth analyze contracts/ --solv 0.8.20
     
     - name: Run production security tests
-      run: npx hardhat test test/production-security.spec.ts
+      run: |
+        npm run clean
+        npm run compile
+        npx hardhat test test/production-security.spec.ts
+      timeout-minutes: 5
 
   deploy-testnet:
     runs-on: ubuntu-latest

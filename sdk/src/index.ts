@@ -282,3 +282,14 @@ export {
   type SelectorInfo,
   type SelectorMap,
 } from './manifest/selector';
+
+// Re-export protocol constants for external tools
+export {
+  MAX_FACET_SIZE,
+  MAX_FACETS,
+  MAX_SELECTORS_PER_FACET,
+  PROTOCOL_LIMITS,
+  validateFacetCount,
+  validateFacetSize,
+  validateOperationType,
+} from '../../constants/limits';

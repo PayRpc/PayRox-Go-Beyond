@@ -60,6 +60,17 @@ contract TestManifestUtils {
     }
 
     /**
+     * @dev Test wrapper for validateManifest with custom policy
+     */
+    function testValidateManifestWithPolicy(
+        ManifestTypes.ReleaseManifest memory manifest,
+        ManifestTypes.SecurityPolicy memory policy
+    ) external pure returns (bool) {
+        (bool isValid, ) = ManifestUtils.validateManifest(manifest, policy);
+        return isValid;
+    }
+
+    /**
      * @dev Test wrapper for extractSelectors
      */
     function testExtractSelectors(

@@ -2,6 +2,10 @@ import { z } from 'zod';
 
 // Core contract analysis types
 
+// PayRox Go Beyond protocol limits - keep in sync with constants/limits.ts
+const MAX_FACET_SIZE = 24576; // EIP-170 limit
+const MAX_FACETS_TEST = 100; // Test environment limit
+
 // PayRox Go Beyond specific types
 export interface ManifestRoute {
   selector: string;
@@ -131,7 +135,7 @@ export interface FacetSplit {
   category: FacetCategory;
 }
 
-export type FacetCategory = 
+export type FacetCategory =
   | 'core'
   | 'access'
   | 'token'
@@ -304,7 +308,7 @@ export interface WSMessage {
   timestamp: number;
 }
 
-export type WSMessageType = 
+export type WSMessageType =
   | 'analysis_start'
   | 'analysis_progress'
   | 'analysis_complete'
@@ -328,7 +332,10 @@ export interface AnalysisProgress {
 export const ContractUploadSchema = z.object({
   sourceCode: z.string().min(1).max(100000),
   contractName: z.string().min(1).max(100).optional(),
-  solcVersion: z.string().regex(/^\d+\.\d+\.\d+$/).optional(),
+  solcVersion: z
+    .string()
+    .regex(/^\d+\.\d+\.\d+$/)
+    .optional(),
   optimizationRuns: z.number().int().min(0).max(1000000).optional(),
 });
 
@@ -337,12 +344,23 @@ export const AnalysisRequestSchema = z.object({
   contractName: z.string().min(1).max(100).optional(),
   analysisType: z.enum(['refactor', 'optimize', 'security', 'storage']),
   preferences: z.object({
-    maxFacets: z.number().int().min(1).max(20),
-    facetSizeLimit: z.number().int().min(1000).max(24000),
+    maxFacets: z.number().int().min(1).max(MAX_FACETS_TEST),
+    facetSizeLimit: z.number().int().min(1000).max(MAX_FACET_SIZE),
     gasOptimization: z.boolean(),
     securityFocus: z.boolean(),
     upgradeability: z.boolean(),
-    categories: z.array(z.enum(['core', 'access', 'token', 'governance', 'treasury', 'utility', 'admin', 'custom'])),
+    categories: z.array(
+      z.enum([
+        'core',
+        'access',
+        'token',
+        'governance',
+        'treasury',
+        'utility',
+        'admin',
+        'custom',
+      ])
+    ),
   }),
   constraints: z.object({
     networkGasLimit: z.number().int().min(1000000).max(50000000),
@@ -361,7 +379,18 @@ export const FacetModificationSchema = z.object({
     functions: z.array(z.string()).optional(),
     variables: z.array(z.string()).optional(),
     priority: z.number().int().min(0).max(10).optional(),
-    category: z.enum(['core', 'access', 'token', 'governance', 'treasury', 'utility', 'admin', 'custom']).optional(),
+    category: z
+      .enum([
+        'core',
+        'access',
+        'token',
+        'governance',
+        'treasury',
+        'utility',
+        'admin',
+        'custom',
+      ])
+      .optional(),
   }),
 });
 
@@ -377,7 +406,10 @@ export const DeploymentConfigSchema = z.object({
     deployer: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
     admin: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
     activationDelay: z.number().int().min(0),
-    emergencyRole: z.string().regex(/^0x[a-fA-F0-9]{40}$/).optional(),
+    emergencyRole: z
+      .string()
+      .regex(/^0x[a-fA-F0-9]{40}$/)
+      .optional(),
   }),
   features: z.object({
     upgradeability: z.boolean(),
