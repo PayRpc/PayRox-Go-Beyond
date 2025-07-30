@@ -1,13 +1,17 @@
 /* eslint-env node */
-import SolidityAnalyzer from './src/analyzers/SolidityAnalyzer.ts';
+/* global console, process */
+import SolidityAnalyzer from './src/analyzers/SolidityAnalyzer.js';
 
-// Test PayRox Go Beyond specific features
+/**
+ * Test PayRox Go Beyond specific features
+ * Analyzes contract structure and generates modular deployment recommendations
+ */
 async function testPayRoxFeatures() {
-  console.log('🚀 Testing PayRox Go Beyond Enhanced SolidityAnalyzer\n');
+  console.log('Testing PayRox Go Beyond Enhanced SolidityAnalyzer\n');
 
   const analyzer = new SolidityAnalyzer();
   
-  // Sample contract for testing
+  // Sample contract for testing PayRox modular deployment analysis
   const sampleContract = `
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
@@ -83,66 +87,90 @@ contract ExampleContract {
   try {
     const result = await analyzer.parseContract(sampleContract, 'ExampleContract');
     
-    console.log('✅ Contract Analysis Complete!\n');
-    console.log('📊 Basic Metrics:');
-    console.log(`   • Contract Name: ${result.name}`);
-    console.log(`   • Total Functions: ${result.functions.length}`);
-    console.log(`   • Total Variables: ${result.variables.length}`);
-    console.log(`   • Contract Size: ${result.totalSize} bytes`);
-    console.log(`   • Deployment Strategy: ${result.deploymentStrategy}`);
-    console.log(`   • Chunking Required: ${result.chunkingRequired ? 'Yes' : 'No'}\n`);
-
-    console.log('🎯 PayRox Go Beyond Specific Analysis:\n');
-    
-    console.log('📦 Facet Candidates:');
-    for (const [facetName, functions] of result.facetCandidates) {
-      console.log(`   • ${facetName}: ${functions.length} functions`);
-      functions.forEach(fn => {
-        console.log(`     - ${fn.name} (${fn.stateMutability}, ${fn.visibility})`);
-      });
-    }
-    
-    console.log('\n🛣️  Manifest Routes:');
-    result.manifestRoutes.slice(0, 5).forEach(route => {
-      console.log(`   • ${route.functionName}: ${route.selector} (${route.securityLevel} security)`);
-    });
-    
-    if (result.storageCollisions.length > 0) {
-      console.log('\n⚠️  Storage Warnings:');
-      result.storageCollisions.forEach(warning => {
-        console.log(`   • ${warning}`);
-      });
-    }
-
-    console.log(`\n🔐 Runtime Codehash: ${result.runtimeCodehash?.slice(0, 20)}...`);
-    
-    // Generate facet analysis report
-    const report = analyzer.generateFacetAnalysisReport(result);
-    
-    console.log('\n📋 Facet Analysis Report:');
-    console.log(`   • Deployment Strategy: ${report.deploymentStrategy}`);
-    console.log(`   • Facet Recommendations: ${report.facetRecommendations.length}`);
-    
-    console.log('\n💡 Gas Optimizations:');
-    report.gasOptimizations.forEach(opt => {
-      console.log(`   • ${opt}`);
-    });
-    
-    console.log('\n🔒 Security Considerations:');
-    report.securityConsiderations.forEach(sec => {
-      console.log(`   • ${sec}`);
-    });
-
-    if (report.chunkingStrategy) {
-      console.log(`\n📦 Chunking Strategy: ${report.chunkingStrategy}`);
-    }
-
-    console.log('\n🎉 PayRox Go Beyond Analysis Successful!');
-    console.log('   Ready for manifest-based modular deployment! 🚀');
+    printBasicMetrics(result);
+    printPayRoxAnalysis(result);
+    printFacetAnalysisReport(analyzer, result);
 
   } catch (error) {
-    console.error('❌ Analysis failed:', error);
+    console.error('Analysis failed:', error);
   }
+}
+
+/**
+ * Print basic contract metrics
+ */
+function printBasicMetrics(result) {
+  console.log('Contract Analysis Complete!\n');
+  console.log('Basic Metrics:');
+  console.log(`   Contract Name: ${result.name}`);
+  console.log(`   Total Functions: ${result.functions.length}`);
+  console.log(`   Total Variables: ${result.variables.length}`);
+  console.log(`   Contract Size: ${result.totalSize} bytes`);
+  console.log(`   Deployment Strategy: ${result.deploymentStrategy}`);
+  console.log(`   Chunking Required: ${result.chunkingRequired ? 'Yes' : 'No'}\n`);
+}
+
+/**
+ * Print PayRox-specific analysis results
+ */
+function printPayRoxAnalysis(result) {
+  console.log('PayRox Go Beyond Specific Analysis:\n');
+  
+  console.log('Facet Candidates:');
+  for (const [facetName, functions] of result.facetCandidates) {
+    console.log(`   ${facetName}: ${functions.length} functions`);
+    functions.forEach(fn => {
+      console.log(`     - ${fn.name} (${fn.stateMutability}, ${fn.visibility})`);
+    });
+  }
+  
+  console.log('\nManifest Routes:');
+  result.manifestRoutes.slice(0, 5).forEach(route => {
+    console.log(`   ${route.functionName}: ${route.selector} (${route.securityLevel} security)`);
+  });
+  
+  if (result.storageCollisions.length > 0) {
+    console.log('\nStorage Warnings:');
+    result.storageCollisions.forEach(warning => {
+      console.log(`   ${warning}`);
+    });
+  }
+
+  if (result.runtimeCodehash) {
+    console.log(`\nRuntime Codehash: ${result.runtimeCodehash.slice(0, 20)}...`);
+  }
+}
+
+/**
+ * Print detailed facet analysis report
+ */
+function printFacetAnalysisReport(analyzer, result) {
+  const report = analyzer.generateFacetAnalysisReport(result);
+  
+  console.log('\nFacet Analysis Report:');
+  console.log(`   Deployment Strategy: ${report.deploymentStrategy}`);
+  console.log(`   Facet Recommendations: ${report.facetRecommendations.length}`);
+  
+  if (report.gasOptimizations.length > 0) {
+    console.log('\nGas Optimizations:');
+    report.gasOptimizations.forEach(opt => {
+      console.log(`   ${opt}`);
+    });
+  }
+  
+  if (report.securityConsiderations.length > 0) {
+    console.log('\nSecurity Considerations:');
+    report.securityConsiderations.forEach(sec => {
+      console.log(`   ${sec}`);
+    });
+  }
+
+  if (report.chunkingStrategy) {
+    console.log(`\nChunking Strategy: ${report.chunkingStrategy}`);
+  }
+
+  console.log('\nPayRox Go Beyond Analysis Successful!');
+  console.log('   Ready for manifest-based modular deployment!');
 }
 
 // Run the test if this file is executed directly
