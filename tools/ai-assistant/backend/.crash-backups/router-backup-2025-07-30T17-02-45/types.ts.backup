@@ -1,4 +1,4 @@
-import { ethers } from 'ethers';
+import { ethers } from "ethers";
 
 export interface PayRoxConfig {
   factoryAddress: string;
@@ -58,24 +58,4 @@ export interface DispatchInfo {
   target: string;
   callData: string;
   value: string;
-}
-
-export interface ManifestRoute {
-  selector: string;
-  facet: string;
-  codehash: string;
-}
-
-export interface DeploymentManifest {
-  version: string;
-  timestamp: number;
-  network: string;
-  factory: string;
-  dispatcher: string;
-  routes: ManifestRoute[];
-  metadata: {
-    totalRoutes: number;
-    buildTime: string;
-    gasLimit: number;
-  };
 }

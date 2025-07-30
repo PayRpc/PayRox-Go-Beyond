@@ -1,0 +1,20 @@
+{
+  "backup_type": "crash_backup",
+  "timestamp": "2025-07-30T17:02:45",
+  "original_file": "sdk/src/manifest/router.ts",
+  "backup_reason": "User requested crash backup to preserve work",
+  "file_size_bytes": 7238,
+  "git_commit": "5fe8fa1",
+  "branch": "main",
+  "working_directory": "c:/Projects/PayRox-Go-Beyond_1",
+  "backup_location": "tools/ai-assistant/backend/.crash-backups/router-backup-2025-07-30T17-02-45/",
+  "files_backed_up": ["router.ts.backup"],
+  "context": {
+    "ci_status": "green",
+    "test_coverage": "89.66%",
+    "total_tests": 166,
+    "typescript_errors": "intellisense_only",
+    "compilation_status": "working"
+  },
+  "notes": "Backup created before potential changes to fix TypeScript import issues. CI is currently passing, all tests working."
+}
