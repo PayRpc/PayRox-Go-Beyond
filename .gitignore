@@ -34,6 +34,8 @@ coverage.json
 .slither/
 slither-results.json
 slither-output/
+mythril-output/
+solhint-report.txt
 
 # IDE files
 .vscode/
@@ -41,6 +43,12 @@ slither-output/
 *.swp
 *.swo
 *~
+
+# VS Code specific
+.vscode/settings.json
+.vscode/launch.json
+.vscode/extensions.json
+.vscode/tasks.json
 
 # OS generated files
 .DS_Store
@@ -87,6 +95,7 @@ deployments/*/
 # Gas reports
 gas-report.txt
 .gas-snapshot
+gas-usage.json
 
 # Python environments (for Slither/other tools)
 __pycache__/
@@ -94,6 +103,31 @@ __pycache__/
 *$py.class
 venv/
 env/
+.python-version
 
 # Local development
 .local/
+
+# Backup files
+*.backup
+*.bak
+*.orig
+
+# Crash backups (keep structure but not actual backups)
+tools/ai-assistant/backend/.crash-backups/*backup
+tools/ai-assistant/backend/.crash-backups/*/
+!tools/ai-assistant/backend/.crash-backups/.gitkeep
+
+# Deployment artifacts
+deployments/*/
+!deployments/.gitkeep
+
+# Test artifacts
+test-results/
+junit.xml
+test-coverage.xml
+
+# Blockchain specific
+ganache-db/
+.ganache/
+.hardhat_network_manifest.json

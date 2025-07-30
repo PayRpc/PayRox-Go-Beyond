@@ -1,0 +1,2 @@
+# This file ensures the crash-backups directory structure is preserved in git
+# while excluding actual backup files as per .gitignore rules
