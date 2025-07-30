@@ -90,80 +90,120 @@ npx hardhat run scripts/route-proof-selfcheck.ts
 
 ### 5. **PayRox Production Utilities** ⭐ **NEW**
 
-**Purpose**: Production-grade manifest validation, chunk prediction, and staging utilities
+**Purpose**: Provide production-grade utilities to validate manifests exactly as enforced on-chain,
+and to predict & stage chunks via the deployed DeterministicChunkFactory (ensuring parity with its
+CREATE2/prologue policy).
 
 #### 5.1 Manifest Self-Check Task
 
-**Purpose**: Validates manifest integrity and cryptographic consistency
+**Command**:
+
+```bash
+npx hardhat payrox:manifest:selfcheck --path <manifest.json> [--check-facets true] [--network <net>]
+```
 
 **What it does**:
 
-- Loads and validates manifest structure (supports both `root` and `merkleRoot` fields)
-- Verifies route proofs against Merkle root (when proof data available)
-- Computes manifest hash for integrity verification (when header present)
-- Handles multiple manifest formats gracefully
+- Loads a manifest JSON and verifies every route against the manifest root using:
+  - Leaf: `keccak256(abi.encode(bytes4 selector, address facet, bytes32 codehash))`
+  - Ordered-pair hashing (no sorting), with a positions bitfield (LSB-first)
+  - Bitfield guardrail: rejects any set bits beyond proof.length
+- Recomputes and prints the canonical manifestHash:
+  ```solidity
+  keccak256(abi.encode(
+    header.versionBytes32,
+    header.timestamp,
+    header.deployer,
+    header.chainId,
+    header.previousHash,
+    root
+  ))
+  ```
+- (Optional) `--check-facets true`: Fetches runtime code via `provider.getCode(facet)` and compares
+  off-chain `keccak256(code)` with each route's codehash
 
-**Run with**:
+**Required inputs**: `root` (hex 0x…32b), `header.versionBytes32`, `header.timestamp`,
+`header.deployer`, `header.chainId`, `header.previousHash`. Each route must include `selector`,
+`facet`, `codehash`, `proof[]`, and `positions`.
+
+**Examples**:
 
 ```bash
-npx hardhat payrox:manifest:selfcheck --path manifests/current.manifest.json
-npx hardhat payrox:manifest:selfcheck --path manifests/smoke-test.manifest.json
+# Basic structural & cryptographic verification
+npx hardhat payrox:manifest:selfcheck --path manifests/manifest.smoke.json --network hardhat
+
+# Plus off-chain EXTCODEHASH parity (recommended on testnets)
+npx hardhat payrox:manifest:selfcheck --path manifests/current.manifest.json --check-facets true --network sepolia
 ```
 
-**Expected Output**:
+**Successful output**:
 
 ```text
-ℹ️  No route proofs found in manifest for verification
-ℹ️  No header found for manifest hash computation
-```
-
-_OR (with full manifest):_
-
-```text
-✅ 5 route proofs verified against root.
-📦 manifestHash: 0x1234...
+✅ All route proofs verified against root.
+📦 manifestHash: 0x0c1c…b9ad
 ```
 
 #### 5.2 Chunk Address Prediction
 
-**Purpose**: Predicts chunk deployment addresses before staging
+**Command**:
+
+```bash
+npx hardhat payrox:chunk:predict --factory <factoryAddress> (--data 0x...)|(--file path) [--network <net>]
+```
 
 **What it does**:
 
-- Uses deployed DeterministicChunkFactory for address prediction
-- Ensures exact same creation code/salt policy as contract
-- Supports both hex data and file input
+- Calls the deployed `DeterministicChunkFactory.predict(bytes)` to compute the deterministic address
+- Because prediction is delegated to the contract, the result always reflects the exact creation
+  code and any enabled revert-prologue policy
 
-**Run with**:
+**Examples**:
 
 ```bash
-npx hardhat payrox:chunk:predict --factory 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512 --data 0x1234567890abcdef
-npx hardhat payrox:chunk:predict --factory 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512 --file path/to/bytecode.hex
+# Hex payload inline
+npx hardhat payrox:chunk:predict --factory 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512 --data 0x1234 --network localhost
+
+# From file (auto-detects hex vs binary; binary is hex-encoded)
+npx hardhat payrox:chunk:predict --factory 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512 --file ./build/myblob.bin --network localhost
 ```
 
-**Note**: Requires deployed DeterministicChunkFactory with `predict(bytes)` method
+**Output**:
+
+```text
+📍 predicted chunk: 0xABCD...1234
+🔎 content hash:   0xdeadbeef… (if the contract returns it)
+```
 
 #### 5.3 Chunk Staging
 
-**Purpose**: Stages chunk data on-chain with size validation and gas estimation
+**Command**:
+
+```bash
+npx hardhat payrox:chunk:stage --factory <factoryAddress> (--data 0x...)|(--file path) [--value <eth>] [--network <net>]
+```
 
 **What it does**:
 
-- Validates chunk data size and format
-- Executes staging transaction through DeterministicChunkFactory
-- Returns transaction hash and confirmation
-- Provides gas usage feedback
+- Submits a `stage(bytes)` tx to the factory:
+  - Enforces size limit (≤ 24,000 bytes payload by policy)
+  - Enforces fees when enabled (send `--value` equal to current base fee; zero is fine when fees are
+    disabled)
+  - Emits `ChunkDeployed(hash, chunk, size)` on success
 
-**Run with**:
+**Example**:
 
 ```bash
-npx hardhat payrox:chunk:stage --factory 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512 --data 0x1234567890abcdef
+npx hardhat payrox:chunk:stage \
+  --factory 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512 \
+  --file ./build/myblob.bin \
+  --value 0.001 \
+  --network localhost
 ```
 
-**Expected Output**:
+**Expected output**:
 
 ```text
-⛓️  stage(tx): 0xbba2874704d502f03c4adf8054c615537e78c78628cad160072e45311a10c855
+⛓️  stage(tx): 0xbba2874704d502f03c4adf8054c615537e78c78628cad160072e45311a...
 ✅ mined in block 1
 ```
 

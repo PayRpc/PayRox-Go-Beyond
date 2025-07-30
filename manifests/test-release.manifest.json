@@ -1,0 +1,13 @@
+{
+  "version": "1.0.0",
+  "timestamp": 1722326400,
+  "merkleRoot": "0x0000000000000000000000000000000000000000000000000000000000000000",
+  "routes": [
+    {
+      "selector": "0x12345678",
+      "facet": "0x24432a08869578aAf4d1eadA12e1e78f171b1a2b",
+      "name": "ExampleFacetA",
+      "codehash": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
+    }
+  ]
+}

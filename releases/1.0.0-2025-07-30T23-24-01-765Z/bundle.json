@@ -1,0 +1,66 @@
+{
+  "version": "1.0.0",
+  "timestamp": 1753917841,
+  "network": "hardhat",
+  "manifest": {
+    "version": "1.0.0-production",
+    "timestamp": "2025-07-30T23:25:00.000Z",
+    "description": "Production release with working FacetA deployment",
+    "network": {
+      "name": "localhost",
+      "chainId": "31337"
+    },
+    "factory": "0x90b97E83e22AFa2e6A96b3549A0E495D5Bae61aF",
+    "merkleRoot": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "routes": [
+      {
+        "selector": "0xb5211ec4",
+        "facet": "0xDDa0648FA8c9cD593416EC37089C2a2E6060B45c",
+        "name": "ExampleFacetA",
+        "function": "executeA"
+      },
+      {
+        "selector": "0x54f6127f",
+        "facet": "0xDDa0648FA8c9cD593416EC37089C2a2E6060B45c",
+        "name": "ExampleFacetA",
+        "function": "getData"
+      }
+    ]
+  },
+  "chunks": [
+    {
+      "name": "ExampleFacetA",
+      "address": "0xDDa0648FA8c9cD593416EC37089C2a2E6060B45c",
+      "size": 0,
+      "codehash": "missing"
+    },
+    {
+      "name": "ExampleFacetA",
+      "address": "0xDDa0648FA8c9cD593416EC37089C2a2E6060B45c",
+      "size": 0,
+      "codehash": "missing"
+    }
+  ],
+  "deployment": {
+    "dispatcher": "0xdb54fa574a3e8c6aC784e1a5cdB575A737622CFf",
+    "factory": "0x90b97E83e22AFa2e6A96b3549A0E495D5Bae61aF",
+    "deployer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    "blockNumber": 0,
+    "transactionHash": "0x0"
+  },
+  "verification": {
+    "manifestHash": "0x83c0155e6e1342c4ad7f902d2ec31e02ca0a46caf6f55dcd1c431e39a401e763",
+    "merkleRoot": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "routeCount": 2,
+    "timestamp": 1753917841,
+    "gasUsed": "0"
+  },
+  "signatures": {
+    "production-key": "0x977dc192466d87e099b3709191eb9d9065d44aebbd575b5405508951c90ea6dd25bcbde08c2588486e91a11030863c39c198be6c4a0a2d8819374bebb5466bb91c"
+  },
+  "incomplete": true,
+  "missingContracts": [
+    "ExampleFacetA at 0xDDa0648FA8c9cD593416EC37089C2a2E6060B45c",
+    "ExampleFacetA at 0xDDa0648FA8c9cD593416EC37089C2a2E6060B45c"
+  ]
+}

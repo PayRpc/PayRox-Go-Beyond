@@ -1,0 +1,19 @@
+{
+  "version": "1.0.0-test",
+  "timestamp": "2025-07-30T23:20:00.000Z",
+  "description": "Minimal working test manifest",
+  "network": {
+    "name": "localhost",
+    "chainId": "31337"
+  },
+  "factory": "0xF66CfDf074D2FFD6A4037be3A669Ed04380Aef2B",
+  "merkleRoot": "0x0000000000000000000000000000000000000000000000000000000000000000",
+  "routes": [
+    {
+      "selector": "0xb5211ec4",
+      "facet": "0x20d7B364E8Ed1F4260b5B90C41c2deC3C1F6D367",
+      "name": "ExampleFacetA",
+      "function": "executeA"
+    }
+  ]
+}

@@ -3,7 +3,11 @@ import * as dotenv from 'dotenv';
 import 'hardhat-contract-sizer';
 import { HardhatUserConfig } from 'hardhat/config';
 import 'solidity-coverage';
+// Import tasks
 import './tasks/payrox';
+import './tasks/payrox-release';
+import './tasks/payrox-ops';
+import './tasks/payrox-roles';
 
 dotenv.config();
 

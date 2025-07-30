@@ -1,16 +1,22 @@
 {
   "ExampleFacetA": {
     "address": "0x893779B6cDcD5FbA62c072e49a38d5901Ed7Bef4",
-    "salt": "0x027a5f51700ada2bf3bd13e3ce487d055e0a30bbdf50773847698f4c0b544f1b",
+    "salt": "0xf8e87fd90f9e8b5fdfc4a5117cb8999c1284c835e7faa5d54396f1a34cfb9ff5",
     "hash": "0x027a5f51700ada2bf3bd13e3ce487d055e0a30bbdf50773847698f4c0b544f1b",
     "size": 3517,
-    "gasLimit": 500000
+    "gasLimit": 500000,
+    "staged": true,
+    "stagingTime": "2025-07-30T23:21:44.039Z",
+    "predictedAddress": "0x99308EF4ad8cA463dE2045a209e9E8582E360300"
   },
   "ExampleFacetB": {
     "address": "0x7D9523612fa13981cD9a2A9b1E85713984FE9c12",
-    "salt": "0xf84333b460438bb427a4f59ef5faf1858b88e1b540d01b4a08784cb50c864949",
+    "salt": "0x56814959a7427c6ce0853eed01fb7dee509dbfcc085a7a0596ebc2843922cd17",
     "hash": "0xf84333b460438bb427a4f59ef5faf1858b88e1b540d01b4a08784cb50c864949",
     "size": 5370,
-    "gasLimit": 750000
+    "gasLimit": 750000,
+    "staged": true,
+    "stagingTime": "2025-07-30T23:21:44.046Z",
+    "predictedAddress": "0x4E48b7E6dF945351131615E19285b8d04D04f7AC"
   }
 }
