@@ -5,21 +5,28 @@
  * across the entire codebase including contracts, tests, SDK, and tools.
  */
 
+// Import centralized system constants
+import { FACET_LIMITS, GAS_LIMITS, TEST_LIMITS } from './system';
+
 export const PROTOCOL_LIMITS = {
-  // Facet Limits
-  MAX_FACETS_PRODUCTION: 256, // Production deployment limit
-  MAX_FACETS_TEST: 100, // Test environment limit
-  MAX_FACET_SIZE: 24576, // 24KB - EIP-170 contract size limit
-  MAX_FACET_RUNTIME_SIZE: 24576, // 24KB - Runtime bytecode limit
-  MAX_SELECTORS_PER_FACET: 64, // Maximum function selectors per facet
+  // Facet Limits (from system.ts)
+  MAX_FACETS_PRODUCTION: FACET_LIMITS.MAX_FACET_COUNT, // 256 - Production deployment limit
+  MAX_FACETS_TEST: TEST_LIMITS.UNIT_TEST_FACET_COUNT, // 10 - Unit test environment limit
+  MAX_FACETS_INTEGRATION: TEST_LIMITS.INTEGRATION_TEST_FACET_COUNT, // 50 - Integration test limit
+  MAX_FACETS_E2E: TEST_LIMITS.E2E_TEST_FACET_COUNT, // 256 - End-to-end test limit
+  MAX_FACET_SIZE: FACET_LIMITS.MAX_FACET_SIZE, // 24KB - EIP-170 contract size limit
+  MAX_FACET_RUNTIME_SIZE: FACET_LIMITS.MAX_FACET_RUNTIME_SIZE, // 24KB - Runtime bytecode limit
+  MAX_SELECTORS_PER_FACET: FACET_LIMITS.MAX_SELECTORS_PER_FACET, // 64 - Maximum function selectors per facet
 
   // Batch Operation Limits
   MAX_BATCH_SIZE: 50, // Maximum batch operation size
   MAX_MESSAGES_PER_BATCH: 10, // ExampleFacetA batch message limit
 
-  // Gas Limits
-  MAX_GAS_PER_TRANSACTION: 30000000, // Block gas limit consideration
-  DEFAULT_GAS_LIMIT: 500000, // Default gas limit for operations
+  // Gas Limits (from system.ts)
+  MAX_GAS_PER_TRANSACTION: GAS_LIMITS.DEFAULT_DEPLOYMENT, // 30M - Block gas limit consideration
+  DEFAULT_GAS_LIMIT: GAS_LIMITS.ROUTE_UPDATE, // 500K - Default gas limit for operations
+  FACET_OPERATION_GAS: GAS_LIMITS.FACET_OPERATION, // 1M - Gas for facet operations
+  BASE_TRANSACTION_GAS: GAS_LIMITS.BASE_TRANSACTION, // 21K - Base transaction cost
 
   // Security Limits
   MAX_OPERATION_TYPE: 5, // ExampleFacetB operation type range (1-5)

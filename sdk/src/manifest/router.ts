@@ -1,5 +1,6 @@
 // sdk/src/manifest/router.ts
 import { ethers } from 'ethers';
+import { FACET_LIMITS, GAS_LIMITS } from '../../../constants/system';
 import { DeploymentManifest, ManifestRoute } from '../types';
 
 export interface RouterConfig {
@@ -115,7 +116,7 @@ export class ManifestRouter {
       metadata: {
         totalRoutes: routes.length,
         buildTime: new Date().toISOString(),
-        gasLimit: this.config.gasLimit || 30000000,
+        gasLimit: this.config.gasLimit || GAS_LIMITS.DEFAULT_DEPLOYMENT,
       },
     };
   }
@@ -126,6 +127,16 @@ export class ManifestRouter {
   validateRoutes(): { valid: boolean; errors: string[] } {
     const errors: string[] = [];
     const facetSelectors = new Map<string, string[]>();
+
+    // Check total facet count against system limits
+    const uniqueFacets = new Set(
+      Array.from(this.routes.values()).map(r => r.facet)
+    );
+    if (uniqueFacets.size > FACET_LIMITS.MAX_FACET_COUNT) {
+      errors.push(
+        `Total facet count ${uniqueFacets.size} exceeds maximum limit of ${FACET_LIMITS.MAX_FACET_COUNT}`
+      );
+    }
 
     // Group selectors by facet
     for (const [selector, target] of this.routes) {
@@ -140,9 +151,9 @@ export class ManifestRouter {
 
     // Check for common patterns and potential issues
     for (const [facet, selectors] of facetSelectors) {
-      if (selectors.length > 50) {
+      if (selectors.length > FACET_LIMITS.MAX_SELECTORS_PER_FACET) {
         errors.push(
-          `Facet ${facet} has ${selectors.length} selectors (consider splitting)`
+          `Facet ${facet} has ${selectors.length} selectors (max: ${FACET_LIMITS.MAX_SELECTORS_PER_FACET})`
         );
       }
 
@@ -188,7 +199,7 @@ export class ManifestRouter {
    * Estimate gas for a function based on complexity
    */
   private estimateGasForFunction(func: ethers.JsonFragment): number {
-    let baseGas = 21000; // Base transaction cost
+    let baseGas = GAS_LIMITS.BASE_TRANSACTION; // Base transaction cost
 
     // Add gas based on input complexity
     baseGas += (func.inputs?.length || 0) * 1000;

@@ -1,6 +1,7 @@
 import { HardhatEthersSigner } from '@nomicfoundation/hardhat-ethers/signers';
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
+import { TEST_LIMITS } from '../constants/system';
 
 describe('Enhanced ManifestUtils Coverage', function () {
   let manifestUtils: any;
@@ -19,10 +20,10 @@ describe('Enhanced ManifestUtils Coverage', function () {
 
   describe('Advanced Manifest Validation', function () {
     it('Should handle validation with maximum facet counts', async function () {
-      // Create manifest with exactly at the limit
+      // Create manifest with exactly at the integration test limit
       const facets = [];
-      for (let i = 0; i < 100; i++) {
-        // At the default limit
+      for (let i = 0; i < TEST_LIMITS.INTEGRATION_TEST_FACET_COUNT; i++) {
+        // Use integration test limit (50 facets)
         facets.push({
           facetAddress: signer.address,
           selectors: [`0x${i.toString(16).padStart(8, '0')}`],
@@ -344,7 +345,7 @@ describe('Enhanced ManifestUtils Coverage', function () {
 
     it('Should handle large chunk collections', async function () {
       const largeChunkCollection = [];
-      for (let i = 0; i < 50; i++) {
+      for (let i = 0; i < TEST_LIMITS.INTEGRATION_TEST_FACET_COUNT; i++) {
         largeChunkCollection.push({
           chunkHash: ethers.keccak256(ethers.toUtf8Bytes(`chunk${i}`)),
           chunkAddress: i % 2 === 0 ? signer.address : user.address,

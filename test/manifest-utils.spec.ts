@@ -1,6 +1,7 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import { MAX_FACETS_TEST } from '../constants/limits';
+import { TEST_LIMITS } from '../constants/system';
 
 describe('ManifestUtils', function () {
   let manifestUtils: any;
@@ -193,7 +194,7 @@ describe('ManifestUtils', function () {
 
       const policy = {
         maxFacetSize: 24000,
-        maxFacetCount: 1, // Only allow 1 facet
+        maxFacetCount: 1, // Edge case: single facet test - intentionally minimal for specific test scenario
         requireMultisig: false,
         requireAudit: false,
         authorizedDeployers: [signer.address],
@@ -601,10 +602,10 @@ describe('ManifestUtils', function () {
     });
 
     it('Should handle manifest with maximum facets', async function () {
-      // Create a manifest close to the limit
+      // Create a manifest with integration test facet count
       const facets = [];
-      for (let i = 0; i < 50; i++) {
-        // Just under the limit
+      for (let i = 0; i < TEST_LIMITS.INTEGRATION_TEST_FACET_COUNT; i++) {
+        // Use integration test limit (50 facets)
         facets.push({
           facetAddress: signer.address, // Use valid address instead of ZeroAddress
           selectors: ['0x12345678'],
