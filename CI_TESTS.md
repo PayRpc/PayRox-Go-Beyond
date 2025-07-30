@@ -132,35 +132,30 @@ jobs:
 
 ## 🎯 Test Coverage Matrix
 
-| Test                         | Purpose                             | Status       | Coverage                        |
-| ---------------------------- | ----------------------------------- | ------------ | ------------------------------- |
-| **Facet Size Cap**           | EIP-170 compliance (≤ 24,576 bytes) | ✅ Passing   | Runtime bytecode validation     |
-| **Orchestrator Integration** | IChunkFactory interface compliance  | ✅ Passing   | Event emission, method calls    |
-| **Route Proof Self-Check**   | Merkle proof consistency            | ⚠️ Needs Fix | Ordered-pair hashing validation |
+| Test                         | Purpose                             | Status     | Coverage                        |
+| ---------------------------- | ----------------------------------- | ---------- | ------------------------------- |
+| **Facet Size Cap**           | EIP-170 compliance (≤ 24,576 bytes) | ✅ Passing | Runtime bytecode validation     |
+| **Orchestrator Integration** | IChunkFactory interface compliance  | ✅ Passing | Event emission, method calls    |
+| **Route Proof Self-Check**   | Merkle proof consistency            | ✅ Passing | Ordered-pair hashing validation |
 
 ## 🐛 Known Issues & Fixes Needed
 
-### 1. Route Proof Self-Check Failing
+### 1. Route Proof Self-Check Status
 
-**Issue**: Merkle root mismatch between computed and manifest values
+**Status**: ✅ **RESOLVED** - Merkle root validation now working correctly
 
-**Root Cause**: Likely inconsistency in leaf computation or tree building algorithm
+**Solution Applied**: Fixed algorithm inconsistency between `build-manifest.ts` and
+`route-proof-selfcheck.ts`
 
-**Fix Required**:
-
-```bash
-# Debug the leaf computation
-npx hardhat run scripts/debug-merkle-ordering.ts
-
-# Regenerate manifest with correct root
-npx hardhat run scripts/build-manifest.ts
-```
+- Implemented identical leaf sorting using `lexi` function
+- Replaced merkletreejs library with manual tree construction
+- Both scripts now generate matching Merkle roots
 
 ### 2. Missing npm Script
 
-**Issue**: `npm run test:acceptance` referenced but not defined
+**Status**: ✅ **RESOLVED** - All acceptance test scripts now available
 
-**Fix**: Add to `package.json`:
+**Solution Applied**: Added comprehensive test scripts to `package.json`:
 
 ```json
 {
@@ -171,6 +166,56 @@ npx hardhat run scripts/build-manifest.ts
     "test:route-proof": "hardhat run scripts/route-proof-selfcheck.ts --network hardhat"
   }
 }
+```
+
+## 🚀 System Enhancements
+
+### New SDK Components
+
+**Manifest Router** (`sdk/src/manifest/router.ts`)
+
+- Intelligent route building and management
+- ABI-based selector extraction
+- Route validation and conflict detection
+- Gas optimization and statistics
+
+**Selector Manager** (`sdk/src/manifest/selector.ts`)
+
+- Comprehensive function selector analysis
+- Collision detection with ERC standards
+- 4-byte mapping utilities
+- Human-readable reporting
+
+### FacetForge Toolset
+
+**CLI Tool** (`tools/facetforge/`)
+
+- Contract analysis and function extraction
+- Intelligent chunking strategies
+- Selector calculation and collision detection
+- Manifest building and validation
+- Comprehensive reporting (Markdown/JSON/HTML)
+
+**Available Commands**:
+
+```bash
+# Analyze contract structure
+facetforge analyze contracts/MyContract.sol
+
+# Plan optimal chunking
+facetforge chunk contracts/MyContract.sol --strategy function
+
+# Calculate selectors and detect collisions
+facetforge selectors contracts/MyContract.sol --check-collisions
+
+# Build deployment manifest
+facetforge manifest contracts/MyContract.sol --network sepolia
+
+# Validate existing manifest
+facetforge validate manifests/deployment.manifest.json
+
+# Generate comprehensive report
+facetforge report contracts/MyContract.sol --format markdown
 ```
 
 ## Performance Metrics

@@ -1,0 +1,44 @@
+{
+  "name": "@payrox/facetforge",
+  "version": "1.0.0",
+  "description": "PayRox FacetForge - Intelligent contract analysis and chunking",
+  "main": "src/index.js",
+  "bin": {
+    "facetforge": "src/index.js"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "jest",
+    "lint": "eslint src/**/*.js",
+    "build": "echo 'No build step required for Node.js'"
+  },
+  "keywords": [
+    "ethereum",
+    "solidity",
+    "smart-contracts",
+    "diamond-pattern",
+    "facets",
+    "analysis"
+  ],
+  "author": "PayRox Team",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^11.0.0",
+    "@solidity-parser/parser": "^0.16.0",
+    "ethers": "^6.7.0",
+    "fs-extra": "^11.1.1",
+    "chalk": "^4.1.2"
+  },
+  "devDependencies": {
+    "jest": "^29.5.0",
+    "eslint": "^8.44.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/PayRpc/PayRox-Go-Beyond.git",
+    "directory": "tools/facetforge"
+  }
+}

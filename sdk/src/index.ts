@@ -1,5 +1,5 @@
-import { ethers } from "ethers";
-import { PayRoxConfig, DeploymentResult, ManifestEntry } from "./types";
+import { ethers } from 'ethers';
+import { DeploymentResult, ManifestEntry, PayRoxConfig } from './types';
 
 /**
  * PayRox Go Beyond SDK
@@ -14,16 +14,32 @@ export class PayRoxSDK {
 
   constructor(config: PayRoxConfig) {
     this.config = config;
-    
+
     // Initialize contracts (ABIs would be imported from artifacts)
-    this.factory = new ethers.Contract(config.factoryAddress, [], config.provider);
-    this.dispatcher = new ethers.Contract(config.dispatcherAddress, [], config.provider);
-    this.orchestrator = new ethers.Contract(config.orchestratorAddress, [], config.provider);
-    
+    this.factory = new ethers.Contract(
+      config.factoryAddress,
+      [],
+      config.provider
+    );
+    this.dispatcher = new ethers.Contract(
+      config.dispatcherAddress,
+      [],
+      config.provider
+    );
+    this.orchestrator = new ethers.Contract(
+      config.orchestratorAddress,
+      [],
+      config.provider
+    );
+
     if (config.signer) {
       this.factory = this.factory.connect(config.signer) as ethers.Contract;
-      this.dispatcher = this.dispatcher.connect(config.signer) as ethers.Contract;
-      this.orchestrator = this.orchestrator.connect(config.signer) as ethers.Contract;
+      this.dispatcher = this.dispatcher.connect(
+        config.signer
+      ) as ethers.Contract;
+      this.orchestrator = this.orchestrator.connect(
+        config.signer
+      ) as ethers.Contract;
     }
   }
 
@@ -33,32 +49,36 @@ export class PayRoxSDK {
   async deployChunk(bytecode: string, salt: string): Promise<DeploymentResult> {
     try {
       if (!this.config.signer) {
-        throw new Error("Signer required for deployment");
+        throw new Error('Signer required for deployment');
       }
 
       const tx = await this.factory.deployChunk(bytecode, salt);
       const receipt = await tx.wait();
-      
+
       // Extract deployed address from events
-      const deployEvent = receipt.logs.find((log: ethers.Log) => 
-        log.topics[0] === ethers.id("ChunkDeployed(address,bytes32,address,uint256)")
+      const deployEvent = receipt.logs.find(
+        (log: ethers.Log) =>
+          log.topics[0] ===
+          ethers.id('ChunkDeployed(address,bytes32,address,uint256)')
       );
-      
+
       if (!deployEvent) {
-        throw new Error("Deployment event not found");
+        throw new Error('Deployment event not found');
       }
-      
-      const deployedAddress = ethers.getAddress(deployEvent.topics[1].slice(26));
-      
+
+      const deployedAddress = ethers.getAddress(
+        deployEvent.topics[1].slice(26)
+      );
+
       return {
         success: true,
         address: deployedAddress,
-        transactionHash: receipt.hash
+        transactionHash: receipt.hash,
       };
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : "Unknown error"
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
   }
@@ -66,23 +86,26 @@ export class PayRoxSDK {
   /**
    * Update the manifest in the dispatcher
    */
-  async updateManifest(entries: ManifestEntry[], manifestHash: string): Promise<DeploymentResult> {
+  async updateManifest(
+    entries: ManifestEntry[],
+    manifestHash: string
+  ): Promise<DeploymentResult> {
     try {
       if (!this.config.signer) {
-        throw new Error("Signer required for manifest update");
+        throw new Error('Signer required for manifest update');
       }
 
       const tx = await this.dispatcher.updateManifest(entries, manifestHash);
       const receipt = await tx.wait();
-      
+
       return {
         success: true,
-        transactionHash: receipt.hash
+        transactionHash: receipt.hash,
       };
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : "Unknown error"
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
   }
@@ -90,24 +113,32 @@ export class PayRoxSDK {
   /**
    * Dispatch a function call
    */
-  async dispatch(selector: string, callData: string, value = "0"): Promise<{
+  async dispatch(
+    selector: string,
+    callData: string,
+    value = '0'
+  ): Promise<{
     success: boolean;
     transactionHash: string;
     gasUsed: string;
   }> {
     try {
-      const tx = await this.dispatcher.dispatch(selector, callData, { 
-        value: ethers.parseEther(value) 
+      const tx = await this.dispatcher.dispatch(selector, callData, {
+        value: ethers.parseEther(value),
       });
       const receipt = await tx.wait();
-      
+
       return {
         success: receipt.status === 1,
         transactionHash: receipt.hash,
-        gasUsed: receipt.gasUsed.toString()
+        gasUsed: receipt.gasUsed.toString(),
       };
     } catch (error) {
-      throw new Error(`Dispatch failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+      throw new Error(
+        `Dispatch failed: ${
+          error instanceof Error ? error.message : 'Unknown error'
+        }`
+      );
     }
   }
 
@@ -131,11 +162,11 @@ export class PayRoxSDK {
   async getFactoryInfo() {
     const owner = await this.factory.owner();
     const totalChunks = await this.factory.totalChunks();
-    
+
     return {
       address: this.config.factoryAddress,
       owner,
-      totalChunks: totalChunks.toString()
+      totalChunks: totalChunks.toString(),
     };
   }
 
@@ -146,12 +177,12 @@ export class PayRoxSDK {
     const admin = await this.dispatcher.admin();
     const isPaused = await this.dispatcher.isPaused();
     const currentManifestHash = await this.dispatcher.currentManifestHash();
-    
+
     return {
       address: this.config.dispatcherAddress,
       admin,
       isPaused,
-      currentManifestHash
+      currentManifestHash,
     };
   }
 
@@ -172,23 +203,29 @@ export class PayRoxSDK {
   /**
    * Start an orchestration
    */
-  async startOrchestration(orchestrationId: string, gasLimit: number): Promise<DeploymentResult> {
+  async startOrchestration(
+    orchestrationId: string,
+    gasLimit: number
+  ): Promise<DeploymentResult> {
     try {
       if (!this.config.signer) {
-        throw new Error("Signer required for orchestration");
+        throw new Error('Signer required for orchestration');
       }
 
-      const tx = await this.orchestrator.startOrchestration(orchestrationId, gasLimit);
+      const tx = await this.orchestrator.startOrchestration(
+        orchestrationId,
+        gasLimit
+      );
       const receipt = await tx.wait();
-      
+
       return {
         success: true,
-        transactionHash: receipt.hash
+        transactionHash: receipt.hash,
       };
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : "Unknown error"
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
   }
@@ -206,20 +243,42 @@ export function generateSalt(input: string): string {
   return ethers.keccak256(ethers.toUtf8Bytes(input));
 }
 
-export function calculateManifestHash(manifest: Record<string, unknown>): string {
+export function calculateManifestHash(
+  manifest: Record<string, unknown>
+): string {
   return ethers.keccak256(ethers.toUtf8Bytes(JSON.stringify(manifest)));
 }
 
-export function encodeFunctionData(abi: ethers.InterfaceAbi, functionName: string, params: unknown[]): string {
+export function encodeFunctionData(
+  abi: ethers.InterfaceAbi,
+  functionName: string,
+  params: unknown[]
+): string {
   const iface = new ethers.Interface(abi);
   return iface.encodeFunctionData(functionName, params);
 }
 
-export function decodeFunctionResult(abi: ethers.InterfaceAbi, functionName: string, data: string): ethers.Result {
+export function decodeFunctionResult(
+  abi: ethers.InterfaceAbi,
+  functionName: string,
+  data: string
+): ethers.Result {
   const iface = new ethers.Interface(abi);
   return iface.decodeFunctionResult(functionName, data);
 }
 
 // Export types and classes
-export * from "./types";
+export * from './types';
 export { PayRoxSDK as default };
+
+// Export new manifest utilities
+export {
+  ManifestRouter,
+  type RouterConfig,
+  type RouteTarget,
+} from './manifest/router';
+export {
+  SelectorManager,
+  type SelectorInfo,
+  type SelectorMap,
+} from './manifest/selector';

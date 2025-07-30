@@ -1,4 +1,5 @@
 # Coverage threshold for CI/CD
+
 ## Repository Coverage Standards
 
 This project maintains high code coverage standards:
@@ -9,7 +10,7 @@ This project maintains high code coverage standards:
 
 ## Current Coverage Status
 
-**Overall Project Coverage: 73.02%** ✅ (Above 70% minimum threshold!)
+**Overall Project Coverage: 79.86%** ✅ (Above 70% minimum threshold, approaching 80% target!)
 
 Based on latest coverage report:
 
@@ -21,8 +22,8 @@ Based on latest coverage report:
 
 ### Utility Libraries
 
-- ⚠️ **ManifestUtils**: 41.51% (IMPROVED - but needs more tests)
-- ⚠️ **OrderedMerkle**: 42.86% (STABLE - needs improvement)
+- ✅ **ManifestUtils**: 84.91% (EXCELLENT - MAJOR IMPROVEMENT! 🎉)
+- ⚠️ **OrderedMerkle**: 14.29% (REGRESSION - needs test fixes)
 
 ### Facets
 
@@ -34,23 +35,23 @@ Based on latest coverage report:
 
 ✅ **Recent Achievements**:
 
+- **ManifestUtils**: 41.51% → 84.91% (COMPLETED ✅ - **MASSIVE 43.4% improvement!**)
 - **ExampleFacetA**: 0% → 77.78% (COMPLETED ✅)
 - **ExampleFacetB**: 0% → 75% (COMPLETED ✅)
 - **PingFacet**: 50% → 100% (COMPLETED ✅)
-- **ManifestUtils**: 0% → 41.51% (PARTIAL ⚠️)
-- **Overall Project**: ~40% → 73.02% (MAJOR IMPROVEMENT! 🎉)
+- **Overall Project**: 73.02% → 79.86% (MAJOR IMPROVEMENT! 🎉 - **6.84% gain!**)
 
 🎯 **Remaining Priorities**:
 
-- **ManifestUtils**: 41.51% → 80%+ (need more edge cases)
-- **OrderedMerkle**: 42.86% → 70%+ (branch coverage improvement)
-- **Orchestrator**: 76.32% → 80%+ (enhance error conditions)
+- **OrderedMerkle**: Fix test issues to restore coverage (regression from test conflicts)
 - **ManifestDispatcher**: 89.74% → 90%+ (final edge cases)
+- **Orchestrator**: 76.32% → 80%+ (enhance error conditions)
+- **Overall Project**: 79.86% → 82%+ (near completion!)
 
 📊 **Target Goals**:
 
-- Overall coverage: 73.02% → 80%+
-- All core contracts: 80%+ coverage
+- Overall coverage: 79.86% → 82%+ (VERY CLOSE! 🎯)
+- All core contracts: 80%+ coverage (ManifestUtils ✅, others close)
 - Critical security paths: 90%+ coverage
 
 ## Running Coverage
