@@ -1,0 +1,76 @@
+{
+  "security": {
+    "maxFacetSize": 24576,
+    "maxFacetRuntimeSize": 24576,
+    "maxFacetCount": 256,
+    "maxSelectorsPerFacet": 64,
+    "requiredEvents": [
+      "RootCommitted",
+      "RootActivated",
+      "RouteAdded",
+      "RouteRemoved",
+      "ActivationDelaySet",
+      "Frozen",
+      "Paused",
+      "Unpaused",
+      "OrchestrationStarted",
+      "OrchestrationCompleted",
+      "ComponentDeployed",
+      "ContractDeployed",
+      "ChunkStaged"
+    ],
+    "forbiddenSelectors": [
+      "0x00000000",
+      "0xffffffff",
+      "0x00ebb5f0",
+      "0xf2b0b9a1",
+      "0xadc6c3b2",
+      "0xb782ba50",
+      "0x96b896eb",
+      "0x62a5af3b",
+      "0x8456cb59",
+      "0x3f4ba83a"
+    ]
+  },
+  "invariants": {
+    "totalGasLimit": 30000000,
+    "maxDeploymentSize": 1048576,
+    "minimumConfirmations": 1,
+    "maxRetries": 3,
+    "timeoutSeconds": 300
+  },
+  "policy": {
+    "allowUpgrades": false,
+    "allowFacetReplacement": true,
+    "codehashEnforcement": true,
+    "merkleLeafEncoding": "abi.encode(selector,facet,codehash)",
+    "requireMultisig": true,
+    "auditRequired": true,
+    "testCoverageMinimum": 80,
+    "slitherRequired": true
+  },
+  "governance": {
+    "adminRoles": [
+      "DEFAULT_ADMIN_ROLE",
+      "COMMIT_ROLE",
+      "APPLY_ROLE",
+      "EMERGENCY_ROLE"
+    ],
+    "timelock": {
+      "enabled": true,
+      "delay": 86400
+    }
+  },
+  "monitoring": {
+    "eventTracking": true,
+    "gasTracking": true,
+    "performanceAlerts": true,
+    "securityAlerts": true
+  },
+  "compliance": {
+    "auditTrail": true,
+    "immutableDeployment": true,
+    "upgradeNotification": true,
+    "emergencyPause": true
+  }
+}

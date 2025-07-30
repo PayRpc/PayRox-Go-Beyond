@@ -1,0 +1,42 @@
+{
+  "ethereum": {
+    "chainId": 1,
+    "name": "Ethereum Mainnet",
+    "gasPerByte": 16,
+    "blockGasLimit": 30000000,
+    "feeRecipient": "0x0000000000000000000000000000000000000000",
+    "maxPriorityFeePerGas": "2000000000",
+    "maxFeePerGas": "50000000000",
+    "confirmations": 2
+  },
+  "sepolia": {
+    "chainId": 11155111,
+    "name": "Sepolia Testnet",
+    "gasPerByte": 16,
+    "blockGasLimit": 30000000,
+    "feeRecipient": "0x0000000000000000000000000000000000000000",
+    "maxPriorityFeePerGas": "1000000000",
+    "maxFeePerGas": "20000000000",
+    "confirmations": 1
+  },
+  "polygon": {
+    "chainId": 137,
+    "name": "Polygon Mainnet",
+    "gasPerByte": 16,
+    "blockGasLimit": 30000000,
+    "feeRecipient": "0x0000000000000000000000000000000000000000",
+    "maxPriorityFeePerGas": "30000000000",
+    "maxFeePerGas": "50000000000",
+    "confirmations": 3
+  },
+  "arbitrum": {
+    "chainId": 42161,
+    "name": "Arbitrum One",
+    "gasPerByte": 16,
+    "blockGasLimit": 32000000,
+    "feeRecipient": "0x0000000000000000000000000000000000000000",
+    "maxPriorityFeePerGas": "100000000",
+    "maxFeePerGas": "2000000000",
+    "confirmations": 1
+  }
+}

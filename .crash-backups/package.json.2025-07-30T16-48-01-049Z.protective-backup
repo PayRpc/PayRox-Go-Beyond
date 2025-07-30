@@ -1,0 +1,55 @@
+{
+  "name": "payrox-go-beyond",
+  "version": "1.0.0",
+  "description": "A comprehensive blockchain deployment and orchestration framework",
+  "main": "index.js",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "deploy:testnet": "hardhat run scripts/deploy.ts --network testnet",
+    "deploy:mainnet": "hardhat run scripts/deploy.ts --network mainnet",
+    "release": "hardhat oneclick-release",
+    "lint": "eslint . --ext .ts",
+    "lint:fix": "eslint . --ext .ts --fix",
+    "typechain": "hardhat typechain",
+    "clean": "hardhat clean",
+    "coverage": "hardhat coverage",
+    "size": "hardhat size-contracts",
+    "verify": "hardhat verify"
+  },
+  "keywords": [
+    "blockchain",
+    "ethereum",
+    "smart-contracts",
+    "hardhat",
+    "typescript",
+    "deployment",
+    "orchestration"
+  ],
+  "author": "PayRox Team",
+  "license": "MIT",
+  "devDependencies": {
+    "@eslint/js": "^9.15.0",
+    "@nomicfoundation/hardhat-toolbox": "^6.1.0",
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^24.1.0",
+    "@typescript-eslint/eslint-plugin": "^8.38.0",
+    "@typescript-eslint/parser": "^8.38.0",
+    "eslint": "^9.32.0",
+    "hardhat": "^2.26.1",
+    "hardhat-contract-sizer": "^2.10.0",
+    "js-yaml": "^4.1.0",
+    "solidity-coverage": "^0.8.16",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.4.0",
+    "chalk": "^5.4.1",
+    "commander": "^14.0.0",
+    "dotenv": "^17.2.1",
+    "ethers": "^6.15.0",
+    "merkletreejs": "^0.5.2",
+    "ora": "^8.2.0"
+  }
+}

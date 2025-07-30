@@ -1,0 +1,34 @@
+{
+  "version": "1.0.0-e2e",
+  "timestamp": "2025-07-30T04:56:58.307Z",
+  "merkleRoot": "0xc24c9a07c21c5d6e6f077f925f09a6a30bb9283a553ac497be29ad19ef5e2d2f",
+  "network": {
+    "name": "hardhat",
+    "chainId": 31337
+  },
+  "routes": [
+    {
+      "selector": "0x5c36b186",
+      "facet": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+      "codehash": "0xee9f73eb9045faafac507b0c74acbfc3cd775e3ab62b7797cc2c98957e7446f9"
+    },
+    {
+      "selector": "0xb5531d21",
+      "facet": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+      "codehash": "0xee9f73eb9045faafac507b0c74acbfc3cd775e3ab62b7797cc2c98957e7446f9"
+    }
+  ],
+  "proofs": {
+    "0x5c36b186": [
+      "0xecef03bd6b4315bc329acbdec734705b9c5c8cf30c7ca3d49901fa3e6136b416"
+    ],
+    "0xb5531d21": [
+      "0x63f37c1e4c2be4142b345770563c6ea559f6a411557eba58ac1416473e5c76ec"
+    ]
+  },
+  "deployment": {
+    "facetAddress": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+    "deployer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    "blockNumber": 1
+  }
+}

@@ -1,0 +1,80 @@
+# PayRox Go Beyond Release Configuration
+# Single source of truth for this release
+
+version: "1.0.0"
+releaseDate: "2025-07-28"
+description: "Initial release of PayRox Go Beyond deployment framework"
+
+# Facet Configuration
+facets:
+  - name: "ExampleFacetA"
+    contract: "ExampleFacetA"
+    # Provide function signatures; the builder will compute selectors
+    functions:
+      - "executeA(string)"
+      - "storeData(bytes32,bytes)"
+      - "getData(bytes32)"
+      - "getUserCount(address)"
+      - "batchExecute(string[])"
+      - "calculateHash(bytes)"
+      - "verifySignature(bytes32,bytes,address)"
+      - "totalExecutions()"
+      - "lastCaller()"
+      - "getFacetInfo()"
+    priority: 1
+    gasLimit: 500000
+
+  - name: "ExampleFacetB"
+    contract: "ExampleFacetB"
+    functions:
+      - "executeB(uint256,bytes)"
+      - "batchExecuteB(uint256[],bytes[])"
+      - "getOperation(bytes32)"
+      - "getUserOperations(address)"
+      - "complexCalculation(uint256[])"
+      - "togglePause()"
+      - "getStateSummary()"
+      - "getFacetInfo()"
+    priority: 2
+    gasLimit: 750000
+
+# Deployment Configuration
+deployment:
+  # These salts are only for the **core** components.
+  # Facet CREATE2 salts are derived deterministically as keccak256(runtime) by the toolchain.
+  factory:
+    salt: "0x0000000000000000000000000000000000000000000000000000000000000001"
+    gasLimit: 2000000
+
+  dispatcher:
+    salt: "0x0000000000000000000000000000000000000000000000000000000000000002"
+    gasLimit: 1500000
+    activationDelaySeconds: 900   # passes as constructor arg (optional, set 0 for immediate)
+
+  orchestrator:
+    salt: "0x0000000000000000000000000000000000000000000000000000000000000003"
+    gasLimit: 3000000
+
+# Security / Policy (used by preflight checks)
+security:
+  multisigRequired: true
+  minConfirmations: 2
+  maxFacetSize: 24576  # 24KB per facet (EIP-170-compliant)
+  # Require that the dispatcher emits these governance events in audits/tests
+  requiredEvents:
+    - "RootCommitted"
+    - "RootActivated"
+    - "RouteAdded"
+    - "RouteRemoved"
+    - "ActivationDelaySet"
+    - "Frozen"
+
+# Network-specific overrides
+networks:
+  mainnet:
+    gasMultiplier: 1.2
+    confirmations: 3
+
+  testnet:
+    gasMultiplier: 1.0
+    confirmations: 1
