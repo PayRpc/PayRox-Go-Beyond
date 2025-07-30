@@ -413,7 +413,10 @@ export class ChunkPlanner {
   }
 
   /**
-   * Validate chunk plan for deployment
+   * Validates a chunk plan to ensure it meets deployment requirements
+   * @param plan The chunk plan to validate
+   * @returns Object containing validation status and any error messages
+   * @throws None
    */
   validateChunkPlan(plan: ChunkPlan): { valid: boolean; errors: string[] } {
     const errors: string[] = [];
