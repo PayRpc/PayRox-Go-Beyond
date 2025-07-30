@@ -1,7 +1,7 @@
 {
   "header": {
-    "version": "smoke-1753854121429",
-    "timestamp": 1753854121,
+    "version": "smoke-1753918332848",
+    "timestamp": 1753918332,
     "deployer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
     "chainId": 31337,
     "previousHash": "0x0000000000000000000000000000000000000000000000000000000000000000"
@@ -9,10 +9,10 @@
   "routes": [
     {
       "selector": "0x5c36b186",
-      "facet": "0x0000000000000000000000000000000000000000",
-      "codehash": "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
+      "facet": "0x6A47346e722937B60Df7a1149168c0E76DD6520f",
+      "codehash": "0xee9f73eb9045faafac507b0c74acbfc3cd775e3ab62b7797cc2c98957e7446f9"
     }
   ],
-  "merkleRoot": "0x8738d6b807de5809106eb8924b28fccecade45fe3b7a677fab3a4cd6ccf885e0",
-  "root": "0x8738d6b807de5809106eb8924b28fccecade45fe3b7a677fab3a4cd6ccf885e0"
+  "merkleRoot": "0x23e7feda39a42cecf409d12c8ee72f43246ccc688f0b938692161e8f14f4de32",
+  "root": "0x23e7feda39a42cecf409d12c8ee72f43246ccc688f0b938692161e8f14f4de32"
 }

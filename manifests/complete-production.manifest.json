@@ -1,7 +1,7 @@
 {
-  "version": "1.0.0-production",
-  "timestamp": "2025-07-30T23:25:00.000Z",
-  "description": "Production release with working FacetA deployment",
+  "version": "1.0.0-production-complete",
+  "timestamp": "2025-07-30T23:30:00.000Z",
+  "description": "Complete production release with FacetA and FacetB deployed and ready for expansion",
   "network": {
     "name": "localhost",
     "chainId": "31337"
@@ -20,6 +20,18 @@
       "facet": "0xDDa0648FA8c9cD593416EC37089C2a2E6060B45c",
       "name": "ExampleFacetA",
       "function": "getData"
+    },
+    {
+      "selector": "0x37184e95",
+      "facet": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+      "name": "ExampleFacetB",
+      "function": "executeB"
+    },
+    {
+      "selector": "0x16c38b3c",
+      "facet": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+      "name": "ExampleFacetB",
+      "function": "setPaused"
     }
   ]
 }

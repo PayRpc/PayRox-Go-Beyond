@@ -1,11 +1,11 @@
 // tasks/payrox-release.ts
-import { task } from 'hardhat/config';
 import { createHash } from 'crypto';
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
+import { task } from 'hardhat/config';
 import { join } from 'path';
 import {
-  verifyRouteAgainstRoot,
   computeManifestHash,
+  verifyRouteAgainstRoot,
 } from '../src/payrox/orderedMerkle';
 
 interface ReleaseBundle {
@@ -105,7 +105,7 @@ task('payrox:release:bundle', 'Generate production-ready release bundle')
       if (code === '0x') {
         console.log(`   ⚠️  No code found at: ${route.name} (${facetAddress})`);
         missingContracts.push(`${route.name} at ${facetAddress}`);
-        
+
         // Add placeholder chunk for missing contract
         chunks.push({
           name: route.name || 'Unknown',
@@ -137,7 +137,9 @@ task('payrox:release:bundle', 'Generate production-ready release bundle')
     }
 
     if (missingContracts.length > 0) {
-      console.log(`\\n⚠️  WARNING: ${missingContracts.length} contracts missing code:`);
+      console.log(
+        `\\n⚠️  WARNING: ${missingContracts.length} contracts missing code:`
+      );
       missingContracts.forEach(contract => console.log(`     - ${contract}`));
       console.log('   This bundle will be marked as incomplete.');
     }
