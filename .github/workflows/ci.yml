@@ -99,8 +99,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [test, security]
     if: false # Disabled until secrets are configured
-
-    environment: testnet
+    # environment: testnet # Commented out until secrets are properly configured
 
     steps:
       - uses: actions/checkout@v4
@@ -117,16 +116,19 @@ jobs:
       - name: Deploy to testnet
         run: npm run deploy:testnet
         env:
-          TESTNET_RPC_URL: ${{ secrets.TESTNET_RPC_URL }}
-          DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
-          ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
+          # Secrets commented out until properly configured
+          # TESTNET_RPC_URL: ${{ secrets.TESTNET_RPC_URL }}
+          # DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
+          # ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
+          TESTNET_RPC_URL: 'http://localhost:8545' # Placeholder for disabled job
+          DEPLOYER_PRIVATE_KEY: '0x0000000000000000000000000000000000000000000000000000000000000000' # Placeholder
+          ETHERSCAN_API_KEY: 'placeholder' # Placeholder
 
   deploy-mainnet:
     runs-on: ubuntu-latest
     needs: [test, security]
     if: false # Disabled until secrets are configured
-
-    environment: mainnet
+    # environment: mainnet # Commented out until secrets are properly configured
 
     steps:
       - uses: actions/checkout@v4
@@ -143,11 +145,16 @@ jobs:
       - name: Deploy to mainnet
         run: npm run deploy:mainnet
         env:
-          MAINNET_RPC_URL: ${{ secrets.MAINNET_RPC_URL }}
-          DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
-          ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
+          # Secrets commented out until properly configured
+          # MAINNET_RPC_URL: ${{ secrets.MAINNET_RPC_URL }}
+          # DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
+          # ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
+          MAINNET_RPC_URL: 'https://eth-mainnet.placeholder.com' # Placeholder for disabled job
+          DEPLOYER_PRIVATE_KEY: '0x0000000000000000000000000000000000000000000000000000000000000000' # Placeholder
+          ETHERSCAN_API_KEY: 'placeholder' # Placeholder
 
       - name: Verify contracts
         run: npm run verify
         env:
-          ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
+          # ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
+          ETHERSCAN_API_KEY: 'placeholder' # Placeholder for disabled job
