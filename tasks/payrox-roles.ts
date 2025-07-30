@@ -2,25 +2,53 @@
 import { Contract } from 'ethers';
 import { task } from 'hardhat/config';
 
+interface RoleConfig {
+  commitRole: string;
+  applyRole: string;
+  emergencyRole: string;
+  feeRole: string;
+  operatorRole: string;
+  activationDelay: number;
+}
+
+interface RoleChange {
+  action: 'grant' | 'revoke';
+  role: string;
+  roleName: string;
+  account: string;
+  contract: 'dispatcher' | 'factory';
+}
+
 /**
  * payrox:roles:bootstrap
- * Initialize role-based access control for production deployment
+ * Setup production role-based access control with proper separation of duties
  */
 task('payrox:roles:bootstrap', 'Setup production role-based access control')
   .addParam('dispatcher', 'ManifestDispatcher address')
   .addOptionalParam('factory', 'DeterministicChunkFactory address')
-  .addOptionalParam('admin', 'Admin role address (default: deployer)')
-  .addOptionalParam('deployer', 'Deployer role address (default: deployer)')
-  .addOptionalParam('upgrader', 'Upgrader role address (default: deployer)')
-  .addOptionalParam('timelock', 'Timelock delay in seconds', '86400') // 24 hours
-  .addFlag('dryrun', 'Show what would be done without executing')
+  .addOptionalParam('commitRole', 'Address for COMMIT_ROLE (manifest commits)')
+  .addOptionalParam('applyRole', 'Address for APPLY_ROLE (route applications)')
+  .addOptionalParam(
+    'emergencyRole',
+    'Address for EMERGENCY_ROLE (pause/unpause)'
+  )
+  .addOptionalParam('feeRole', 'Address for FEE_ROLE (factory fee management)')
+  .addOptionalParam(
+    'operatorRole',
+    'Address for OPERATOR_ROLE (factory operations)'
+  )
+  .addOptionalParam('activationDelay', 'Activation delay in seconds', '86400') // 24 hours
+  .addFlag('dryRun', 'Show planned changes without executing')
+  .addFlag('force', 'Skip confirmations (use with caution)')
   .setAction(async (args, hre) => {
     const { ethers } = hre;
     const [signer] = await ethers.getSigners();
 
     console.log('🔐 PayRox Role Bootstrap');
+    console.log('========================');
     console.log(`📡 Network: ${hre.network.name}`);
     console.log(`👤 Signer: ${signer.address}`);
+    console.log(`📍 Dispatcher: ${args.dispatcher}`);
 
     const dispatcher = await ethers.getContractAt(
       'ManifestDispatcher',

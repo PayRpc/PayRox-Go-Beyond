@@ -1,0 +1,28 @@
+{
+  "monitoredSelectors": [
+    "0x5c36b186",
+    "0x7ab7b94b",
+    "0xb5211ec4",
+    "0x3c7264b2"
+  ],
+  "alertOnEvents": [
+    "RouteRemoved",
+    "RoutesRemoved",
+    "Frozen",
+    "FeesUpdated",
+    "Paused",
+    "Unpaused",
+    "ActivationDelaySet"
+  ],
+  "checkInterval": 30000,
+  "maxBlocks": 1000,
+  "alertSeverity": {
+    "Frozen": "CRITICAL",
+    "RouteRemoved": "CRITICAL",
+    "RoutesRemoved": "CRITICAL",
+    "Paused": "WARNING",
+    "FeesUpdated": "WARNING",
+    "ActivationDelaySet": "WARNING",
+    "Unpaused": "INFO"
+  }
+}

@@ -2,20 +2,39 @@
 import { Contract, EventLog } from 'ethers';
 import { task } from 'hardhat/config';
 
+interface AlertCondition {
+  type:
+    | 'RouteRemoved'
+    | 'Frozen'
+    | 'FeeChanged'
+    | 'CodehashMismatch'
+    | 'UnexpectedChange';
+  severity: 'WARNING' | 'CRITICAL' | 'INFO';
+  message: string;
+  details: any;
+  timestamp: number;
+  blockNumber: number;
+}
+
 /**
  * payrox:ops:watch
- * Monitors dispatcher and factory for unexpected changes
+ * Production monitoring and alerting for PayRox system
  */
-task('payrox:ops:watch', 'Monitor contracts for security events')
+task('payrox:ops:watch', 'Monitor PayRox system for operational issues')
   .addParam('dispatcher', 'ManifestDispatcher address')
   .addOptionalParam('factory', 'DeterministicChunkFactory address')
+  .addOptionalParam('bundle', 'Release bundle for baseline comparison')
   .addOptionalParam('selectors', 'Comma-separated selectors to monitor')
   .addOptionalParam('interval', 'Check interval in seconds', '30')
+  .addOptionalParam('duration', 'Watch duration in minutes (0 = infinite)', '0')
   .addFlag('once', 'Run once instead of continuous monitoring')
+  .addFlag('exitOnAlert', 'Exit with non-zero code on critical alerts')
+  .addFlag('verbose', 'Enable verbose logging')
   .setAction(async (args, hre) => {
     const { ethers } = hre;
 
-    console.log('🔍 Starting PayRox Operations Monitor...');
+    console.log('🔍 PayRox Operations Monitor');
+    console.log('============================');
     console.log(`📡 Network: ${hre.network.name}`);
     console.log(`📍 Dispatcher: ${args.dispatcher}`);
 

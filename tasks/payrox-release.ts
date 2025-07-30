@@ -147,6 +147,38 @@ task('payrox:release:bundle', 'Generate production-ready release bundle')
     // Verification
     console.log('\\n🔍 Performing verification...');
 
+    // Verify routes against deployed contracts
+    const codehashMismatches: any[] = [];
+    let totalVerifiedRoutes = 0;
+
+    for (const route of manifest.routes || []) {
+      const code = await ethers.provider.getCode(route.facet);
+      if (code !== '0x') {
+        const actualCodehash = ethers.keccak256(code);
+        if (route.codehash && route.codehash !== actualCodehash) {
+          codehashMismatches.push({
+            selector: route.selector,
+            facet: route.facet,
+            expected: route.codehash,
+            actual: actualCodehash,
+          });
+        } else {
+          totalVerifiedRoutes++;
+        }
+      }
+    }
+
+    const isComplete =
+      missingContracts.length === 0 && codehashMismatches.length === 0;
+    console.log(
+      `   ✅ Routes verified: ${totalVerifiedRoutes}/${
+        manifest.routes?.length || 0
+      }`
+    );
+    if (codehashMismatches.length > 0) {
+      console.log(`   ⚠️  Codehash mismatches: ${codehashMismatches.length}`);
+    }
+
     // Build minimal header for manifest hash computation
     const manifestHeader = {
       versionBytes32:
@@ -197,7 +229,8 @@ task('payrox:release:bundle', 'Generate production-ready release bundle')
     }
 
     // Create release bundle
-    const isComplete = missingContracts.length === 0;
+    const bundleComplete =
+      missingContracts.length === 0 && codehashMismatches.length === 0;
     const bundle: ReleaseBundle = {
       version: args.releaseVersion,
       timestamp: block?.timestamp || Math.floor(Date.now() / 1000),
@@ -222,9 +255,18 @@ task('payrox:release:bundle', 'Generate production-ready release bundle')
     };
 
     // Add completion status to bundle
-    (bundle as any).incomplete = !isComplete;
-    if (!isComplete) {
+    (bundle as any).incomplete = !bundleComplete;
+    (bundle as any).completionStatus = {
+      isComplete: bundleComplete,
+      totalRoutes: manifest.routes?.length || 0,
+      verifiedRoutes: totalVerifiedRoutes,
+      missingContracts: missingContracts.length,
+      codehashMismatches: codehashMismatches.length,
+    };
+
+    if (!bundleComplete) {
       (bundle as any).missingContracts = missingContracts;
+      (bundle as any).codehashMismatches = codehashMismatches;
     }
 
     // Signing
@@ -295,6 +337,97 @@ task('payrox:release:bundle', 'Generate production-ready release bundle')
       .digest('hex');
     console.log(`   ✅ deployment.json`);
 
+    // Enhanced bundle files for production
+
+    // Routes CSV for human review
+    const routesCsv = [
+      'selector,facet,codehash,function_sig,verified',
+      ...manifest.routes.map((r: any) => {
+        const verified =
+          !missingContracts.some(addr => addr.includes(r.facet)) &&
+          !codehashMismatches.some(m => m.facet === r.facet);
+        return `${r.selector},${r.facet},${
+          r.codehash || 'unknown'
+        },${getFunctionSignature(r.selector)},${verified}`;
+      }),
+    ].join('\\n');
+
+    const routesCsvPath = join(releaseDir, 'routes.csv');
+    writeFileSync(routesCsvPath, routesCsv);
+    checksums['routes.csv'] = createHash('sha256')
+      .update(routesCsv)
+      .digest('hex');
+    console.log(`   ✅ routes.csv`);
+
+    // Proofs for verification
+    const proofsData = {
+      root: manifest.root,
+      epoch: manifest.epoch,
+      routes: manifest.routes.map((r: any) => ({
+        selector: r.selector,
+        facet: r.facet,
+        codehash: r.codehash,
+        proof: r.proof || [],
+        positions: r.positions || '0x00',
+      })),
+    };
+
+    const proofsPath = join(releaseDir, 'proofs.json');
+    writeFileSync(proofsPath, JSON.stringify(proofsData, null, 2));
+    checksums['proofs.json'] = createHash('sha256')
+      .update(JSON.stringify(proofsData))
+      .digest('hex');
+    console.log(`   ✅ proofs.json`);
+
+    // Codehash mapping
+    const codehashMap: Record<string, string> = {};
+    for (const route of manifest.routes || []) {
+      if (route.codehash && route.facet) {
+        codehashMap[route.facet] = route.codehash;
+      }
+    }
+
+    const codehashMapPath = join(releaseDir, 'codehash-map.json');
+    writeFileSync(codehashMapPath, JSON.stringify(codehashMap, null, 2));
+    checksums['codehash-map.json'] = createHash('sha256')
+      .update(JSON.stringify(codehashMap))
+      .digest('hex');
+    console.log(`   ✅ codehash-map.json`);
+
+    // Chunk mapping (if available)
+    try {
+      const chunksMapPath = join(process.cwd(), 'manifests', 'chunks.map.json');
+      if (existsSync(chunksMapPath)) {
+        const chunksData = readFileSync(chunksMapPath, 'utf8');
+        const chunksDestPath = join(releaseDir, 'chunk-map.json');
+        writeFileSync(chunksDestPath, chunksData);
+        checksums['chunk-map.json'] = createHash('sha256')
+          .update(chunksData)
+          .digest('hex');
+        console.log(`   ✅ chunk-map.json`);
+      }
+    } catch (error) {
+      console.log(`   ⚠️  chunk-map.json not available`);
+    }
+
+    // Addresses mapping
+    const addresses = {
+      factory: args.factory,
+      dispatcher: args.dispatcher,
+      deployer: signer.address,
+      network: hre.network.name,
+      chainId:
+        manifest.header?.chainId ||
+        (await ethers.provider.getNetwork().then(n => n.chainId)),
+    };
+
+    const addressesPath = join(releaseDir, 'addresses.json');
+    writeFileSync(addressesPath, JSON.stringify(addresses, null, 2));
+    checksums['addresses.json'] = createHash('sha256')
+      .update(JSON.stringify(addresses))
+      .digest('hex');
+    console.log(`   ✅ addresses.json`);
+
     // README
     const readme = generateReleaseReadme(bundle, routeVerification);
     const readmePath = join(releaseDir, 'README.md');
@@ -315,17 +448,18 @@ task('payrox:release:bundle', 'Generate production-ready release bundle')
     console.log(`   Network: ${bundle.network}`);
     console.log(`   Chunks: ${bundle.chunks.length}`);
     console.log(`   Routes: ${bundle.verification.routeCount}`);
-    console.log(`   Complete: ${isComplete ? '✅' : '❌'}`);
+    console.log(`   Complete: ${bundleComplete ? '✅' : '❌'}`);
     console.log(`   Verified: ${routeVerification ? '✅' : '❌'}`);
     console.log(
       `   Signed: ${Object.keys(bundle.signatures).length > 0 ? '✅' : '❌'}`
     );
     console.log(`\\n📂 Files: ${releaseDir}`);
 
-    if (!isComplete) {
+    if (!bundleComplete) {
       console.log('\\n⚠️  WARNING: Incomplete bundle generated!');
       console.log(`   Missing contracts: ${missingContracts.length}`);
-      console.log('   Deploy missing contracts before production use.');
+      console.log(`   Codehash mismatches: ${codehashMismatches.length}`);
+      console.log('   Resolve issues before production use.');
     }
 
     if (!routeVerification) {
@@ -336,12 +470,41 @@ task('payrox:release:bundle', 'Generate production-ready release bundle')
     return {
       bundlePath,
       version: bundle.version,
-      complete: isComplete,
+      complete: bundleComplete,
       verified: routeVerification,
       signed: Object.keys(bundle.signatures).length > 0,
       missingContracts: missingContracts.length,
+      codehashMismatches: codehashMismatches.length,
     };
   });
+
+// Helper function to resolve function signatures
+function getFunctionSignature(selector: string): string {
+  const signatures: Record<string, string> = {
+    '0x5c36b186': 'ping()',
+    '0x3c7264b2': 'getFacetInfoB()',
+    '0x7ab7b94b': 'getFacetInfo()',
+    '0xb5211ec4': 'executeA(uint256)',
+    '0x03e8837c': 'getUserCount()',
+    '0xa0c1ca34': 'storeData(bytes32,uint256)',
+    '0x8bdb2afa': 'getData(bytes32)',
+    '0x02329a29': 'stop()',
+    '0x47e7ef24': 'deposit(address,uint256)',
+    '0xf3fef3a3': 'withdraw(address,uint256)',
+    '0x3ccfd60b': 'withdraw()',
+    '0x70a08231': 'balanceOf(address)',
+    '0xa22cb465': 'setApprovalForAll(address,bool)',
+    '0x8da5cb5b': 'owner()',
+    '0x9b19251a': 'getPaused()',
+    '0x16c38b3c': 'setPaused(bool)',
+    '0xd85d3d27': 'getTotalUsers()',
+    '0xba414fa6': 'getOwner()',
+    '0x8456cb59': 'pause()',
+    '0x3f4ba83a': 'unpause()',
+  };
+
+  return signatures[selector] || 'unknown()';
+}
 
 function generateReleaseReadme(
   bundle: ReleaseBundle,
