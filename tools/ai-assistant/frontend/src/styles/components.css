@@ -1,0 +1,449 @@
+/* PayRox Go Beyond - Component Styles */
+
+/* App Layout */
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-content {
+  flex: 1;
+}
+
+/* Header */
+.header {
+  background-color: var(--background-secondary);
+  border-bottom: 1px solid var(--border-light);
+  padding: var(--space-8) 0;
+}
+
+.header h1 {
+  color: var(--primary-600);
+  margin-bottom: var(--space-2);
+}
+
+.header p {
+  color: var(--text-secondary);
+  font-size: var(--font-size-lg);
+  margin-bottom: 0;
+}
+
+/* Contract Input Section */
+.contract-input {
+  background-color: var(--background-primary);
+  padding: var(--space-12) 0;
+}
+
+.analysis-form {
+  max-width: var(--max-width-4xl);
+  margin: 0 auto;
+}
+
+.form-group {
+  margin-bottom: var(--space-6);
+}
+
+.form-group label {
+  display: block;
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+  margin-bottom: var(--space-2);
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  max-width: 100%;
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 200px;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+}
+
+.form-actions {
+  display: flex;
+  gap: var(--space-4);
+  justify-content: flex-end;
+  margin-top: var(--space-8);
+}
+
+/* Button Styles */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-6);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-decoration: none;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background-color: var(--primary-600);
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: var(--primary-700);
+}
+
+.btn-primary:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgb(14 165 233 / 0.3);
+}
+
+.btn-secondary {
+  background-color: var(--background-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-medium);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: var(--background-tertiary);
+}
+
+.btn-secondary:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgb(148 163 184 / 0.3);
+}
+
+/* Analysis Results */
+.analysis-results {
+  background-color: var(--background-secondary);
+  padding: var(--space-12) 0;
+}
+
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: var(--space-6);
+  max-width: var(--max-width-6xl);
+  margin: var(--space-8) auto 0;
+}
+
+/* Card Styles */
+.metrics-card,
+.facets-card,
+.routes-card,
+.warnings-card,
+.optimizations-card,
+.security-card {
+  background-color: var(--background-primary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-sm);
+}
+
+.metrics-card h3,
+.facets-card h3,
+.routes-card h3,
+.warnings-card h3,
+.optimizations-card h3,
+.security-card h3 {
+  color: var(--text-primary);
+  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--border-light);
+}
+
+/* Metrics */
+.metrics-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.metric {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-2) 0;
+}
+
+.metric-label {
+  color: var(--text-secondary);
+  font-weight: var(--font-weight-medium);
+}
+
+.metric-value {
+  color: var(--text-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.metric-value.success {
+  color: var(--success-600);
+}
+
+.metric-value.warning {
+  color: var(--warning-600);
+}
+
+.strategy-single {
+  color: var(--primary-600);
+}
+
+.strategy-faceted {
+  color: var(--success-600);
+}
+
+.strategy-chunked {
+  color: var(--warning-600);
+}
+
+/* Facets */
+.facets-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.facet-item {
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  background-color: var(--background-secondary);
+}
+
+.facet-item h4 {
+  color: var(--primary-600);
+  margin-bottom: var(--space-1);
+}
+
+.facet-item p {
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--space-3);
+}
+
+.function-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.function-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-2);
+  background-color: var(--background-tertiary);
+  border-radius: var(--radius-base);
+}
+
+.function-item code {
+  font-size: var(--font-size-sm);
+  background: none;
+  padding: 0;
+}
+
+.function-meta {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+}
+
+/* Routes Table */
+.routes-table {
+  overflow-x: auto;
+}
+
+.routes-table table {
+  margin-bottom: 0;
+}
+
+.security-badge {
+  display: inline-block;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  text-transform: uppercase;
+}
+
+.security-critical {
+  background-color: var(--error-50);
+  color: var(--error-600);
+}
+
+.security-medium {
+  background-color: var(--warning-50);
+  color: var(--warning-600);
+}
+
+.security-low {
+  background-color: var(--success-50);
+  color: var(--success-600);
+}
+
+/* Lists */
+.warnings-list,
+.optimizations-list,
+.security-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.warning-item,
+.optimization-item,
+.security-item {
+  padding: var(--space-3);
+  margin-bottom: var(--space-2);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+}
+
+.warning-item {
+  background-color: var(--warning-50);
+  border-left: 4px solid var(--warning-500);
+  color: var(--warning-700);
+}
+
+.optimization-item {
+  background-color: var(--primary-50);
+  border-left: 4px solid var(--primary-500);
+  color: var(--primary-700);
+}
+
+.security-item {
+  background-color: var(--error-50);
+  border-left: 4px solid var(--error-500);
+  color: var(--error-700);
+}
+
+/* Error Display */
+.error-display {
+  background-color: var(--error-50);
+  padding: var(--space-8) 0;
+}
+
+.error-card {
+  max-width: var(--max-width-2xl);
+  margin: 0 auto;
+  padding: var(--space-6);
+  background-color: white;
+  border: 1px solid var(--error-200);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.error-card h3 {
+  color: var(--error-600);
+  margin-bottom: var(--space-3);
+}
+
+.error-card p {
+  color: var(--error-700);
+  margin-bottom: var(--space-4);
+}
+
+/* Footer */
+.footer {
+  background-color: var(--background-secondary);
+  border-top: 1px solid var(--border-light);
+  padding: var(--space-6) 0;
+  margin-top: auto;
+}
+
+.footer p {
+  color: var(--text-secondary);
+  text-align: center;
+  margin-bottom: 0;
+  font-size: var(--font-size-sm);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .results-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+  
+  .form-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .metric {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-1);
+  }
+  
+  .function-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-1);
+  }
+  
+  .routes-table {
+    font-size: var(--font-size-sm);
+  }
+}
+
+@media (max-width: 480px) {
+  .header {
+    padding: var(--space-6) 0;
+  }
+  
+  .contract-input,
+  .analysis-results {
+    padding: var(--space-8) 0;
+  }
+  
+  .btn {
+    padding: var(--space-3) var(--space-4);
+    font-size: var(--font-size-sm);
+  }
+}
+
+/* Dark theme adjustments */
+.dark .error-card {
+  background-color: var(--background-secondary);
+}
+
+.dark .warning-item {
+  background-color: rgba(251, 191, 36, 0.1);
+  color: var(--warning-400);
+}
+
+.dark .optimization-item {
+  background-color: rgba(14, 165, 233, 0.1);
+  color: var(--primary-400);
+}
+
+.dark .security-item {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: var(--error-400);
+}
+
+.dark .security-critical {
+  background-color: rgba(239, 68, 68, 0.2);
+  color: var(--error-400);
+}
+
+.dark .security-medium {
+  background-color: rgba(245, 158, 11, 0.2);
+  color: var(--warning-400);
+}
+
+.dark .security-low {
+  background-color: rgba(34, 197, 94, 0.2);
+  color: var(--success-400);
+}
