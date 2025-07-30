@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PayRox Go Beyond - AI Contract Modularization</title>
+  
+  <!-- Meta Tags -->
+  <meta name="description" content="AI-powered smart contract modularization and deployment platform using manifest-based routing and diamond patterns." />
+  <meta name="keywords" content="blockchain, smart contracts, solidity, modularization, AI, PayRox" />
+  <meta name="author" content="PayRox Go Beyond" />
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  
+  <!-- Theme Color -->
+  <meta name="theme-color" content="#0ea5e9" />
+  
+  <!-- Apple Touch Icon -->
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  
+  <!-- Open Graph Meta Tags -->
+  <meta property="og:title" content="PayRox Go Beyond - AI Contract Modularization" />
+  <meta property="og:description" content="AI-powered smart contract modularization and deployment platform" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://payrox.ai" />
+  
+  <!-- Preconnect to external domains for performance -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  
+  <!-- Prevent FOUC (Flash of Unstyled Content) -->
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background-color: #f8fafc;
+      color: #0f172a;
+    }
+    
+    #root {
+      min-height: 100vh;
+    }
+    
+    /* Loading state */
+    .loading-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    
+    .loading-spinner {
+      width: 2rem;
+      height: 2rem;
+      border: 2px solid #e2e8f0;
+      border-top: 2px solid #0ea5e9;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .loading-text {
+      color: #64748b;
+      font-size: 0.875rem;
+    }
+    
+    /* Hide loading when React has loaded */
+    .react-loaded .loading-container {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <noscript>
+    <div style="display: flex; align-items: center; justify-content: center; min-height: 100vh; text-align: center; padding: 2rem;">
+      <div>
+        <h1>JavaScript Required</h1>
+        <p>PayRox Go Beyond requires JavaScript to run. Please enable JavaScript in your browser settings.</p>
+      </div>
+    </div>
+  </noscript>
+  
+  <div id="root">
+    <!-- Loading fallback while React loads -->
+    <div class="loading-container">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">Loading PayRox Go Beyond...</div>
+    </div>
+  </div>
+  
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+</html>
