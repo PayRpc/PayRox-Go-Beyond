@@ -6,6 +6,10 @@
   "scripts": {
     "compile": "hardhat compile",
     "test": "hardhat test",
+    "test:acceptance": "npm run test:facet-size && npm run test:orchestrator && npm run test:route-proof",
+    "test:facet-size": "hardhat test test/facet-size-cap.spec.ts",
+    "test:orchestrator": "hardhat test test/orchestrator-integration.spec.ts",
+    "test:route-proof": "hardhat run scripts/route-proof-selfcheck.ts --network hardhat",
     "deploy:testnet": "hardhat run scripts/deploy.ts --network testnet",
     "deploy:mainnet": "hardhat run scripts/deploy.ts --network mainnet",
     "release": "hardhat oneclick-release",

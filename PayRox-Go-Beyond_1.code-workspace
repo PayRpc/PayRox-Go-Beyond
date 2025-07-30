@@ -1,8 +1,342 @@
 {
-	"folders": [
-		{
-			"path": "."
-		}
-	],
-	"settings": {}
+  "folders": [
+    {
+      "name": "PayRox Go Beyond",
+      "path": "."
+    }
+  ],
+  "settings": {
+    // TypeScript & JavaScript
+    "typescript.preferences.importModuleSpecifier": "relative",
+    "typescript.suggest.autoImports": true,
+    "typescript.updateImportsOnFileMove.enabled": "always",
+    "javascript.suggest.autoImports": true,
+    "typescript.inlayHints.parameterNames.enabled": "all",
+    "typescript.inlayHints.variableTypes.enabled": true,
+    "typescript.inlayHints.functionLikeReturnTypes.enabled": true,
+
+    // Solidity
+    "solidity.defaultCompiler": "remote",
+    "solidity.compileUsingRemoteVersion": "v0.8.20+commit.a1b79de6",
+    "solidity.formatter": "prettier",
+    "solidity.linter": "solhint",
+    "solidity.enabledAsYouTypeCompilationErrorCheck": true,
+    "solidity.validationDelay": 1500,
+
+    // Editor
+    "editor.formatOnSave": true,
+    "editor.formatOnPaste": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "explicit",
+      "source.organizeImports": "explicit"
+    },
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true,
+    "editor.detectIndentation": false,
+    "editor.rulers": [80, 120],
+    "editor.wordWrap": "bounded",
+    "editor.wordWrapColumn": 120,
+    "editor.bracketPairColorization.enabled": true,
+    "editor.guides.bracketPairs": true,
+    "editor.inlayHints.enabled": "on",
+
+    // Files
+    "files.trimTrailingWhitespace": true,
+    "files.insertFinalNewline": true,
+    "files.trimFinalNewlines": true,
+    "files.exclude": {
+      "**/node_modules": true,
+      "**/artifacts": true,
+      "**/cache": true,
+      "**/coverage": true,
+      "**/typechain-types": true,
+      "**/.git": true,
+      "**/.DS_Store": true,
+      "**/Thumbs.db": true
+    },
+    "files.watcherExclude": {
+      "**/node_modules/**": true,
+      "**/artifacts/**": true,
+      "**/cache/**": true,
+      "**/coverage/**": true,
+      "**/typechain-types/**": true
+    },
+
+    // Search
+    "search.exclude": {
+      "**/node_modules": true,
+      "**/artifacts": true,
+      "**/cache": true,
+      "**/coverage": true,
+      "**/typechain-types": true,
+      "**/package-lock.json": true,
+      "**/yarn.lock": true
+    },
+
+    // ESLint
+    "eslint.validate": [
+      "javascript",
+      "typescript",
+      "javascriptreact",
+      "typescriptreact"
+    ],
+    "eslint.format.enable": true,
+    "eslint.codeAction.showDocumentation": {
+      "enable": true
+    },
+    "eslint.run": "onType",
+    "eslint.alwaysShowStatus": true,
+
+    // Prettier
+    "prettier.configPath": ".prettierrc",
+    "prettier.requireConfig": false,
+    "prettier.useEditorConfig": false,
+    "prettier.ignorePath": ".prettierignore",
+
+    // Git
+    "git.autofetch": true,
+    "git.enableSmartCommit": true,
+    "git.confirmSync": false,
+    "git.ignoreLimitWarning": true,
+
+    // Terminal
+    "terminal.integrated.defaultProfile.windows": "PowerShell",
+    "terminal.integrated.profiles.windows": {
+      "PowerShell": {
+        "source": "PowerShell",
+        "icon": "terminal-powershell"
+      },
+      "Command Prompt": {
+        "path": [
+          "${env:windir}\\Sysnative\\cmd.exe",
+          "${env:windir}\\System32\\cmd.exe"
+        ],
+        "args": [],
+        "icon": "terminal-cmd"
+      }
+    },
+
+    // Explorer
+    "explorer.confirmDelete": false,
+    "explorer.confirmDragAndDrop": false,
+    "explorer.sortOrder": "type",
+    "explorer.fileNesting.enabled": true,
+    "explorer.fileNesting.patterns": {
+      "*.ts": "${capture}.js, ${capture}.d.ts, ${capture}.js.map",
+      "*.tsx": "${capture}.js, ${capture}.d.ts, ${capture}.js.map",
+      "package.json": "package-lock.json, yarn.lock, pnpm-lock.yaml",
+      "*.sol": "${capture}.dbg.json",
+      "hardhat.config.ts": "hardhat.config.js",
+      "tsconfig.json": "tsconfig.*.json",
+      "*.manifest.json": "${capture}.merkle.json"
+    },
+
+    // Workbench
+    "workbench.colorTheme": "Default Dark+",
+    "workbench.iconTheme": "vs-seti",
+    "workbench.editor.enablePreview": false,
+    "workbench.editor.limit.enabled": true,
+    "workbench.editor.limit.value": 10,
+
+    // Security
+    "security.workspace.trust.untrustedFiles": "open",
+
+    // Language specific
+    "[javascript]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[typescript]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[json]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[jsonc]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[markdown]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
+      "editor.wordWrap": "on",
+      "editor.quickSuggestions": {
+        "comments": "off",
+        "strings": "off",
+        "other": "off"
+      }
+    },
+    "[solidity]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+
+    // Testing
+    "mochaExplorer.files": "test/**/*.{js,ts}",
+    "mochaExplorer.require": "hardhat/register",
+
+    // Problems
+    "problems.decorations.enabled": true,
+    "problems.showCurrentInStatus": true
+  },
+  "extensions": {
+    "recommendations": [
+      // Solidity & Blockchain
+      "JuanBlanco.solidity",
+      "tintinweb.solidity-visual-auditor",
+      "tintinweb.vscode-solidity-language",
+
+      // TypeScript & JavaScript
+      "ms-vscode.vscode-typescript-next",
+      "bradlc.vscode-tailwindcss",
+      "esbenp.prettier-vscode",
+      "dbaeumer.vscode-eslint",
+
+      // Testing & Quality
+      "hbenl.vscode-mocha-test-adapter",
+      "ms-vscode.test-adapter-converter",
+      "ryanluker.vscode-coverage-gutters",
+      "SonarSource.sonarlint-vscode",
+
+      // Git & Version Control
+      "eamodio.gitlens",
+      "mhutchie.git-graph",
+      "donjayamanne.githistory",
+
+      // Productivity
+      "ms-vscode.vscode-json",
+      "redhat.vscode-yaml",
+      "bradlc.vscode-tailwindcss",
+      "ms-vscode.hexeditor",
+      "streetsidesoftware.code-spell-checker",
+
+      // Markdown & Documentation
+      "yzhang.markdown-all-in-one",
+      "DavidAnson.vscode-markdownlint",
+
+      // Workspace
+      "ms-vscode.vscode-typescript-next",
+      "ms-vscode-remote.remote-containers"
+    ]
+  },
+  "tasks": {
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "Hardhat: Compile",
+        "type": "shell",
+        "command": "npm",
+        "args": ["run", "compile"],
+        "group": "build",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared"
+        },
+        "problemMatcher": ["$tsc"]
+      },
+      {
+        "label": "Hardhat: Test",
+        "type": "shell",
+        "command": "npm",
+        "args": ["test"],
+        "group": "test",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared"
+        }
+      },
+      {
+        "label": "Hardhat: Coverage",
+        "type": "shell",
+        "command": "npm",
+        "args": ["run", "coverage"],
+        "group": "test",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared"
+        }
+      },
+      {
+        "label": "Frontend: Dev Server",
+        "type": "shell",
+        "command": "npm",
+        "args": ["run", "dev"],
+        "options": {
+          "cwd": "${workspaceFolder}/tools/ai-assistant/frontend"
+        },
+        "group": "build",
+        "isBackground": true,
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "dedicated"
+        },
+        "problemMatcher": {
+          "pattern": {
+            "regexp": "."
+          },
+          "background": {
+            "activeOnStart": true,
+            "beginsPattern": ".",
+            "endsPattern": "Local:.*"
+          }
+        }
+      },
+      {
+        "label": "Deploy: Local Network",
+        "type": "shell",
+        "command": "npx",
+        "args": [
+          "hardhat",
+          "run",
+          "scripts/deploy-factory.ts",
+          "--network",
+          "localhost"
+        ],
+        "group": "build",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared"
+        }
+      }
+    ]
+  },
+  "launch": {
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "Debug Tests",
+        "type": "node",
+        "request": "launch",
+        "program": "${workspaceFolder}/node_modules/.bin/hardhat",
+        "args": ["test"],
+        "console": "integratedTerminal",
+        "internalConsoleOptions": "neverOpen",
+        "skipFiles": ["<node_internals>/**"]
+      },
+      {
+        "name": "Debug Specific Test",
+        "type": "node",
+        "request": "launch",
+        "program": "${workspaceFolder}/node_modules/.bin/hardhat",
+        "args": ["test", "${input:testFile}"],
+        "console": "integratedTerminal",
+        "internalConsoleOptions": "neverOpen",
+        "skipFiles": ["<node_internals>/**"]
+      }
+    ],
+    "inputs": [
+      {
+        "id": "testFile",
+        "description": "Test file to run",
+        "default": "test/",
+        "type": "promptString"
+      }
+    ]
+  }
 }
