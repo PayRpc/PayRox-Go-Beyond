@@ -122,7 +122,6 @@ describe('Coverage Boost Tests - Target 95%+', function () {
           deployer: signer.address,
           chainId: 31337,
           previousHash: ethers.ZeroHash,
-          merkleRoot: ethers.ZeroHash,
         },
         facets: [
           {
@@ -134,6 +133,8 @@ describe('Coverage Boost Tests - Target 95%+', function () {
           },
         ],
         chunks: [],
+        merkleRoot: ethers.ZeroHash, // Move merkleRoot to top level
+        signature: '0x', // Add required signature field
       };
 
       // Use the simpler validation function
@@ -150,7 +151,6 @@ describe('Coverage Boost Tests - Target 95%+', function () {
           deployer: signer.address,
           chainId: 31337,
           previousHash: ethers.ZeroHash,
-          merkleRoot: ethers.ZeroHash,
         },
         facets: [
           {
@@ -170,6 +170,8 @@ describe('Coverage Boost Tests - Target 95%+', function () {
             verified: true,
           },
         ],
+        merkleRoot: ethers.ZeroHash, // Move merkleRoot to top level
+        signature: '0x', // Add required signature field
       };
 
       const isValid = await manifestUtils.testValidateManifest(
@@ -186,7 +188,6 @@ describe('Coverage Boost Tests - Target 95%+', function () {
           deployer: signer.address,
           chainId: 31337,
           previousHash: ethers.ZeroHash,
-          merkleRoot: ethers.ZeroHash,
         },
         facets: [
           {
@@ -206,6 +207,8 @@ describe('Coverage Boost Tests - Target 95%+', function () {
             verified: true,
           },
         ],
+        merkleRoot: ethers.ZeroHash, // Move merkleRoot to top level
+        signature: '0x', // Add required signature field
       };
 
       const isValid = await manifestUtils.testValidateManifest(
@@ -251,11 +254,11 @@ describe('Coverage Boost Tests - Target 95%+', function () {
     it('Should cover internal creation code edge cases', async function () {
       // Test prediction with various sizes
       const smallData = '0x01';
-      const predicted1 = await chunkFactory.predict(smallData);
+      const [predicted1] = await chunkFactory.predict(smallData);
       expect(predicted1.length).to.equal(42); // "0x" + 40 hex chars
 
       const largeData = '0x' + '42'.repeat(1000);
-      const predicted2 = await chunkFactory.predict(largeData);
+      const [predicted2] = await chunkFactory.predict(largeData);
       expect(predicted2.length).to.equal(42); // "0x" + 40 hex chars
       expect(predicted1).to.not.equal(predicted2);
     });
@@ -299,6 +302,12 @@ describe('Coverage Boost Tests - Target 95%+', function () {
     });
 
     it('Should handle batch operations with failures', async function () {
+      // Ensure contract is not paused
+      const [, , , isPaused] = await exampleFacetB.getStateSummary();
+      if (isPaused) {
+        await exampleFacetB.connect(operator).setPaused(false);
+      }
+
       // Mix of valid and invalid operations
       const operations = [1, 0, 2, 7, 3]; // 0 and 7 are invalid
       const dataArray = [
@@ -309,7 +318,11 @@ describe('Coverage Boost Tests - Target 95%+', function () {
         ethers.AbiCoder.defaultAbiCoder().encode(['uint256'], [150]),
       ];
 
-      const results = await exampleFacetB.batchExecuteB(operations, dataArray);
+      // Use staticCall to get the return value without executing the transaction
+      const results = await exampleFacetB.batchExecuteB.staticCall(
+        operations,
+        dataArray
+      );
 
       // Count successful operations (non-zero results)
       let successCount = 0;

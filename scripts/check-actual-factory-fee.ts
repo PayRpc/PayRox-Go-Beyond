@@ -3,11 +3,28 @@
  *
  * Reads the actual deployment fee from the deployed factory contract
  * and compares it with the deployment artifact.
+ *
+ * UPDATED: Uses consolidated utilities for market-leading architecture
  */
 
-import * as fs from 'fs';
 import { ethers } from 'hardhat';
-import * as path from 'path';
+import {
+  createInvalidResult,
+  createValidResult,
+  FileSystemError,
+  logInfo,
+  logSuccess,
+  logWarning,
+  NetworkError,
+  ValidationResult,
+  wrapMain,
+} from '../src/utils/errors';
+import { getNetworkManager } from '../src/utils/network';
+import {
+  fileExists,
+  getPathManager,
+  readFileContent,
+} from '../src/utils/paths';
 
 // Types
 interface FactoryFeeInfo {
@@ -22,57 +39,35 @@ interface FactoryFeeInfo {
   chainId: string;
 }
 
-interface ValidationResult {
-  isValid: boolean;
-  message: string;
-}
-
-/**
- * Custom error for factory validation failures
- */
-class FactoryValidationError extends Error {
-  constructor(message: string, public readonly code: string) {
-    super(message);
-    this.name = 'FactoryValidationError';
-  }
-}
-
 /**
  * Determines the network name for deployment artifact lookup
  */
 function determineNetworkName(chainId: string): string {
-  if (chainId === '31337') {
-    // Check for localhost deployments first, then hardhat
-    if (fs.existsSync(path.join(__dirname, '../deployments/localhost'))) {
-      return 'localhost';
-    } else {
-      return 'hardhat';
-    }
-  }
-  return 'unknown';
+  const networkManager = getNetworkManager();
+  const detection = networkManager.determineNetworkName(chainId);
+  return detection.networkName;
 }
 
 /**
  * Validates that the factory deployment artifact exists and is readable
  */
 function validateFactoryArtifact(networkName: string): any {
-  const factoryPath = path.join(
-    __dirname,
-    `../deployments/${networkName}/factory.json`
-  );
+  const pathManager = getPathManager();
+  const factoryPath = pathManager.getFactoryPath(networkName);
 
-  if (!fs.existsSync(factoryPath)) {
-    throw new FactoryValidationError(
+  if (!fileExists(factoryPath)) {
+    throw new FileSystemError(
       `Factory deployment not found at: ${factoryPath}`,
       'ARTIFACT_NOT_FOUND'
     );
   }
 
   try {
-    return JSON.parse(fs.readFileSync(factoryPath, 'utf8'));
+    return JSON.parse(readFileContent(factoryPath));
   } catch (parseError: unknown) {
-    const errorMessage = parseError instanceof Error ? parseError.message : String(parseError);
-    throw new FactoryValidationError(
+    const errorMessage =
+      parseError instanceof Error ? parseError.message : String(parseError);
+    throw new FileSystemError(
       `Failed to parse factory artifact: ${errorMessage}`,
       'ARTIFACT_PARSE_ERROR'
     );
@@ -85,7 +80,7 @@ function validateFactoryArtifact(networkName: string): any {
 async function validateContractExists(address: string): Promise<void> {
   const code = await ethers.provider.getCode(address);
   if (code === '0x') {
-    throw new FactoryValidationError(
+    throw new NetworkError(
       `No contract code found at address ${address}`,
       'CONTRACT_NOT_FOUND'
     );
@@ -111,13 +106,13 @@ async function readFactoryInfo(
   // Read contract state
   const [baseFeeWei, signer] = await Promise.all([
     factory.baseFeeWei(),
-    ethers.getSigners().then(signers => signers[0])
+    ethers.getSigners().then((signers: any[]) => signers[0]),
   ]);
 
   const [hasAdminRole, feeRecipient, feesEnabled] = await Promise.all([
     factory.hasRole(await factory.DEFAULT_ADMIN_ROLE(), signer.address),
     factory.feeRecipient(),
-    factory.feesEnabled()
+    factory.feesEnabled(),
   ]);
 
   const feeInEth = ethers.formatEther(baseFeeWei);
@@ -131,7 +126,7 @@ async function readFactoryInfo(
     feeRecipient,
     feesEnabled,
     networkName,
-    chainId
+    chainId,
   };
 }
 
@@ -140,31 +135,28 @@ async function readFactoryInfo(
  */
 function validateFeeConsistency(info: FactoryFeeInfo): ValidationResult {
   if (!info.artifactFee) {
-    return {
-      isValid: false,
-      message: 'No fee information found in deployment artifact'
-    };
+    return createInvalidResult(
+      'No fee information found in deployment artifact',
+      'MISSING_ARTIFACT_FEE'
+    );
   }
 
   const expectedFormat = `${info.actualFeeEth} ETH`;
   if (info.artifactFee === expectedFormat) {
-    return {
-      isValid: true,
-      message: 'Deployment fee matches artifact'
-    };
+    return createValidResult('Deployment fee matches artifact', 'FEE_MATCH');
   }
 
-  return {
-    isValid: false,
-    message: `Fee mismatch - Artifact: ${info.artifactFee}, Actual: ${expectedFormat}`
-  };
+  return createInvalidResult(
+    `Fee mismatch - Artifact: ${info.artifactFee}, Actual: ${expectedFormat}`,
+    'FEE_MISMATCH'
+  );
 }
 
 /**
  * Displays comprehensive factory information
  */
 function displayFactoryInfo(info: FactoryFeeInfo): void {
-  console.log('\nFactory Fee Information:');
+  logInfo('Factory Fee Information');
   console.log('========================');
   console.log(`Network: ${info.networkName} (Chain ID: ${info.chainId})`);
   console.log(`Factory Address: ${info.address}`);
@@ -181,46 +173,37 @@ function displayFactoryInfo(info: FactoryFeeInfo): void {
   console.log(`Result: ${validation.message}`);
 
   if (!validation.isValid && info.artifactFee) {
-    console.log('\nRecommendations:');
+    logWarning('Recommendations');
     console.log('- Verify deployment configuration');
     console.log('- Check if fees were modified after deployment');
-    console.log('- Update deployment artifacts if fees were intentionally changed');
+    console.log(
+      '- Update deployment artifacts if fees were intentionally changed'
+    );
   }
 }
 
 async function main(): Promise<void> {
-  console.log('[INFO] Checking Actual Factory Fee...');
+  logInfo('Checking Actual Factory Fee...');
 
-  try {
-    const network = await ethers.provider.getNetwork();
-    const chainId = network.chainId.toString();
-    const networkName = determineNetworkName(chainId);
+  const network = await ethers.provider.getNetwork();
+  const chainId = network.chainId.toString();
+  const networkName = determineNetworkName(chainId);
 
-    // Load and validate factory deployment artifact
-    const factoryArtifact = validateFactoryArtifact(networkName);
+  // Load and validate factory deployment artifact
+  const factoryArtifact = validateFactoryArtifact(networkName);
 
-    // Read comprehensive factory information
-    const factoryInfo = await readFactoryInfo(factoryArtifact, networkName, chainId);
+  // Read comprehensive factory information
+  const factoryInfo = await readFactoryInfo(
+    factoryArtifact,
+    networkName,
+    chainId
+  );
 
-    // Display results
-    displayFactoryInfo(factoryInfo);
+  // Display results
+  displayFactoryInfo(factoryInfo);
 
-    console.log('\n[OK] Factory fee check completed successfully');
-  } catch (error: unknown) {
-    if (error instanceof FactoryValidationError) {
-      console.error(`[ERROR] Factory validation failed: ${error.message} (Code: ${error.code})`);
-    } else {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error('[ERROR] Unexpected error during factory fee check:', errorMessage);
-    }
-    throw error;
-  }
+  logSuccess('Factory fee check completed successfully');
 }
 
-main()
-  .then(() => process.exit(0))
-  .catch((error: unknown) => {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error('[ERROR] Fatal error:', errorMessage);
-    process.exit(1);
-  });
+// Use consolidated main wrapper for standardized error handling
+wrapMain(main, 'Factory fee check completed successfully', 'Factory Fee Check');
