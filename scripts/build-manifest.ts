@@ -24,7 +24,13 @@ export async function main(hre: HardhatRuntimeEnvironment) {
   const factory = await resolveFactoryAddress(chainId);
 
   // 2) Build facet entries: codehash (runtime), creation bytecode, salt, predicted address
-  const facets = await buildFacetEntries(release, artifacts, ethers, factory);
+  const facets = await buildFacetEntries(
+    release,
+    artifacts,
+    ethers,
+    factory,
+    chainId
+  );
 
   // 3) Build route list: (selector, facetAddress, codehash)
   const routes = buildRoutesFromConfig(release, facets);
@@ -105,7 +111,27 @@ async function resolveFactoryAddress(chainId: string): Promise<string> {
     }
   }
 
-  // 2) Try alternative deployment paths (hardhat network)
+  // 2) Try localhost deployment (network name)
+  const localhostDepPath = path.join(
+    __dirname,
+    '..',
+    'deployments',
+    'localhost',
+    'factory.json'
+  );
+  if (fs.existsSync(localhostDepPath)) {
+    try {
+      const { address } = JSON.parse(fs.readFileSync(localhostDepPath, 'utf8'));
+      if (address) {
+        console.log(`  ✓ Using factory from localhost deployment: ${address}`);
+        return address;
+      }
+    } catch (error) {
+      console.warn(`  Warning: Failed to parse ${localhostDepPath}:`, error);
+    }
+  }
+
+  // 3) Try alternative deployment paths (hardhat network)
   const altDepPath = path.join(
     __dirname,
     '..',
@@ -167,6 +193,72 @@ async function resolveFactoryAddress(chainId: string): Promise<string> {
   );
 }
 
+async function resolveFacetAddress(
+  facetName: string,
+  chainId: string
+): Promise<string | null> {
+  // Map facet names to deployment files
+  const facetFiles: Record<string, string> = {
+    ExampleFacetA: 'facet-a.json',
+    ExampleFacetB: 'facet-b.json',
+  };
+
+  const fileName = facetFiles[facetName];
+  console.log(`  🔍 Resolving address for facet: ${facetName} -> ${fileName}`);
+  if (!fileName) {
+    console.log(`  ⚠ No deployment file mapping for facet: ${facetName}`);
+    return null;
+  }
+
+  // 1) Try deployments/localhost/<fileName> FIRST (most recent deployments)
+  const localhostPath = path.join(
+    __dirname,
+    '..',
+    'deployments',
+    'localhost',
+    fileName
+  );
+  console.log(`  📁 Checking localhost FIRST: ${localhostPath}`);
+  if (fs.existsSync(localhostPath)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(localhostPath, 'utf8'));
+      console.log(`  📄 Found localhost deployment data:`, data);
+      if (data.address) {
+        console.log(`  ✅ Using address from localhost: ${data.address}`);
+        return data.address;
+      }
+    } catch (err) {
+      console.warn(
+        `  ⚠ Warning: Failed to read facet from ${localhostPath}:`,
+        err
+      );
+    }
+  } else {
+    console.log(`  ❌ Localhost file not found: ${localhostPath}`);
+  }
+
+  // 2) Fall back to deployments/<chainId>/<fileName>
+  const depPath = path.join(__dirname, '..', 'deployments', chainId, fileName);
+  console.log(`  📁 Checking chainId fallback: ${depPath}`);
+  if (fs.existsSync(depPath)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(depPath, 'utf8'));
+      console.log(`  📄 Found deployment data:`, data);
+      if (data.address) {
+        console.log(`  ✅ Using address from ${chainId}: ${data.address}`);
+        return data.address;
+      }
+    } catch (err) {
+      console.warn(`  ⚠ Warning: Failed to read facet from ${depPath}:`, err);
+    }
+  } else {
+    console.log(`  ❌ File not found: ${depPath}`);
+  }
+
+  console.log(`  ⚠ No deployment address found for ${facetName}`);
+  return null;
+}
+
 type FacetEntry = {
   name: string;
   contract: string;
@@ -189,7 +281,8 @@ async function buildFacetEntries(
   release: any,
   artifacts: any,
   ethers: any,
-  factory: string
+  factory: string,
+  chainId: string
 ): Promise<FacetEntry[]> {
   const coder = ethers.AbiCoder.defaultAbiCoder();
   const out: FacetEntry[] = [];
@@ -238,6 +331,10 @@ async function buildFacetEntries(
         ? facetCfg.selectors.map(normalizeSelector)
         : deriveSelectorsFromAbi(artifact.abi, ethers);
 
+    // Use actual deployed address if available, otherwise fall back to predicted
+    const deployedAddress = await resolveFacetAddress(facetCfg.name, chainId);
+    const actualAddress = deployedAddress || predictedAddress;
+
     out.push({
       name: facetCfg.name,
       contract: facetCfg.contract,
@@ -246,15 +343,20 @@ async function buildFacetEntries(
       runtimeHash,
       runtimeSize,
       salt,
-      predictedAddress,
+      predictedAddress: actualAddress,
       selectors,
       priority: facetCfg.priority,
       gasLimit: facetCfg.gasLimit,
     });
 
     console.log(
-      `  📦 Facet ${facetCfg.name}: codehash=${runtimeHash} size=${runtimeSize}B addr=${predictedAddress}`
+      `  📦 Facet ${facetCfg.name}: codehash=${runtimeHash} size=${runtimeSize}B addr=${actualAddress}`
     );
+    if (deployedAddress) {
+      console.log(`    ✓ Using deployed address: ${deployedAddress}`);
+    } else {
+      console.log(`    ⚠ Using predicted address: ${predictedAddress}`);
+    }
     console.log(`    ✓ ${selectors.length} selectors`);
   }
 

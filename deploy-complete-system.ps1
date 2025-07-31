@@ -47,7 +47,7 @@ function Test-EnterpriseUtilities {
   # Test chunk staging capability
   Write-Host "   * Testing chunk staging capability..." -ForegroundColor Gray
   try {
-    if (!(Invoke-PayRoxCommand -Command "npx hardhat payrox:chunk:stage --factory $FactoryAddress --data $testData --value 0 --network $Network" -Description "Testing Chunk Staging (Minimal Data)")) {
+    if (!(Invoke-PayRoxCommand -Command "npx hardhat payrox:chunk:stage --factory $FactoryAddress --data $testData --value 0.0007 --network $Network" -Description "Testing Chunk Staging (Minimal Data)")) {
       Write-Host "   [WARN] Chunk staging test had issues - may need ETH for fees or contract compatibility" -ForegroundColor Yellow
     }
     else {
@@ -108,15 +108,24 @@ if ($StartNode -or $Network -eq "hardhat") {
   Write-Host "   [OK] Hardhat node startup initiated" -ForegroundColor Green
 }
 
+# If a background hardhat node is running, use localhost so state persists
+if ($Network -eq "hardhat") {
+  Write-Host "⚠️  Using background node; rewriting --network hardhat -> --network localhost" -ForegroundColor Yellow
+  $EffectiveNetwork = "localhost"
+}
+else {
+  $EffectiveNetwork = $Network
+}
+
 try {
   # Step 2: Clean Previous Deployments
   Write-Host "`nCleaning previous deployment artifacts..." -ForegroundColor Yellow
-  if (Test-Path "deployments/$Network") {
-    Remove-Item "deployments/$Network/*" -Force -ErrorAction SilentlyContinue
+  if (Test-Path "deployments/$EffectiveNetwork") {
+    Remove-Item "deployments/$EffectiveNetwork/*" -Force -ErrorAction SilentlyContinue
     Write-Host "   [OK] Previous artifacts cleaned" -ForegroundColor Green
   }
   else {
-    New-Item -ItemType Directory -Path "deployments/$Network" -Force | Out-Null
+    New-Item -ItemType Directory -Path "deployments/$EffectiveNetwork" -Force | Out-Null
     Write-Host "   [OK] Deployment directory created" -ForegroundColor Green
   }
 
@@ -126,24 +135,24 @@ try {
   }
 
   # Step 4: Deploy Factory and Dispatcher (Combined)
-  if (!(Invoke-PayRoxCommand -Command "npx hardhat run scripts/deploy-combined-contracts.ts --network $Network" -Description "Deploying Factory and Dispatcher")) {
+  if (!(Invoke-PayRoxCommand -Command "npx hardhat run scripts/deploy-combined-contracts.ts --network $EffectiveNetwork" -Description "Deploying Factory and Dispatcher")) {
     throw "Combined deployment failed"
   }
 
   # Verify both artifacts were created
-  if (!(Test-Path "deployments/$Network/factory.json")) {
+  if (!(Test-Path "deployments/$EffectiveNetwork/factory.json")) {
     Write-Host "   [ERROR] Factory artifact not created!" -ForegroundColor Red
     throw "Factory artifact missing after deployment"
   }
 
-  if (!(Test-Path "deployments/$Network/dispatcher.json")) {
+  if (!(Test-Path "deployments/$EffectiveNetwork/dispatcher.json")) {
     Write-Host "   [ERROR] Dispatcher artifact not created!" -ForegroundColor Red
     throw "Dispatcher artifact missing after deployment"
   }
 
   # Verify addresses are different
-  $factoryData = Get-Content "deployments/$Network/factory.json" -Raw | ConvertFrom-Json
-  $dispatcherData = Get-Content "deployments/$Network/dispatcher.json" -Raw | ConvertFrom-Json
+  $factoryData = Get-Content "deployments/$EffectiveNetwork/factory.json" -Raw | ConvertFrom-Json
+  $dispatcherData = Get-Content "deployments/$EffectiveNetwork/dispatcher.json" -Raw | ConvertFrom-Json
   $factoryAddress = $factoryData.address
   $dispatcherAddress = $dispatcherData.address
 
@@ -158,20 +167,20 @@ try {
   Write-Host "   [OK] Address verification passed - unique addresses confirmed" -ForegroundColor Green
 
   # Step 5: Deploy FacetA
-  if (!(Invoke-PayRoxCommand -Command "npx hardhat run scripts/deploy-facet-a.ts --network $Network" -Description "Deploying ExampleFacetA")) {
+  if (!(Invoke-PayRoxCommand -Command "npx hardhat run scripts/deploy-facet-a.ts --network $EffectiveNetwork" -Description "Deploying ExampleFacetA")) {
     throw "FacetA deployment failed"
   }
 
   # Step 6: Deploy FacetB
-  if (!(Invoke-PayRoxCommand -Command "npx hardhat run scripts/deploy-facet-b-direct.ts --network $Network" -Description "Deploying ExampleFacetB")) {
+  if (!(Invoke-PayRoxCommand -Command "npx hardhat run scripts/deploy-facet-b-direct.ts --network $EffectiveNetwork" -Description "Deploying ExampleFacetB")) {
     throw "FacetB deployment failed"
   }
 
   # Step 7: Build Production Manifest
-  if (!(Invoke-PayRoxCommand -Command "npx hardhat run scripts/build-manifest.ts --network $Network" -Description "Building Production Manifest")) {
+  if (!(Invoke-PayRoxCommand -Command "npx hardhat run scripts/build-manifest.ts --network $EffectiveNetwork" -Description "Building Production Manifest")) {
     Write-Host "   [WARN] Initial manifest build failed, retrying..." -ForegroundColor Yellow
     # Try to auto-fix by ensuring the factory address is in networks.json
-    if (!(Invoke-PayRoxCommand -Command "npx hardhat run scripts/build-manifest.ts --network $Network" -Description "Retrying Manifest Build")) {
+    if (!(Invoke-PayRoxCommand -Command "npx hardhat run scripts/build-manifest.ts --network $EffectiveNetwork" -Description "Retrying Manifest Build")) {
       throw "Manifest building failed after retry"
     }
   }
@@ -189,7 +198,7 @@ try {
       Start-Sleep 2
     }
 
-    if (Invoke-PayRoxCommand -Command "npx hardhat run scripts/commit-root.ts --network $Network" -Description "Committing Merkle Root (Attempt $retryCount)") {
+    if (Invoke-PayRoxCommand -Command "npx hardhat run scripts/commit-root.ts --network $EffectiveNetwork" -Description "Committing Merkle Root (Attempt $retryCount)") {
       $rootCommitSuccess = $true
       Write-Host "   [OK] Root commit successful!" -ForegroundColor Green
     }
@@ -203,7 +212,7 @@ try {
   }
 
   # Step 9: Apply Routes
-  if (!(Invoke-PayRoxCommand -Command "npx hardhat run scripts/apply-all-routes.ts --network $Network" -Description "Applying All Routes")) {
+  if (!(Invoke-PayRoxCommand -Command "npx hardhat run scripts/apply-all-routes.ts --network $EffectiveNetwork" -Description "Applying All Routes")) {
     throw "Route application failed"
   }
 
@@ -228,7 +237,7 @@ try {
         Start-Sleep 2
       }
 
-      if (Invoke-PayRoxCommand -Command "npx hardhat run scripts/activate-root.ts --network $Network" -Description "Activating Committed Root (Attempt $activationAttempt)") {
+      if (Invoke-PayRoxCommand -Command "npx hardhat run scripts/activate-root.ts --network $EffectiveNetwork" -Description "Activating Committed Root (Attempt $activationAttempt)") {
         $activationSuccess = $true
         Write-Host "   [OK] Root activation successful - governance state is current!" -ForegroundColor Green
       }
@@ -247,13 +256,13 @@ try {
   }
 
   # Step 11: Quick Address Verification
-  if (!(Invoke-PayRoxCommand -Command "npx hardhat run scripts/quick-deployment-check.ts --network $Network" -Description "Quick Address Verification")) {
+  if (!(Invoke-PayRoxCommand -Command "npx hardhat run scripts/quick-deployment-check.ts --network $EffectiveNetwork" -Description "Quick Address Verification")) {
     Write-Host "   [WARN] Address verification had issues but continuing..." -ForegroundColor Yellow
     Write-Host "   [INFO] This can happen with Hardhat node restart - addresses are verified above" -ForegroundColor Cyan
   }
 
   # Step 12: Complete Deployment Verification
-  if (!(Invoke-PayRoxCommand -Command "npx hardhat run scripts/verify-complete-deployment.ts --network $Network" -Description "Complete Deployment Verification")) {
+  if (!(Invoke-PayRoxCommand -Command "npx hardhat run scripts/verify-complete-deployment.ts --network $EffectiveNetwork" -Description "Complete Deployment Verification")) {
     Write-Host "   [WARN] Complete verification had minor issues but continuing..." -ForegroundColor Yellow
     Write-Host "   [INFO] Known compatibility issue with hardhat-ethers provider - core deployment is successful" -ForegroundColor Cyan
   }
@@ -268,8 +277,8 @@ try {
   Write-Host "`nGenerating Production Release Bundle..." -ForegroundColor Yellow
 
   # Check if deployment artifacts exist before reading them
-  $factoryPath = "deployments/$Network/factory.json"
-  $dispatcherPath = "deployments/$Network/dispatcher.json"
+  $factoryPath = "deployments/$EffectiveNetwork/factory.json"
+  $dispatcherPath = "deployments/$EffectiveNetwork/dispatcher.json"
 
   if (!(Test-Path $factoryPath)) {
     Write-Host "   [ERROR] Factory deployment artifact not found: $factoryPath" -ForegroundColor Red
@@ -290,7 +299,7 @@ try {
   Write-Host "   Factory: $factoryAddress" -ForegroundColor Cyan
   Write-Host "   Dispatcher: $dispatcherAddress" -ForegroundColor Cyan
 
-  if (!(Invoke-PayRoxCommand -Command "npx hardhat payrox:release:bundle --manifest manifests/complete-production.manifest.json --dispatcher $dispatcherAddress --factory $factoryAddress --verify --network $Network" -Description "Generating Enterprise Release Bundle")) {
+  if (!(Invoke-PayRoxCommand -Command "npx hardhat payrox:release:bundle --manifest manifests/complete-production.manifest.json --dispatcher $dispatcherAddress --factory $factoryAddress --verify --network $EffectiveNetwork" -Description "Generating Enterprise Release Bundle")) {
     Write-Host "   [WARN] Release bundle generation had issues" -ForegroundColor Yellow
   }
 
@@ -298,16 +307,16 @@ try {
   Write-Host "`nTesting Enterprise Production Tools..." -ForegroundColor Yellow
 
   # Test role bootstrap (dry run)
-  Invoke-PayRoxCommand -Command "npx hardhat payrox:roles:bootstrap --dispatcher $dispatcherAddress --dry-run --network $Network" -Description "Testing Role Bootstrap (Dry Run)"
+  Invoke-PayRoxCommand -Command "npx hardhat payrox:roles:bootstrap --dispatcher $dispatcherAddress --dry-run --network $EffectiveNetwork" -Description "Testing Role Bootstrap (Dry Run)"
 
   # Test monitoring system (once) - parameter conflict fixed
-  Invoke-PayRoxCommand -Command "npx hardhat payrox:ops:watch --dispatcher $dispatcherAddress --once --network $Network" -Description "Testing Operations Monitor"
+  Invoke-PayRoxCommand -Command "npx hardhat payrox:ops:watch --dispatcher $dispatcherAddress --once --network $EffectiveNetwork" -Description "Testing Operations Monitor"
 
   # Step 16: Final System Validation
   Write-Host "`nFinal System Validation..." -ForegroundColor Yellow
 
   # Check if routes are working using existing test script
-  if (!(Invoke-PayRoxCommand -Command "npx hardhat run scripts/test-dispatcher-interface.ts --network $Network" -Description "Testing Dispatcher Interface")) {
+  if (!(Invoke-PayRoxCommand -Command "npx hardhat run scripts/test-dispatcher-interface.ts --network $EffectiveNetwork" -Description "Testing Dispatcher Interface")) {
     Write-Host "   [WARN] Dispatcher interface tests had issues" -ForegroundColor Yellow
   }
 
@@ -318,7 +327,7 @@ try {
   Write-Host "   * Verifying contracts are accessible..." -ForegroundColor Gray
   $contractsAccessible = $true
   try {
-    npx hardhat run scripts/quick-deployment-check.ts --network $Network 2>&1 | Out-Null
+    npx hardhat run scripts/quick-deployment-check.ts --network $EffectiveNetwork 2>&1 | Out-Null
     if ($LASTEXITCODE -ne 0) {
       $contractsAccessible = $false
     }
@@ -333,7 +342,7 @@ try {
   }
   else {
     Write-Host "   [OK] Contracts accessible - proceeding with utility tests" -ForegroundColor Green
-    Test-EnterpriseUtilities -FactoryAddress $factoryAddress -Network $Network
+    Test-EnterpriseUtilities -FactoryAddress $factoryAddress -Network $EffectiveNetwork
   }
 
   Write-Host "   [INFO] Enterprise utility testing completed" -ForegroundColor Cyan
@@ -342,21 +351,21 @@ try {
   $facetAAddress = "Not deployed"
   $facetBAddress = "Not deployed"
 
-  if (Test-Path "deployments/$Network/ExampleFacetA.json") {
-    $facetAData = Get-Content "deployments/$Network/ExampleFacetA.json" -Raw | ConvertFrom-Json
+  if (Test-Path "deployments/$EffectiveNetwork/ExampleFacetA.json") {
+    $facetAData = Get-Content "deployments/$EffectiveNetwork/ExampleFacetA.json" -Raw | ConvertFrom-Json
     $facetAAddress = $facetAData.address
   }
-  elseif (Test-Path "deployments/$Network/facet-a.json") {
-    $facetAData = Get-Content "deployments/$Network/facet-a.json" -Raw | ConvertFrom-Json
+  elseif (Test-Path "deployments/$EffectiveNetwork/facet-a.json") {
+    $facetAData = Get-Content "deployments/$EffectiveNetwork/facet-a.json" -Raw | ConvertFrom-Json
     $facetAAddress = $facetAData.address
   }
 
-  if (Test-Path "deployments/$Network/ExampleFacetB.json") {
-    $facetBData = Get-Content "deployments/$Network/ExampleFacetB.json" -Raw | ConvertFrom-Json
+  if (Test-Path "deployments/$EffectiveNetwork/ExampleFacetB.json") {
+    $facetBData = Get-Content "deployments/$EffectiveNetwork/ExampleFacetB.json" -Raw | ConvertFrom-Json
     $facetBAddress = $facetBData.address
   }
-  elseif (Test-Path "deployments/$Network/facet-b.json") {
-    $facetBData = Get-Content "deployments/$Network/facet-b.json" -Raw | ConvertFrom-Json
+  elseif (Test-Path "deployments/$EffectiveNetwork/facet-b.json") {
+    $facetBData = Get-Content "deployments/$EffectiveNetwork/facet-b.json" -Raw | ConvertFrom-Json
     $facetBAddress = $facetBData.address
   }
 

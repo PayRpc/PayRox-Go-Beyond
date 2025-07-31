@@ -46,7 +46,7 @@ describe('Enhanced DeterministicChunkFactory Coverage', function () {
     });
 
     it('Should handle fee collection scenarios', async function () {
-      const baseFee = ethers.parseEther('0.001');
+      const baseFee = ethers.parseEther('0.0007');
       await factory.setFees(baseFee, true, feeRecipient.address);
 
       const testData = ethers.toUtf8Bytes('test data for staging');
@@ -72,7 +72,7 @@ describe('Enhanced DeterministicChunkFactory Coverage', function () {
     });
 
     it('Should handle batch staging with fees', async function () {
-      const baseFee = ethers.parseEther('0.001');
+      const baseFee = ethers.parseEther('0.0007');
       await factory.setFees(baseFee, true, feeRecipient.address);
 
       const testChunks = [
@@ -216,7 +216,7 @@ describe('Enhanced DeterministicChunkFactory Coverage', function () {
 
     it('Should handle fee recipient changes', async function () {
       const newRecipient = user.address;
-      const baseFee = ethers.parseEther('0.001');
+      const baseFee = ethers.parseEther('0.0007');
 
       // Change fee recipient
       await factory.setFees(baseFee, true, newRecipient);

@@ -148,10 +148,17 @@ async function main() {
       };
     }
 
-    // Step 2: Commit the merkle root
+    // Step 2: Commit the merkle root with correct epoch
     console.log('\n[INFO] Committing merkle root...');
 
-    const commitTx = await dispatcher.commitRoot(merkleData.root, 1);
+    // Calculate correct epoch (activeEpoch + 1)
+    const currentActiveEpoch = await dispatcher.activeEpoch();
+    const nextEpoch = Number(currentActiveEpoch) + 1;
+    console.log(
+      `[INFO] Current active epoch: ${currentActiveEpoch}, committing epoch: ${nextEpoch}`
+    );
+
+    const commitTx = await dispatcher.commitRoot(merkleData.root, nextEpoch);
     console.log('[INFO] Transaction submitted:', commitTx.hash);
 
     const commitReceipt = await commitTx.wait();

@@ -2,6 +2,64 @@ import * as fs from 'fs';
 import { ethers } from 'hardhat';
 import * as path from 'path';
 
+// Shared utility to assert contract has code
+export async function assertHasCode(addr: string, tag: string) {
+  const code = await ethers.provider.getCode(addr);
+  if (code === '0x') {
+    throw new Error(
+      `[${tag}] no code at ${addr}. Did you connect to the right network?`
+    );
+  }
+}
+
+// ABI-safe dispatcher state reading
+async function readActiveRoot(dispatcher: any) {
+  const defaultRoot =
+    '0x0000000000000000000000000000000000000000000000000000000000000000';
+  try {
+    // Try activeRoot() method first
+    const root = await dispatcher.activeRoot();
+    return root || defaultRoot;
+  } catch (error) {
+    // Fallback: try currentRoot() for older contracts
+    try {
+      const root = await dispatcher.currentRoot();
+      return root || defaultRoot;
+    } catch (error2) {
+      // This is okay for fresh deployments
+      return defaultRoot;
+    }
+  }
+}
+
+async function readPendingState(dispatcher: any) {
+  try {
+    // Try separate getters first
+    const root = await dispatcher.pendingRoot().catch(() => null);
+    const epoch = await dispatcher.pendingEpoch?.().catch(() => null);
+    const ts = await dispatcher.earliestActivation?.().catch(() => null);
+    if (root) return { root, epoch, ts };
+  } catch {
+    // ABI mismatch - try struct approach
+  }
+
+  // Fallback: struct getter
+  try {
+    if (typeof dispatcher.pending === 'function') {
+      const p = await dispatcher.pending();
+      return {
+        root: p.root ?? p[0],
+        epoch: p.epoch ?? p[1],
+        ts: p.earliestActivation ?? p[2],
+      };
+    }
+  } catch {
+    // Final fallback failed
+  }
+
+  throw new Error('Dispatcher ABI mismatch: cannot read pending state');
+}
+
 // Fix for HardhatEthersProvider.resolveName not implemented
 const p: any = ethers.provider;
 if (typeof p.resolveName !== 'function') {
@@ -149,15 +207,7 @@ async function verifyFactory(chainId: string): Promise<VerificationResult> {
     );
 
     // Verify contract has code
-    const code = await ethers.provider.getCode(factoryData.address);
-    if (code === '0x') {
-      return {
-        component: 'Factory',
-        address: factoryData.address,
-        status: 'ERROR',
-        message: 'Factory contract has no code deployed',
-      };
-    }
+    await assertHasCode(factoryData.address, 'Factory');
 
     // Verify contract interface
     const factory = await ethers.getContractAt(
@@ -169,6 +219,8 @@ async function verifyFactory(chainId: string): Promise<VerificationResult> {
     const owner = await factory.owner();
     const feeRecipient = await factory.feeRecipient();
     const deploymentFee = await factory.deploymentFee();
+
+    const code = await ethers.provider.getCode(factoryData.address);
 
     return {
       component: 'Factory',
@@ -216,15 +268,7 @@ async function verifyDispatcher(chainId: string): Promise<VerificationResult> {
     );
 
     // Verify contract has code
-    const code = await ethers.provider.getCode(dispatcherData.address);
-    if (code === '0x') {
-      return {
-        component: 'Dispatcher',
-        address: dispatcherData.address,
-        status: 'ERROR',
-        message: 'Dispatcher contract has no code deployed',
-      };
-    }
+    await assertHasCode(dispatcherData.address, 'Dispatcher');
 
     // Verify contract interface
     const dispatcher = await ethers.getContractAt(
@@ -237,14 +281,10 @@ async function verifyDispatcher(chainId: string): Promise<VerificationResult> {
     const activationDelay = await dispatcher.activationDelay();
     const frozen = await dispatcher.frozen();
 
-    // Try to get current root (might be zero for new deployments)
-    let currentRoot =
-      '0x0000000000000000000000000000000000000000000000000000000000000000';
-    try {
-      currentRoot = await dispatcher.activeRoot();
-    } catch (error) {
-      // This is okay for fresh deployments
-    }
+    // Try to get current root with ABI-safe handling
+    const currentRoot = await readActiveRoot(dispatcher);
+
+    const code = await ethers.provider.getCode(dispatcherData.address);
 
     return {
       component: 'Dispatcher',

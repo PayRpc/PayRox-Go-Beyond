@@ -1,25 +1,44 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.30;
 
-/**
- * @title PingFacet
- * @notice Minimal facet for smoke testing the route system
- */
-contract PingFacet {
-    /**
-     * @dev Simple ping function for testing
-     * @return The function selector for verification
-     */
-    function ping() external pure returns (bytes4) {
-        return 0x5dfc5e9a; // bytes4(keccak256("ping()"))
+/// @title PingFacet - minimal facet for smoke tests & EXTCODEHASH routing checks
+/// @notice Returns its canonical selector and echoes input. No storage; tiny runtime.
+interface IPingFacet {
+    /// @return s The function selector of ping() to verify routing correctness
+    function ping() external pure returns (bytes4 s);
+
+    /// @notice Echoes the input back verbatim (handy for calldata/ABI tests)
+    function echo(bytes32 data) external pure returns (bytes32);
+}
+
+/// @dev Standardized revert used by fallbacks; helpful for direct-call diagnostics.
+error UnknownSelector(bytes4 selector);
+
+contract PingFacet is IPingFacet {
+    /// @dev Canonical selector for "ping()"
+    /// bytes4(keccak256("ping()")) == 0x5c36b186
+    bytes4 public constant PING_SELECTOR = 0x5c36b186;
+
+    /// @inheritdoc IPingFacet
+    function ping() external pure returns (bytes4 s) {
+        // Return as a constant via assembly for minimal codegen & gas.
+        assembly {
+            s := 0x5c36b186
+        }
     }
 
-    /**
-     * @dev Echo function for testing with parameters
-     * @param data The data to echo back
-     * @return The same data that was passed in
-     */
+    /// @inheritdoc IPingFacet
     function echo(bytes32 data) external pure returns (bytes32) {
         return data;
+    }
+
+    /// @dev Reject unknown selectors on direct calls (dispatcher never hits this on valid routes).
+    fallback() external payable {
+        revert UnknownSelector(msg.sig);
+    }
+
+    /// @dev Reject stray ETH transfers.
+    receive() external payable {
+        revert UnknownSelector(0xffffffff);
     }
 }

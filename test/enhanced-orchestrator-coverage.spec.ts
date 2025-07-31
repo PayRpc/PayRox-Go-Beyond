@@ -18,9 +18,9 @@ describe('Enhanced Orchestrator Coverage', function () {
       'DeterministicChunkFactory'
     );
     factory = await DeterministicChunkFactory.deploy(
-      owner.address,  // admin
-      owner.address,  // feeRecipient  
-      ethers.parseEther("0.0007")  // baseFeeWei
+      owner.address, // admin
+      owner.address, // feeRecipient
+      ethers.parseEther('0.0007') // baseFeeWei
     );
 
     // Deploy dispatcher
@@ -53,9 +53,11 @@ describe('Enhanced Orchestrator Coverage', function () {
       expect(planBefore.initiator).to.equal(ethers.ZeroAddress); // Plan doesn't exist yet
 
       // Start orchestration
-      const tx = await orchestrator.startOrchestration(orchestrationId, gasLimit);
-      await expect(tx)
-        .to.emit(orchestrator, 'OrchestrationStarted');
+      const tx = await orchestrator.startOrchestration(
+        orchestrationId,
+        gasLimit
+      );
+      await expect(tx).to.emit(orchestrator, 'OrchestrationStarted');
 
       // Check orchestration is active via plans mapping
       const planAfterStart = await orchestrator.plans(orchestrationId);
