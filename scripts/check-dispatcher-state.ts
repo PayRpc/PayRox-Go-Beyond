@@ -1,12 +1,12 @@
 /**
  * Check Dispatcher State Script
- * 
+ *
  * Reads and displays the current state of a ManifestDispatcher contract
  * with proper error handling and validation
  */
 
-import { ethers } from 'hardhat';
 import fs from 'fs';
+import { ethers } from 'hardhat';
 import path from 'path';
 
 // Types
@@ -56,7 +56,7 @@ async function safeReadField(
     return {
       field: fieldName,
       value: value.toString(),
-      success: true
+      success: true,
     };
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
@@ -64,7 +64,7 @@ async function safeReadField(
       field: fieldName,
       value: null,
       success: false,
-      error: errorMessage
+      error: errorMessage,
     };
   }
 }
@@ -72,9 +72,12 @@ async function safeReadField(
 /**
  * Reads all dispatcher state fields safely
  */
-async function readDispatcherState(dispatcher: any, address: string): Promise<DispatcherState> {
+async function readDispatcherState(
+  dispatcher: any,
+  address: string
+): Promise<DispatcherState> {
   const hasCode = await validateContractExists(address);
-  
+
   if (!hasCode) {
     console.warn(`[WARN] No contract code found at address ${address}`);
   }
@@ -84,13 +87,13 @@ async function readDispatcherState(dispatcher: any, address: string): Promise<Di
     safeReadField(dispatcher, 'activeEpoch', 'activeEpoch'),
     safeReadField(dispatcher, 'pendingEpoch', 'pendingEpoch'),
     safeReadField(dispatcher, 'activeRoot', 'activeRoot'),
-    safeReadField(dispatcher, 'pendingRoot', 'pendingRoot')
+    safeReadField(dispatcher, 'pendingRoot', 'pendingRoot'),
   ]);
 
   // Display results
   console.log('\nDispatcher State:');
   console.log('================');
-  
+
   for (const result of results) {
     if (result.success) {
       console.log(`✓ ${result.field}: ${result.value}`);
@@ -105,7 +108,7 @@ async function readDispatcherState(dispatcher: any, address: string): Promise<Di
     activeRoot: results[2].value || 'N/A',
     pendingRoot: results[3].value || 'N/A',
     contractAddress: address,
-    hasCode
+    hasCode,
   };
 }
 
@@ -115,11 +118,11 @@ async function readDispatcherState(dispatcher: any, address: string): Promise<Di
 async function findDispatcherFromDeployments(): Promise<string | null> {
   const network = await ethers.provider.getNetwork();
   const chainId = network.chainId.toString();
-  
+
   const possiblePaths = [
     `../deployments/localhost/dispatcher.json`,
     `../deployments/${chainId}/dispatcher.json`,
-    `../deployments/hardhat/dispatcher.json`
+    `../deployments/hardhat/dispatcher.json`,
   ];
 
   for (const relativePath of possiblePaths) {
@@ -130,8 +133,11 @@ async function findDispatcherFromDeployments(): Promise<string | null> {
         console.log(`[INFO] Found dispatcher deployment at: ${relativePath}`);
         return deploymentData.address;
       } catch (parseError: unknown) {
-        const errorMessage = parseError instanceof Error ? parseError.message : String(parseError);
-        console.warn(`[WARN] Failed to parse deployment file: ${relativePath} - ${errorMessage}`);
+        const errorMessage =
+          parseError instanceof Error ? parseError.message : String(parseError);
+        console.warn(
+          `[WARN] Failed to parse deployment file: ${relativePath} - ${errorMessage}`
+        );
       }
     }
   }
@@ -146,14 +152,18 @@ async function getDispatcherAddress(): Promise<string> {
   // Try environment variable first
   const envAddress = process.env.DISPATCHER;
   if (envAddress) {
-    console.log(`[INFO] Using dispatcher address from DISPATCHER env var: ${envAddress}`);
+    console.log(
+      `[INFO] Using dispatcher address from DISPATCHER env var: ${envAddress}`
+    );
     return envAddress;
   }
 
   // Try to find from deployment artifacts
   const deploymentAddress = await findDispatcherFromDeployments();
   if (deploymentAddress) {
-    console.log(`[INFO] Using dispatcher address from deployment artifacts: ${deploymentAddress}`);
+    console.log(
+      `[INFO] Using dispatcher address from deployment artifacts: ${deploymentAddress}`
+    );
     return deploymentAddress;
   }
 
@@ -198,16 +208,19 @@ async function main(): Promise<void> {
   try {
     // Get dispatcher address
     const dispatcherAddress = await getDispatcherAddress();
-    
+
     // Validate address format
     validateAddress(dispatcherAddress);
 
     // Connect to dispatcher
-    const dispatcher = await ethers.getContractAt('ManifestDispatcher', dispatcherAddress);
+    const dispatcher = await ethers.getContractAt(
+      'ManifestDispatcher',
+      dispatcherAddress
+    );
 
     // Read and display state
     const state = await readDispatcherState(dispatcher, dispatcherAddress);
-    
+
     // Display comprehensive information
     displayDispatcherInfo(state);
 
