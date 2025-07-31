@@ -21,10 +21,8 @@ contract PingFacet is IPingFacet {
 
     /// @inheritdoc IPingFacet
     function ping() external pure returns (bytes4 s) {
-        // Return as a constant via assembly for minimal codegen & gas.
-        assembly {
-            s := 0x5c36b186
-        }
+        // Return the canonical selector directly
+        return PING_SELECTOR;
     }
 
     /// @inheritdoc IPingFacet

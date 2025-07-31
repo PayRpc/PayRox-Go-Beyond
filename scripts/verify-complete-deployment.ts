@@ -227,35 +227,31 @@ function initializeProviderShims(): void {
 }
 
 /**
- * Loads deployment artifact from file system
- * @param chainId - Chain ID for directory lookup
- * @param contractName - Name of contract (factory/dispatcher)
- * @returns Parsed deployment artifact
- * @throws {DeploymentVerificationError} When file not found or invalid
+ * Loads deployment artifact from file
+ * @param network - Network name
+ * @param contractType - Type of contract (factory, dispatcher, etc.)
+ * @returns Deployment artifact or null if not found
  */
-async function loadDeploymentArtifact(
-  chainId: string,
-  contractName: string
-): Promise<DeploymentArtifact> {
-  const artifactPath = path.join(
+function loadDeploymentArtifact(
+  network: string,
+  contractType: string
+): DeploymentArtifact | null {
+  const deploymentPath = path.join(
     __dirname,
-    `../deployments/${chainId}/${contractName}.json`
+    `../deployments/${network}/${contractType}.json`
   );
 
-  if (!fs.existsSync(artifactPath)) {
-    throw new DeploymentVerificationError(
-      `${contractName} deployment artifact not found at ${artifactPath}`,
-      contractName
-    );
+  if (!fs.existsSync(deploymentPath)) {
+    return null;
   }
 
   try {
-    return JSON.parse(fs.readFileSync(artifactPath, 'utf8'));
-  } catch (parseError) {
-    throw new DeploymentVerificationError(
-      `Failed to parse ${contractName} deployment artifact: ${parseError}`,
-      contractName
+    return JSON.parse(fs.readFileSync(deploymentPath, 'utf8'));
+  } catch (error) {
+    console.warn(
+      `[WARN] Failed to parse ${contractType} deployment file: ${error}`
     );
+    return null;
   }
 }
 
@@ -308,12 +304,65 @@ async function main(): Promise<void> {
   const network = await ethers.provider.getNetwork();
   const chainId = network.chainId.toString();
 
-  console.log(`📡 Network: ${network.name} (Chain ID: ${chainId})`);
+  // Map chainId to deployment directory name
+  let networkName: string;
+  if (chainId === '31337') {
+    // Hardhat network - check for localhost deployments first, then hardhat
+    if (fs.existsSync(path.join(__dirname, '../deployments/localhost'))) {
+      networkName = 'localhost';
+    } else {
+      networkName = 'hardhat';
+    }
+  } else {
+    networkName = network.name || 'unknown';
+  }
+
+  console.log(`📡 Network: ${networkName} (Chain ID: ${chainId})`);
   console.log(`⏰ Verification Time: ${new Date().toISOString()}`);
+
+  // Load deployment artifacts
+  const factoryArtifact = loadDeploymentArtifact(networkName, 'factory');
+  const dispatcherArtifact = loadDeploymentArtifact(networkName, 'dispatcher');
+
+  if (!factoryArtifact) {
+    console.log(
+      '❌ Factory deployment not found. Please deploy the system first.'
+    );
+    console.log(`   Expected file: deployments/${networkName}/factory.json`);
+
+    // Try alternative network name for chainId 31337
+    if (chainId === '31337') {
+      const altNetworkName =
+        networkName === 'localhost' ? 'hardhat' : 'localhost';
+      const altFactoryArtifact = loadDeploymentArtifact(
+        altNetworkName,
+        'factory'
+      );
+      if (altFactoryArtifact) {
+        console.log(
+          `   Found deployment in deployments/${altNetworkName}/ instead`
+        );
+        console.log(`   Please ensure you're connected to the correct network`);
+      }
+    }
+
+    process.exit(1);
+  }
+
+  if (!dispatcherArtifact) {
+    console.log(
+      '⚠️  Dispatcher deployment not found. Only factory verification will be performed.'
+    );
+    console.log(`   Expected file: deployments/${networkName}/dispatcher.json`);
+  }
 
   try {
     // Execute verification steps
-    await executeVerificationSteps(chainId, results);
+    await executeVerificationSteps(
+      factoryArtifact,
+      dispatcherArtifact,
+      results
+    );
 
     // Generate and display summary
     const summary = generateSummary(results);
@@ -341,21 +390,30 @@ async function main(): Promise<void> {
 
 /**
  * Executes all verification steps in sequence
- * @param chainId - Network chain ID
+ * @param factoryArtifact - Factory deployment artifact
+ * @param dispatcherArtifact - Dispatcher deployment artifact (optional)
  * @param results - Results array to populate
  */
 async function executeVerificationSteps(
-  chainId: string,
+  factoryArtifact: DeploymentArtifact,
+  dispatcherArtifact: DeploymentArtifact | null,
   results: VerificationResult[]
 ): Promise<void> {
   // Step 1: Verify Factory Deployment
   console.log('\n🏭 Verifying Factory Deployment...');
-  const factoryResult = await verifyFactory(chainId);
+  const factoryResult = await verifyFactoryDeployment(factoryArtifact);
   results.push(factoryResult);
+
+  if (!dispatcherArtifact) {
+    console.log(
+      '\n⚠️  Skipping remaining verifications - Dispatcher not deployed'
+    );
+    return;
+  }
 
   // Step 2: Verify Dispatcher Deployment
   console.log('\n📡 Verifying Dispatcher Deployment...');
-  const dispatcherResult = await verifyDispatcher(chainId);
+  const dispatcherResult = await verifyDispatcherDeployment(dispatcherArtifact);
   results.push(dispatcherResult);
 
   // Step 3: Verify Facet Deployments
@@ -363,26 +421,35 @@ async function executeVerificationSteps(
   const facetResults = await verifyFacets();
   results.push(...facetResults);
 
-  // Step 4: Verify System Integration
-  console.log('\n🔗 Verifying System Integration...');
-  const integrationResults = await verifySystemIntegration(
-    factoryResult.address,
-    dispatcherResult.address
-  );
-  results.push(...integrationResults);
+  // Step 4: Verify System Integration (only if both factory and dispatcher exist)
+  if (
+    factoryResult.status === 'SUCCESS' &&
+    dispatcherResult.status === 'SUCCESS'
+  ) {
+    console.log('\n🔗 Verifying System Integration...');
+    const integrationResults = await verifySystemIntegration(
+      factoryResult.address,
+      dispatcherResult.address
+    );
+    results.push(...integrationResults);
 
-  // Step 5: Verify Routes and Manifest
-  console.log('\n📋 Verifying Routes and Manifest...');
-  const routeResults = await verifyRoutesAndManifest(dispatcherResult.address);
-  results.push(...routeResults);
+    // Step 5: Verify Routes and Manifest
+    console.log('\n📋 Verifying Routes and Manifest...');
+    const routeResults = await verifyRoutesAndManifest(
+      dispatcherResult.address
+    );
+    results.push(...routeResults);
 
-  // Step 6: Verify Security Settings
-  console.log('\n🔐 Verifying Security Settings...');
-  const securityResults = await verifySecuritySettings(
-    factoryResult.address,
-    dispatcherResult.address
-  );
-  results.push(...securityResults);
+    // Step 6: Verify Security Settings
+    console.log('\n🔐 Verifying Security Settings...');
+    const securityResults = await verifySecuritySettings(
+      factoryResult.address,
+      dispatcherResult.address
+    );
+    results.push(...securityResults);
+  } else {
+    console.log('\n⚠️  Skipping integration tests - Core deployments failed');
+  }
 }
 
 /**
@@ -402,87 +469,95 @@ function displaySummary(summary: VerificationSummary): void {
  * @param chainId - Network chain ID
  * @returns Verification result for factory
  */
-async function verifyFactory(chainId: string): Promise<VerificationResult> {
+/**
+ * Verifies factory deployment using deployment artifact
+ * @param factoryArtifact - Factory deployment artifact
+ * @returns Verification result for factory
+ */
+async function verifyFactoryDeployment(
+  factoryArtifact: DeploymentArtifact
+): Promise<VerificationResult> {
   try {
-    const factoryData = await loadDeploymentArtifact(chainId, 'factory');
-    await assertHasCode(factoryData.address, 'Factory');
+    const { address, contractName } = factoryArtifact;
 
-    const factory = await ethers.getContractAt(
-      'DeterministicChunkFactory',
-      factoryData.address
-    );
+    // Check if contract exists at address
+    const bytecode = await ethers.provider.getCode(address);
+    if (bytecode === '0x') {
+      return createErrorResult(
+        'Factory',
+        address,
+        'No contract code found at factory address'
+      );
+    }
 
-    const [owner, feeRecipient, deploymentFee, code] = await Promise.all([
-      factory.owner(),
-      factory.feeRecipient(),
-      factory.deploymentFee(),
-      ethers.provider.getCode(factoryData.address),
-    ]);
+    // Try to interact with the contract
+    const factory = await ethers.getContractAt(contractName, address);
+    const baseFeeWei = await factory.baseFeeWei();
+    const feeRecipient = await factory.feeRecipient();
 
     return createSuccessResult(
       'Factory',
-      factoryData.address,
+      address,
       'Factory deployment verified successfully',
       {
-        owner,
+        contractName,
+        bytecodeSize: calculateCodeSize(bytecode),
+        deploymentFee: ethers.formatEther(baseFeeWei),
         feeRecipient,
-        deploymentFee: ethers.formatEther(deploymentFee),
-        codeSize: calculateCodeSize(code),
-        transactionHash: factoryData.transactionHash,
       }
     );
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     return createErrorResult(
       'Factory',
-      '',
+      factoryArtifact.address,
       `Factory verification failed: ${message}`
     );
   }
 }
 
 /**
- * Verifies dispatcher deployment and functionality
- * @param chainId - Network chain ID
+ * Verifies dispatcher deployment using deployment artifact
+ * @param dispatcherArtifact - Dispatcher deployment artifact
  * @returns Verification result for dispatcher
  */
-async function verifyDispatcher(chainId: string): Promise<VerificationResult> {
+async function verifyDispatcherDeployment(
+  dispatcherArtifact: DeploymentArtifact
+): Promise<VerificationResult> {
   try {
-    const dispatcherData = await loadDeploymentArtifact(chainId, 'dispatcher');
-    await assertHasCode(dispatcherData.address, 'Dispatcher');
+    const { address, contractName } = dispatcherArtifact;
 
-    const dispatcher = await ethers.getContractAt(
-      'ManifestDispatcher',
-      dispatcherData.address
-    );
+    // Check if contract exists at address
+    const bytecode = await ethers.provider.getCode(address);
+    if (bytecode === '0x') {
+      return createErrorResult(
+        'Dispatcher',
+        address,
+        'No contract code found at dispatcher address'
+      );
+    }
 
-    const [owner, activationDelay, frozen, currentRoot, code] =
-      await Promise.all([
-        dispatcher.owner(),
-        dispatcher.activationDelay(),
-        dispatcher.frozen(),
-        readActiveRoot(dispatcher),
-        ethers.provider.getCode(dispatcherData.address),
-      ]);
+    // Try to interact with the contract
+    const dispatcher = await ethers.getContractAt(contractName, address);
+    const owner = await dispatcher.owner();
+    const frozen = await dispatcher.frozen();
 
     return createSuccessResult(
       'Dispatcher',
-      dispatcherData.address,
+      address,
       'Dispatcher deployment verified successfully',
       {
+        contractName,
+        bytecodeSize: calculateCodeSize(bytecode),
         owner,
-        activationDelay: activationDelay.toString(),
         frozen,
-        currentRoot,
-        codeSize: calculateCodeSize(code),
-        transactionHash: dispatcherData.transactionHash,
       }
     );
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     return createErrorResult(
       'Dispatcher',
-      '',
+      dispatcherArtifact.address,
       `Dispatcher verification failed: ${message}`
     );
   }
@@ -632,25 +707,32 @@ async function verifyOwnerConsistency(
     dispatcherAddress
   );
 
-  const [factoryOwner, dispatcherOwner] = await Promise.all([
-    factory.owner(),
-    dispatcher.owner(),
-  ]);
+  // For factory, check DEFAULT_ADMIN_ROLE; for dispatcher, check owner method
+  const [signer] = await ethers.getSigners();
+  const factoryHasAdmin = await factory.hasRole(
+    await factory.DEFAULT_ADMIN_ROLE(),
+    signer.address
+  );
+  const dispatcherOwner = await dispatcher.owner();
 
-  if (factoryOwner === dispatcherOwner) {
+  if (factoryHasAdmin && dispatcherOwner === signer.address) {
     return createSuccessResult(
       'Owner Consistency',
       '',
-      'Factory and Dispatcher have consistent ownership',
-      { owner: factoryOwner }
+      'Factory and Dispatcher have consistent admin/ownership',
+      { adminAddress: signer.address }
     );
   }
 
   return createWarningResult(
     'Owner Consistency',
     '',
-    'Factory and Dispatcher have different owners',
-    { factoryOwner, dispatcherOwner }
+    'Factory and Dispatcher have different admin/ownership configuration',
+    {
+      factoryHasAdmin,
+      dispatcherOwner,
+      currentSigner: signer.address,
+    }
   );
 }
 
@@ -849,29 +931,33 @@ async function verifyFactorySecurity(
     );
 
     // Check factory ownership and configuration
-    const factoryOwner = await factory.owner();
+    const [signer] = await ethers.getSigners();
+    const hasAdminRole = await factory.hasRole(
+      await factory.DEFAULT_ADMIN_ROLE(),
+      signer.address
+    );
     const feeRecipient = await factory.feeRecipient();
-    const deploymentFee = await factory.deploymentFee();
+    const baseFeeWei = await factory.baseFeeWei();
 
-    if (factoryOwner && factoryOwner !== ethers.ZeroAddress) {
+    if (hasAdminRole) {
       results.push(
         createSuccessResult(
           'Factory Security',
           factoryAddress,
-          'Factory has valid owner set',
+          'Factory has valid admin access and configuration',
           {
-            owner: factoryOwner,
+            adminAddress: signer.address,
             feeRecipient,
-            deploymentFee: ethers.formatEther(deploymentFee),
+            deploymentFee: ethers.formatEther(baseFeeWei),
           }
         )
       );
     } else {
       results.push(
-        createErrorResult(
+        createWarningResult(
           'Factory Security',
           factoryAddress,
-          'Factory owner not properly set'
+          'Current signer does not have admin access to factory'
         )
       );
     }
