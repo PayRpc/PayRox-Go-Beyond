@@ -1,74 +1,49 @@
+/**
+ * Complete Deployment Verification Script
+ *
+ * Comprehensive verification of PayRox deployment including:
+ * - Factory and Dispatcher contracts
+ * - Facet deployments
+ * - System integration
+ * - Security settings
+ * - Route configuration
+ *
+ * @author PayRox Team
+ * @version 2.0.0
+ */
+
 import * as fs from 'fs';
 import { ethers } from 'hardhat';
 import * as path from 'path';
 
-// Shared utility to assert contract has code
-export async function assertHasCode(addr: string, tag: string) {
-  const code = await ethers.provider.getCode(addr);
-  if (code === '0x') {
-    throw new Error(
-      `[${tag}] no code at ${addr}. Did you connect to the right network?`
-    );
-  }
+// Constants
+const DEFAULT_ROOT =
+  '0x0000000000000000000000000000000000000000000000000000000000000000';
+
+// Types
+interface FacetConfiguration {
+  readonly name: string;
+  readonly contractName: string;
+  readonly expectedAddress: string;
+  readonly testFunction: string;
 }
 
-// ABI-safe dispatcher state reading
-async function readActiveRoot(dispatcher: any) {
-  const defaultRoot =
-    '0x0000000000000000000000000000000000000000000000000000000000000000';
-  try {
-    // Try activeRoot() method first
-    const root = await dispatcher.activeRoot();
-    return root || defaultRoot;
-  } catch (error) {
-    // Fallback: try currentRoot() for older contracts
-    try {
-      const root = await dispatcher.currentRoot();
-      return root || defaultRoot;
-    } catch (error2) {
-      // This is okay for fresh deployments
-      return defaultRoot;
-    }
-  }
-}
+const EXPECTED_FACETS: FacetConfiguration[] = [
+  {
+    name: 'FacetA',
+    contractName: 'ExampleFacetA',
+    expectedAddress: '0xDDa0648FA8c9cD593416EC37089C2a2E6060B45c',
+    testFunction: 'functionA',
+  },
+  {
+    name: 'FacetB',
+    contractName: 'ExampleFacetB',
+    expectedAddress: '0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9',
+    testFunction: 'functionB',
+  },
+];
 
-async function readPendingState(dispatcher: any) {
-  try {
-    // Try separate getters first
-    const root = await dispatcher.pendingRoot().catch(() => null);
-    const epoch = await dispatcher.pendingEpoch?.().catch(() => null);
-    const ts = await dispatcher.earliestActivation?.().catch(() => null);
-    if (root) return { root, epoch, ts };
-  } catch {
-    // ABI mismatch - try struct approach
-  }
-
-  // Fallback: struct getter
-  try {
-    if (typeof dispatcher.pending === 'function') {
-      const p = await dispatcher.pending();
-      return {
-        root: p.root ?? p[0],
-        epoch: p.epoch ?? p[1],
-        ts: p.earliestActivation ?? p[2],
-      };
-    }
-  } catch {
-    // Final fallback failed
-  }
-
-  throw new Error('Dispatcher ABI mismatch: cannot read pending state');
-}
-
-// Fix for HardhatEthersProvider.resolveName not implemented
-const p: any = ethers.provider;
-if (typeof p.resolveName !== 'function') {
-  p.resolveName = async (name: string) => {
-    if (/^0x[0-9a-fA-F]{40}$/.test(name)) return name; // accept hex addresses
-    throw new Error('ENS not supported on Hardhat local provider');
-  };
-}
-
+// Additional Types
 interface DeploymentArtifact {
   contractName: string;
   address: string;
@@ -87,9 +62,247 @@ interface VerificationResult {
   details?: any;
 }
 
-async function main() {
+interface VerificationSummary {
+  successCount: number;
+  warningCount: number;
+  errorCount: number;
+  totalCount: number;
+}
+
+// Error Classes
+class DeploymentVerificationError extends Error {
+  constructor(message: string, public readonly component: string) {
+    super(message);
+    this.name = 'DeploymentVerificationError';
+  }
+}
+
+class ContractNotFoundError extends Error {
+  constructor(address: string, component: string) {
+    super(`No code found at address ${address} for ${component}`);
+    this.name = 'ContractNotFoundError';
+  }
+}
+
+// Utility Functions
+function getStatusIcon(status: VerificationResult['status']): string {
+  switch (status) {
+    case 'SUCCESS':
+      return '✅';
+    case 'WARNING':
+      return '⚠️';
+    case 'ERROR':
+      return '❌';
+    default:
+      return '❓';
+  }
+}
+
+function calculateCodeSize(bytecode: string): number {
+  return Math.floor((bytecode.length - 2) / 2);
+}
+
+function createSuccessResult(
+  component: string,
+  address: string,
+  message: string,
+  details?: any
+): VerificationResult {
+  return { component, address, status: 'SUCCESS', message, details };
+}
+
+function createWarningResult(
+  component: string,
+  address: string,
+  message: string,
+  details?: any
+): VerificationResult {
+  return { component, address, status: 'WARNING', message, details };
+}
+
+function createErrorResult(
+  component: string,
+  address: string,
+  message: string,
+  details?: any
+): VerificationResult {
+  return { component, address, status: 'ERROR', message, details };
+}
+
+/**
+ * Shared utility to assert contract has code at address
+ * @param addr - Contract address to check
+ * @param tag - Component name for error messages
+ * @throws {ContractNotFoundError} When no code is found
+ */
+export async function assertHasCode(addr: string, tag: string): Promise<void> {
+  const code = await ethers.provider.getCode(addr);
+  if (code === '0x') {
+    throw new ContractNotFoundError(addr, tag);
+  }
+}
+
+/**
+ * ABI-safe dispatcher state reading with proper error handling
+ * @param dispatcher - Dispatcher contract instance
+ * @returns Active root hash or default if not set
+ */
+async function readActiveRoot(dispatcher: any): Promise<string> {
+  // Try activeRoot() method first
+  try {
+    const root = await dispatcher.activeRoot();
+    return root || DEFAULT_ROOT;
+  } catch (activeRootError) {
+    console.warn(
+      `[DEBUG] activeRoot() failed, trying currentRoot(): ${activeRootError}`
+    );
+
+    // Fallback: try currentRoot() for older contracts
+    try {
+      const root = await dispatcher.currentRoot();
+      return root || DEFAULT_ROOT;
+    } catch (currentRootError) {
+      console.warn(`[DEBUG] currentRoot() also failed: ${currentRootError}`);
+      // This is acceptable for fresh deployments
+      return DEFAULT_ROOT;
+    }
+  }
+}
+
+/**
+ * Reads pending state from dispatcher with multiple fallback strategies
+ * @param dispatcher - Dispatcher contract instance
+ * @returns Pending state object with root, epoch, and timestamp
+ * @throws {Error} When all ABI reading strategies fail
+ */
+async function readPendingState(
+  dispatcher: any
+): Promise<{ root: any; epoch: any; ts: any }> {
+  // Strategy 1: Try separate getters first
+  try {
+    const root = await dispatcher.pendingRoot().catch(() => null);
+    const epoch = await dispatcher.pendingEpoch?.().catch(() => null);
+    const ts = await dispatcher.earliestActivation?.().catch(() => null);
+
+    if (root !== null) {
+      return { root, epoch, ts };
+    }
+  } catch (separateGettersError) {
+    console.warn(`[DEBUG] Separate getters failed: ${separateGettersError}`);
+  }
+
+  // Strategy 2: Try struct getter approach
+  try {
+    if (typeof dispatcher.pending === 'function') {
+      const pendingData = await dispatcher.pending();
+      return {
+        root: pendingData.root ?? pendingData[0],
+        epoch: pendingData.epoch ?? pendingData[1],
+        ts: pendingData.earliestActivation ?? pendingData[2],
+      };
+    }
+  } catch (structError) {
+    console.warn(`[DEBUG] Struct getter failed: ${structError}`);
+  }
+
+  throw new Error(
+    'Dispatcher ABI mismatch: cannot read pending state with any known method'
+  );
+}
+
+/**
+ * Initializes Hardhat provider compatibility shims
+ */
+function initializeProviderShims(): void {
+  // Fix for HardhatEthersProvider.resolveName not implemented
+  const provider: any = ethers.provider;
+  if (typeof provider.resolveName !== 'function') {
+    provider.resolveName = async (name: string) => {
+      if (/^0x[0-9a-fA-F]{40}$/.test(name)) {
+        return name; // accept hex addresses as-is
+      }
+      throw new Error('ENS resolution not supported on Hardhat local provider');
+    };
+  }
+}
+
+/**
+ * Loads deployment artifact from file system
+ * @param chainId - Chain ID for directory lookup
+ * @param contractName - Name of contract (factory/dispatcher)
+ * @returns Parsed deployment artifact
+ * @throws {DeploymentVerificationError} When file not found or invalid
+ */
+async function loadDeploymentArtifact(
+  chainId: string,
+  contractName: string
+): Promise<DeploymentArtifact> {
+  const artifactPath = path.join(
+    __dirname,
+    `../deployments/${chainId}/${contractName}.json`
+  );
+
+  if (!fs.existsSync(artifactPath)) {
+    throw new DeploymentVerificationError(
+      `${contractName} deployment artifact not found at ${artifactPath}`,
+      contractName
+    );
+  }
+
+  try {
+    return JSON.parse(fs.readFileSync(artifactPath, 'utf8'));
+  } catch (parseError) {
+    throw new DeploymentVerificationError(
+      `Failed to parse ${contractName} deployment artifact: ${parseError}`,
+      contractName
+    );
+  }
+}
+
+/**
+ * Generates verification summary from results array
+ * @param results - Array of verification results
+ * @returns Summary with counts by status
+ */
+function generateSummary(results: VerificationResult[]): VerificationSummary {
+  return {
+    successCount: results.filter(r => r.status === 'SUCCESS').length,
+    warningCount: results.filter(r => r.status === 'WARNING').length,
+    errorCount: results.filter(r => r.status === 'ERROR').length,
+    totalCount: results.length,
+  };
+}
+
+/**
+ * Displays verification results in a formatted way
+ * @param results - Array of verification results
+ */
+function displayResults(results: VerificationResult[]): void {
+  console.log('\n📋 Detailed Results:');
+
+  for (const result of results) {
+    const icon = getStatusIcon(result.status);
+    console.log(`${icon} ${result.component}: ${result.message}`);
+
+    if (result.address) {
+      console.log(`   📍 Address: ${result.address}`);
+    }
+
+    if (result.details) {
+      console.log(`   📝 Details: ${JSON.stringify(result.details, null, 2)}`);
+    }
+  }
+}
+
+/**
+ * Main verification orchestrator
+ */
+async function main(): Promise<void> {
   console.log('[INFO] PayRox Go Beyond - Complete Deployment Verification');
   console.log('=======================================================');
+
+  // Initialize compatibility shims
+  initializeProviderShims();
 
   const results: VerificationResult[] = [];
   const network = await ethers.provider.getNetwork();
@@ -99,84 +312,24 @@ async function main() {
   console.log(`⏰ Verification Time: ${new Date().toISOString()}`);
 
   try {
-    // Step 1: Verify Factory Deployment
-    console.log('\n🏭 Verifying Factory Deployment...');
-    const factoryResult = await verifyFactory(chainId);
-    results.push(factoryResult);
+    // Execute verification steps
+    await executeVerificationSteps(chainId, results);
 
-    // Step 2: Verify Dispatcher Deployment
-    console.log('\n📡 Verifying Dispatcher Deployment...');
-    const dispatcherResult = await verifyDispatcher(chainId);
-    results.push(dispatcherResult);
+    // Generate and display summary
+    const summary = generateSummary(results);
+    displaySummary(summary);
 
-    // Step 3: Verify Facet Deployments
-    console.log('\n🔹 Verifying Facet Deployments...');
-    const facetResults = await verifyFacets();
-    results.push(...facetResults);
+    // Display detailed results
+    displayResults(results);
 
-    // Step 4: Verify System Integration
-    console.log('\n🔗 Verifying System Integration...');
-    const integrationResults = await verifySystemIntegration(
-      factoryResult.address,
-      dispatcherResult.address
-    );
-    results.push(...integrationResults);
-
-    // Step 5: Verify Routes and Manifest
-    console.log('\n📋 Verifying Routes and Manifest...');
-    const routeResults = await verifyRoutesAndManifest(
-      dispatcherResult.address
-    );
-    results.push(...routeResults);
-
-    // Step 6: Verify Security Settings
-    console.log('\n🔐 Verifying Security Settings...');
-    const securityResults = await verifySecuritySettings(
-      factoryResult.address,
-      dispatcherResult.address
-    );
-    results.push(...securityResults);
-
-    // Generate Summary Report
-    console.log('\n📊 Verification Summary');
-    console.log('=======================');
-
-    const successCount = results.filter(r => r.status === 'SUCCESS').length;
-    const warningCount = results.filter(r => r.status === 'WARNING').length;
-    const errorCount = results.filter(r => r.status === 'ERROR').length;
-
-    console.log(`✅ Success: ${successCount}`);
-    console.log(`⚠️  Warning: ${warningCount}`);
-    console.log(`❌ Error: ${errorCount}`);
-
-    // Detailed Results
-    console.log('\n📋 Detailed Results:');
-    for (const result of results) {
-      const icon =
-        result.status === 'SUCCESS'
-          ? '✅'
-          : result.status === 'WARNING'
-          ? '⚠️'
-          : '❌';
-      console.log(`${icon} ${result.component}: ${result.message}`);
-      if (result.address) {
-        console.log(`   📍 Address: ${result.address}`);
-      }
-      if (result.details) {
-        console.log(
-          `   📝 Details: ${JSON.stringify(result.details, null, 2)}`
-        );
-      }
-    }
-
-    // Final Verdict
-    if (errorCount === 0) {
+    // Determine final verdict
+    if (summary.errorCount === 0) {
       console.log('\n🎉 VERIFICATION COMPLETE - ALL SYSTEMS OPERATIONAL!');
       console.log('✅ 100% Error-Free Deployment Verified');
       process.exit(0);
     } else {
       console.log('\n💥 VERIFICATION FAILED - ERRORS DETECTED!');
-      console.log(`❌ ${errorCount} error(s) must be resolved`);
+      console.log(`❌ ${summary.errorCount} error(s) must be resolved`);
       process.exit(1);
     }
   } catch (error) {
@@ -186,216 +339,238 @@ async function main() {
   }
 }
 
+/**
+ * Executes all verification steps in sequence
+ * @param chainId - Network chain ID
+ * @param results - Results array to populate
+ */
+async function executeVerificationSteps(
+  chainId: string,
+  results: VerificationResult[]
+): Promise<void> {
+  // Step 1: Verify Factory Deployment
+  console.log('\n🏭 Verifying Factory Deployment...');
+  const factoryResult = await verifyFactory(chainId);
+  results.push(factoryResult);
+
+  // Step 2: Verify Dispatcher Deployment
+  console.log('\n📡 Verifying Dispatcher Deployment...');
+  const dispatcherResult = await verifyDispatcher(chainId);
+  results.push(dispatcherResult);
+
+  // Step 3: Verify Facet Deployments
+  console.log('\n🔹 Verifying Facet Deployments...');
+  const facetResults = await verifyFacets();
+  results.push(...facetResults);
+
+  // Step 4: Verify System Integration
+  console.log('\n🔗 Verifying System Integration...');
+  const integrationResults = await verifySystemIntegration(
+    factoryResult.address,
+    dispatcherResult.address
+  );
+  results.push(...integrationResults);
+
+  // Step 5: Verify Routes and Manifest
+  console.log('\n📋 Verifying Routes and Manifest...');
+  const routeResults = await verifyRoutesAndManifest(dispatcherResult.address);
+  results.push(...routeResults);
+
+  // Step 6: Verify Security Settings
+  console.log('\n🔐 Verifying Security Settings...');
+  const securityResults = await verifySecuritySettings(
+    factoryResult.address,
+    dispatcherResult.address
+  );
+  results.push(...securityResults);
+}
+
+/**
+ * Displays verification summary
+ * @param summary - Summary object with counts
+ */
+function displaySummary(summary: VerificationSummary): void {
+  console.log('\n� Verification Summary');
+  console.log('=======================');
+  console.log(`✅ Success: ${summary.successCount}`);
+  console.log(`⚠️  Warning: ${summary.warningCount}`);
+  console.log(`❌ Error: ${summary.errorCount}`);
+}
+
+/**
+ * Verifies factory deployment and functionality
+ * @param chainId - Network chain ID
+ * @returns Verification result for factory
+ */
 async function verifyFactory(chainId: string): Promise<VerificationResult> {
   try {
-    const factoryPath = path.join(
-      __dirname,
-      `../deployments/${chainId}/factory.json`
-    );
-
-    if (!fs.existsSync(factoryPath)) {
-      return {
-        component: 'Factory',
-        address: '',
-        status: 'ERROR',
-        message: `Factory deployment artifact not found at ${factoryPath}`,
-      };
-    }
-
-    const factoryData: DeploymentArtifact = JSON.parse(
-      fs.readFileSync(factoryPath, 'utf8')
-    );
-
-    // Verify contract has code
+    const factoryData = await loadDeploymentArtifact(chainId, 'factory');
     await assertHasCode(factoryData.address, 'Factory');
 
-    // Verify contract interface
     const factory = await ethers.getContractAt(
       'DeterministicChunkFactory',
       factoryData.address
     );
 
-    // Test basic functionality
-    const owner = await factory.owner();
-    const feeRecipient = await factory.feeRecipient();
-    const deploymentFee = await factory.deploymentFee();
+    const [owner, feeRecipient, deploymentFee, code] = await Promise.all([
+      factory.owner(),
+      factory.feeRecipient(),
+      factory.deploymentFee(),
+      ethers.provider.getCode(factoryData.address),
+    ]);
 
-    const code = await ethers.provider.getCode(factoryData.address);
-
-    return {
-      component: 'Factory',
-      address: factoryData.address,
-      status: 'SUCCESS',
-      message: 'Factory deployment verified successfully',
-      details: {
+    return createSuccessResult(
+      'Factory',
+      factoryData.address,
+      'Factory deployment verified successfully',
+      {
         owner,
         feeRecipient,
         deploymentFee: ethers.formatEther(deploymentFee),
-        codeSize: Math.floor((code.length - 2) / 2),
+        codeSize: calculateCodeSize(code),
         transactionHash: factoryData.transactionHash,
-      },
-    };
+      }
+    );
   } catch (error) {
-    return {
-      component: 'Factory',
-      address: '',
-      status: 'ERROR',
-      message: `Factory verification failed: ${
-        error instanceof Error ? error.message : 'Unknown error'
-      }`,
-    };
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    return createErrorResult(
+      'Factory',
+      '',
+      `Factory verification failed: ${message}`
+    );
   }
 }
 
+/**
+ * Verifies dispatcher deployment and functionality
+ * @param chainId - Network chain ID
+ * @returns Verification result for dispatcher
+ */
 async function verifyDispatcher(chainId: string): Promise<VerificationResult> {
   try {
-    const dispatcherPath = path.join(
-      __dirname,
-      `../deployments/${chainId}/dispatcher.json`
-    );
-
-    if (!fs.existsSync(dispatcherPath)) {
-      return {
-        component: 'Dispatcher',
-        address: '',
-        status: 'ERROR',
-        message: `Dispatcher deployment artifact not found at ${dispatcherPath}`,
-      };
-    }
-
-    const dispatcherData: DeploymentArtifact = JSON.parse(
-      fs.readFileSync(dispatcherPath, 'utf8')
-    );
-
-    // Verify contract has code
+    const dispatcherData = await loadDeploymentArtifact(chainId, 'dispatcher');
     await assertHasCode(dispatcherData.address, 'Dispatcher');
 
-    // Verify contract interface
     const dispatcher = await ethers.getContractAt(
       'ManifestDispatcher',
       dispatcherData.address
     );
 
-    // Test basic functionality
-    const owner = await dispatcher.owner();
-    const activationDelay = await dispatcher.activationDelay();
-    const frozen = await dispatcher.frozen();
+    const [owner, activationDelay, frozen, currentRoot, code] =
+      await Promise.all([
+        dispatcher.owner(),
+        dispatcher.activationDelay(),
+        dispatcher.frozen(),
+        readActiveRoot(dispatcher),
+        ethers.provider.getCode(dispatcherData.address),
+      ]);
 
-    // Try to get current root with ABI-safe handling
-    const currentRoot = await readActiveRoot(dispatcher);
-
-    const code = await ethers.provider.getCode(dispatcherData.address);
-
-    return {
-      component: 'Dispatcher',
-      address: dispatcherData.address,
-      status: 'SUCCESS',
-      message: 'Dispatcher deployment verified successfully',
-      details: {
+    return createSuccessResult(
+      'Dispatcher',
+      dispatcherData.address,
+      'Dispatcher deployment verified successfully',
+      {
         owner,
         activationDelay: activationDelay.toString(),
         frozen,
         currentRoot,
-        codeSize: Math.floor((code.length - 2) / 2),
+        codeSize: calculateCodeSize(code),
         transactionHash: dispatcherData.transactionHash,
-      },
-    };
+      }
+    );
   } catch (error) {
-    return {
-      component: 'Dispatcher',
-      address: '',
-      status: 'ERROR',
-      message: `Dispatcher verification failed: ${
-        error instanceof Error ? error.message : 'Unknown error'
-      }`,
-    };
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    return createErrorResult(
+      'Dispatcher',
+      '',
+      `Dispatcher verification failed: ${message}`
+    );
   }
 }
 
+/**
+ * Verifies a single facet deployment
+ * @param facetConfig - Facet configuration object
+ * @returns Verification result for the facet
+ */
+async function verifySingleFacet(
+  facetConfig: FacetConfiguration
+): Promise<VerificationResult> {
+  try {
+    const code = await ethers.provider.getCode(facetConfig.expectedAddress);
+
+    if (code === '0x') {
+      return createErrorResult(
+        facetConfig.name,
+        facetConfig.expectedAddress,
+        `${facetConfig.name} has no code at expected address`
+      );
+    }
+
+    // Try to verify it's the correct contract type
+    try {
+      const contractInterface = await ethers.getContractAt(
+        facetConfig.contractName,
+        facetConfig.expectedAddress
+      );
+
+      // Test the expected function exists (note: getFunction is synchronous)
+      const func = contractInterface.getFunction(facetConfig.testFunction);
+      if (!func) {
+        throw new Error(`Function ${facetConfig.testFunction} not found`);
+      }
+
+      return createSuccessResult(
+        facetConfig.name,
+        facetConfig.expectedAddress,
+        `${facetConfig.name} deployed and verified successfully`,
+        { codeSize: calculateCodeSize(code) }
+      );
+    } catch (interfaceError) {
+      return createWarningResult(
+        facetConfig.name,
+        facetConfig.expectedAddress,
+        `${facetConfig.name} has code but interface verification failed`,
+        {
+          codeSize: calculateCodeSize(code),
+          interfaceError:
+            interfaceError instanceof Error
+              ? interfaceError.message
+              : 'Unknown interface error',
+        }
+      );
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    return createErrorResult(
+      facetConfig.name,
+      facetConfig.expectedAddress,
+      `${facetConfig.name} verification failed: ${message}`
+    );
+  }
+}
+
+/**
+ * Verifies all expected facet deployments
+ * @returns Array of verification results for all facets
+ */
 async function verifyFacets(): Promise<VerificationResult[]> {
   const results: VerificationResult[] = [];
 
-  // Check for known facet addresses from previous deployments
-  const knownFacets = [
-    {
-      name: 'FacetA',
-      expectedAddress: '0xDDa0648FA8c9cD593416EC37089C2a2E6060B45c',
-    },
-    {
-      name: 'FacetB',
-      expectedAddress: '0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9',
-    },
-  ];
-
-  for (const facet of knownFacets) {
-    try {
-      const code = await ethers.provider.getCode(facet.expectedAddress);
-
-      if (code === '0x') {
-        results.push({
-          component: facet.name,
-          address: facet.expectedAddress,
-          status: 'ERROR',
-          message: `${facet.name} has no code at expected address`,
-        });
-      } else {
-        // Try to verify it's the correct contract type
-        let contractInterface = null;
-        try {
-          if (facet.name === 'FacetA') {
-            contractInterface = await ethers.getContractAt(
-              'ExampleFacetA',
-              facet.expectedAddress
-            );
-            await contractInterface.getFunction('functionA');
-          } else if (facet.name === 'FacetB') {
-            contractInterface = await ethers.getContractAt(
-              'ExampleFacetB',
-              facet.expectedAddress
-            );
-            await contractInterface.getFunction('functionB');
-          }
-
-          results.push({
-            component: facet.name,
-            address: facet.expectedAddress,
-            status: 'SUCCESS',
-            message: `${facet.name} deployed and verified successfully`,
-            details: {
-              codeSize: Math.floor((code.length - 2) / 2),
-            },
-          });
-        } catch (interfaceError) {
-          results.push({
-            component: facet.name,
-            address: facet.expectedAddress,
-            status: 'WARNING',
-            message: `${facet.name} has code but interface verification failed`,
-            details: {
-              codeSize: Math.floor((code.length - 2) / 2),
-              interfaceError:
-                interfaceError instanceof Error
-                  ? interfaceError.message
-                  : 'Unknown interface error',
-            },
-          });
-        }
-      }
-    } catch (error) {
-      results.push({
-        component: facet.name,
-        address: facet.expectedAddress,
-        status: 'ERROR',
-        message: `${facet.name} verification failed: ${
-          error instanceof Error ? error.message : 'Unknown error'
-        }`,
-      });
-    }
+  for (const facetConfig of EXPECTED_FACETS) {
+    const result = await verifySingleFacet(facetConfig);
+    results.push(result);
   }
 
   return results;
 }
 
+/**
+ * Verifies system integration between factory and dispatcher
+ * @param factoryAddress - Factory contract address
+ * @param dispatcherAddress - Dispatcher contract address
+ * @returns Array of integration verification results
+ */
 async function verifySystemIntegration(
   factoryAddress: string,
   dispatcherAddress: string
@@ -403,197 +578,239 @@ async function verifySystemIntegration(
   const results: VerificationResult[] = [];
 
   // Verify addresses are different
-  if (factoryAddress === dispatcherAddress) {
-    results.push({
-      component: 'Address Uniqueness',
-      address: '',
-      status: 'ERROR',
-      message:
-        'Factory and Dispatcher have the same address - this indicates a deployment error',
-    });
-  } else {
-    results.push({
-      component: 'Address Uniqueness',
-      address: '',
-      status: 'SUCCESS',
-      message: 'Factory and Dispatcher have unique addresses',
-    });
-  }
+  results.push(verifyAddressUniqueness(factoryAddress, dispatcherAddress));
 
-  // Verify both contracts can interact with each other
+  // Verify owner consistency
   try {
-    // Apply additional shim for getContractAt calls
-    const originalGetContractAt = ethers.getContractAt;
-    (ethers as any).getContractAt = async (
-      contractName: any,
-      address: any,
-      signer?: any
-    ) => {
-      const addrStr = address.toString();
-
-      // Validate address format before calling
-      if (!/^0x[0-9a-fA-F]{40}$/.test(addrStr)) {
-        throw new Error(`Invalid address format: ${addrStr}`);
-      }
-
-      // Check if contract exists
-      const code = await ethers.provider.getCode(addrStr);
-      if (code === '0x') {
-        throw new Error(`No code at address ${addrStr}`);
-      }
-
-      return originalGetContractAt.call(ethers, contractName, address, signer);
-    };
-
-    const factory = await ethers.getContractAt(
-      'DeterministicChunkFactory',
-      factoryAddress
-    );
-    const dispatcher = await ethers.getContractAt(
-      'ManifestDispatcher',
+    const ownerResult = await verifyOwnerConsistency(
+      factoryAddress,
       dispatcherAddress
     );
-
-    // Test factory owner matches expected owner
-    const factoryOwner = await factory.owner();
-    const dispatcherOwner = await dispatcher.owner();
-
-    if (factoryOwner === dispatcherOwner) {
-      results.push({
-        component: 'Owner Consistency',
-        address: '',
-        status: 'SUCCESS',
-        message: 'Factory and Dispatcher have consistent ownership',
-        details: { owner: factoryOwner },
-      });
-    } else {
-      results.push({
-        component: 'Owner Consistency',
-        address: '',
-        status: 'WARNING',
-        message: 'Factory and Dispatcher have different owners',
-        details: { factoryOwner, dispatcherOwner },
-      });
-    }
+    results.push(ownerResult);
   } catch (error) {
-    if (error instanceof Error && error.message.includes('resolveName')) {
-      results.push({
-        component: 'Integration Test',
-        address: '',
-        status: 'WARNING',
-        message:
-          'Integration test skipped due to Hardhat ethers compatibility issue',
-      });
-    } else {
-      results.push({
-        component: 'Integration Test',
-        address: '',
-        status: 'ERROR',
-        message: `System integration verification failed: ${
-          error instanceof Error ? error.message : 'Unknown error'
-        }`,
-      });
-    }
+    results.push(handleIntegrationError(error));
   }
 
   return results;
 }
 
+/**
+ * Verifies that factory and dispatcher have unique addresses
+ */
+function verifyAddressUniqueness(
+  factoryAddress: string,
+  dispatcherAddress: string
+): VerificationResult {
+  if (factoryAddress === dispatcherAddress) {
+    return createErrorResult(
+      'Address Uniqueness',
+      '',
+      'Factory and Dispatcher have the same address - this indicates a deployment error'
+    );
+  }
+
+  return createSuccessResult(
+    'Address Uniqueness',
+    '',
+    'Factory and Dispatcher have unique addresses'
+  );
+}
+
+/**
+ * Verifies owner consistency between factory and dispatcher
+ */
+async function verifyOwnerConsistency(
+  factoryAddress: string,
+  dispatcherAddress: string
+): Promise<VerificationResult> {
+  const factory = await ethers.getContractAt(
+    'DeterministicChunkFactory',
+    factoryAddress
+  );
+  const dispatcher = await ethers.getContractAt(
+    'ManifestDispatcher',
+    dispatcherAddress
+  );
+
+  const [factoryOwner, dispatcherOwner] = await Promise.all([
+    factory.owner(),
+    dispatcher.owner(),
+  ]);
+
+  if (factoryOwner === dispatcherOwner) {
+    return createSuccessResult(
+      'Owner Consistency',
+      '',
+      'Factory and Dispatcher have consistent ownership',
+      { owner: factoryOwner }
+    );
+  }
+
+  return createWarningResult(
+    'Owner Consistency',
+    '',
+    'Factory and Dispatcher have different owners',
+    { factoryOwner, dispatcherOwner }
+  );
+}
+
+/**
+ * Handles integration test errors with proper categorization
+ */
+function handleIntegrationError(error: unknown): VerificationResult {
+  if (error instanceof Error && error.message.includes('resolveName')) {
+    return createWarningResult(
+      'Integration Test',
+      '',
+      'Integration test skipped due to Hardhat ethers compatibility issue'
+    );
+  }
+
+  const message = error instanceof Error ? error.message : 'Unknown error';
+  return createErrorResult(
+    'Integration Test',
+    '',
+    `System integration verification failed: ${message}`
+  );
+}
+
+/**
+ * Verifies routes and manifest configuration
+ * @param dispatcherAddress - Dispatcher contract address
+ * @returns Array of route and manifest verification results
+ */
 async function verifyRoutesAndManifest(
   dispatcherAddress: string
 ): Promise<VerificationResult[]> {
   const results: VerificationResult[] = [];
 
   try {
-    // Check if manifest files exist
-    const manifestPath = path.join(
-      __dirname,
-      '../manifests/complete-production.manifest.json'
-    );
-    const merklePath = path.join(__dirname, '../manifests/current.merkle.json');
-
-    if (fs.existsSync(manifestPath)) {
-      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-      results.push({
-        component: 'Production Manifest',
-        address: '',
-        status: 'SUCCESS',
-        message: 'Production manifest exists and is valid JSON',
-        details: {
-          version: manifest.version,
-          facetCount: manifest.facets?.length || 0,
-          routeCount: manifest.routes?.length || 0,
-        },
-      });
-    } else {
-      results.push({
-        component: 'Production Manifest',
-        address: '',
-        status: 'WARNING',
-        message: 'Production manifest file not found',
-      });
-    }
-
-    if (fs.existsSync(merklePath)) {
-      const merkle = JSON.parse(fs.readFileSync(merklePath, 'utf8'));
-      results.push({
-        component: 'Merkle Tree',
-        address: '',
-        status: 'SUCCESS',
-        message: 'Merkle tree data exists',
-        details: {
-          root: merkle.root,
-          leafCount: merkle.leaves?.length || 0,
-        },
-      });
-    } else {
-      results.push({
-        component: 'Merkle Tree',
-        address: '',
-        status: 'WARNING',
-        message: 'Merkle tree file not found',
-      });
-    }
+    // Verify manifest files
+    results.push(verifyManifestFile());
+    results.push(verifyMerkleFile());
 
     // Test dispatcher route resolution
+    const routeResult = await verifyRouteResolution(dispatcherAddress);
+    results.push(routeResult);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    results.push(
+      createErrorResult(
+        'Manifest Verification',
+        '',
+        `Manifest verification failed: ${message}`
+      )
+    );
+  }
+
+  return results;
+}
+
+/**
+ * Verifies production manifest file exists and is valid
+ */
+function verifyManifestFile(): VerificationResult {
+  const manifestPath = path.join(
+    __dirname,
+    '../manifests/complete-production.manifest.json'
+  );
+
+  if (!fs.existsSync(manifestPath)) {
+    return createWarningResult(
+      'Production Manifest',
+      '',
+      'Production manifest file not found'
+    );
+  }
+
+  try {
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+    return createSuccessResult(
+      'Production Manifest',
+      '',
+      'Production manifest exists and is valid JSON',
+      {
+        version: manifest.version,
+        facetCount: manifest.facets?.length || 0,
+        routeCount: manifest.routes?.length || 0,
+      }
+    );
+  } catch (parseError) {
+    const message =
+      parseError instanceof Error ? parseError.message : 'Invalid JSON format';
+    return createErrorResult(
+      'Production Manifest',
+      '',
+      `Production manifest file is invalid JSON: ${message}`
+    );
+  }
+}
+
+/**
+ * Verifies Merkle tree file exists and is valid
+ */
+function verifyMerkleFile(): VerificationResult {
+  const merklePath = path.join(__dirname, '../manifests/current.merkle.json');
+
+  if (!fs.existsSync(merklePath)) {
+    return createWarningResult('Merkle Tree', '', 'Merkle tree file not found');
+  }
+
+  try {
+    const merkle = JSON.parse(fs.readFileSync(merklePath, 'utf8'));
+    return createSuccessResult('Merkle Tree', '', 'Merkle tree data exists', {
+      root: merkle.root,
+      leafCount: merkle.leaves?.length || 0,
+    });
+  } catch (parseError) {
+    const message =
+      parseError instanceof Error ? parseError.message : 'Invalid JSON format';
+    return createErrorResult(
+      'Merkle Tree',
+      '',
+      `Merkle tree file is invalid JSON: ${message}`
+    );
+  }
+}
+
+/**
+ * Verifies dispatcher route resolution functionality
+ */
+async function verifyRouteResolution(
+  dispatcherAddress: string
+): Promise<VerificationResult> {
+  try {
     const dispatcher = await ethers.getContractAt(
       'ManifestDispatcher',
       dispatcherAddress
     );
 
     // Test a known function selector (if routes are applied)
-    try {
-      const testSelector = '0x12345678'; // Example selector
-      const route = await dispatcher.getRoute(testSelector);
-      results.push({
-        component: 'Route Resolution',
-        address: '',
-        status: 'SUCCESS',
-        message: 'Dispatcher route resolution working',
-        details: { testRoute: route },
-      });
-    } catch (error) {
-      results.push({
-        component: 'Route Resolution',
-        address: '',
-        status: 'WARNING',
-        message: 'Route resolution test failed (routes may not be applied yet)',
-      });
-    }
-  } catch (error) {
-    results.push({
-      component: 'Manifest Verification',
-      address: '',
-      status: 'ERROR',
-      message: `Manifest verification failed: ${
-        error instanceof Error ? error.message : 'Unknown error'
-      }`,
-    });
-  }
+    const testSelector = '0x12345678'; // Example selector
+    const route = await dispatcher.getRoute(testSelector);
 
-  return results;
+    return createSuccessResult(
+      'Route Resolution',
+      '',
+      'Dispatcher route resolution working',
+      { testRoute: route }
+    );
+  } catch (routeError) {
+    console.warn(`[DEBUG] Route resolution test failed: ${routeError}`);
+    return createWarningResult(
+      'Route Resolution',
+      '',
+      'Route resolution test failed (routes may not be applied yet)'
+    );
+  }
 }
 
+/**
+ * Verifies security configuration and access controls
+ * @param factoryAddress - Factory contract address
+ * @param dispatcherAddress - Dispatcher contract address
+ * @returns Array of security verification results
+ */
 async function verifySecuritySettings(
   factoryAddress: string,
   dispatcherAddress: string
@@ -601,80 +818,139 @@ async function verifySecuritySettings(
   const results: VerificationResult[] = [];
 
   try {
-    const factory = await ethers.getContractAt(
-      'DeterministicChunkFactory',
-      factoryAddress
-    );
-    const dispatcher = await ethers.getContractAt(
-      'ManifestDispatcher',
-      dispatcherAddress
-    );
-
-    // Verify factory security
-    const factoryOwner = await factory.owner();
-    const feeRecipient = await factory.feeRecipient();
-    const deploymentFee = await factory.deploymentFee();
-
-    if (factoryOwner && factoryOwner !== ethers.ZeroAddress) {
-      results.push({
-        component: 'Factory Security',
-        address: factoryAddress,
-        status: 'SUCCESS',
-        message: 'Factory has valid owner set',
-        details: {
-          owner: factoryOwner,
-          feeRecipient,
-          deploymentFee: ethers.formatEther(deploymentFee),
-        },
-      });
-    } else {
-      results.push({
-        component: 'Factory Security',
-        address: factoryAddress,
-        status: 'ERROR',
-        message: 'Factory owner not properly set',
-      });
-    }
-
-    // Verify dispatcher security
-    const dispatcherOwner = await dispatcher.owner();
-    const frozen = await dispatcher.frozen();
-    const activationDelay = await dispatcher.activationDelay();
-
-    if (dispatcherOwner && dispatcherOwner !== ethers.ZeroAddress) {
-      results.push({
-        component: 'Dispatcher Security',
-        address: dispatcherAddress,
-        status: 'SUCCESS',
-        message: 'Dispatcher has valid owner and security settings',
-        details: {
-          owner: dispatcherOwner,
-          frozen,
-          activationDelay: activationDelay.toString() + ' seconds',
-        },
-      });
-    } else {
-      results.push({
-        component: 'Dispatcher Security',
-        address: dispatcherAddress,
-        status: 'ERROR',
-        message: 'Dispatcher owner not properly set',
-      });
-    }
+    results.push(...(await verifyFactorySecurity(factoryAddress)));
+    results.push(...(await verifyDispatcherSecurity(dispatcherAddress)));
   } catch (error) {
-    results.push({
-      component: 'Security Verification',
-      address: '',
-      status: 'ERROR',
-      message: `Security verification failed: ${
-        error instanceof Error ? error.message : 'Unknown error'
-      }`,
-    });
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    results.push(
+      createErrorResult(
+        'Security Verification',
+        '',
+        `Security verification failed: ${message}`
+      )
+    );
   }
 
   return results;
 }
 
+/**
+ * Verifies factory contract security settings
+ */
+async function verifyFactorySecurity(
+  factoryAddress: string
+): Promise<VerificationResult[]> {
+  const results: VerificationResult[] = [];
+
+  try {
+    const factory = await ethers.getContractAt(
+      'DeterministicChunkFactory',
+      factoryAddress
+    );
+
+    // Check factory ownership and configuration
+    const factoryOwner = await factory.owner();
+    const feeRecipient = await factory.feeRecipient();
+    const deploymentFee = await factory.deploymentFee();
+
+    if (factoryOwner && factoryOwner !== ethers.ZeroAddress) {
+      results.push(
+        createSuccessResult(
+          'Factory Security',
+          factoryAddress,
+          'Factory has valid owner set',
+          {
+            owner: factoryOwner,
+            feeRecipient,
+            deploymentFee: ethers.formatEther(deploymentFee),
+          }
+        )
+      );
+    } else {
+      results.push(
+        createErrorResult(
+          'Factory Security',
+          factoryAddress,
+          'Factory owner not properly set'
+        )
+      );
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    results.push(
+      createErrorResult(
+        'Factory Security',
+        factoryAddress,
+        `Factory security check failed: ${message}`
+      )
+    );
+  }
+
+  return results;
+}
+
+/**
+ * Verifies dispatcher contract security settings
+ */
+async function verifyDispatcherSecurity(
+  dispatcherAddress: string
+): Promise<VerificationResult[]> {
+  const results: VerificationResult[] = [];
+
+  try {
+    const dispatcher = await ethers.getContractAt(
+      'ManifestDispatcher',
+      dispatcherAddress
+    );
+
+    // Check dispatcher ownership and security configuration
+    const dispatcherOwner = await dispatcher.owner();
+    const frozen = await dispatcher.frozen();
+    const activationDelay = await dispatcher.activationDelay();
+
+    if (dispatcherOwner && dispatcherOwner !== ethers.ZeroAddress) {
+      results.push(
+        createSuccessResult(
+          'Dispatcher Security',
+          dispatcherAddress,
+          'Dispatcher has valid owner and security settings',
+          {
+            owner: dispatcherOwner,
+            frozen,
+            activationDelay: activationDelay.toString() + ' seconds',
+          }
+        )
+      );
+    } else {
+      results.push(
+        createErrorResult(
+          'Dispatcher Security',
+          dispatcherAddress,
+          'Dispatcher owner not properly set'
+        )
+      );
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    results.push(
+      createErrorResult(
+        'Dispatcher Security',
+        dispatcherAddress,
+        `Dispatcher security check failed: ${message}`
+      )
+    );
+  }
+
+  return results;
+}
+
+// Main execution when script is run directly
+if (require.main === module) {
+  main().catch(error => {
+    console.error('Verification failed:', error);
+    process.exit(1);
+  });
+}
 main()
   .then(() => process.exit(0))
   .catch(error => {
