@@ -67,14 +67,22 @@ task('payrox:roles:bootstrap', 'Setup production role-based access control')
     const adminAddr = args.admin || signer.address;
     const deployerAddr = args.deployer || signer.address;
     const upgraderAddr = args.upgrader || signer.address;
-    const timelockDelay = parseInt(args.timelock);
+    const timelockDelay = Number(args.timelock) || 0;
+
+    // Helper function to format time
+    const formatTime = (seconds: number): string => {
+      if (!Number.isFinite(seconds) || seconds <= 0) return '0h 0m';
+      const hours = Math.floor(seconds / 3600);
+      const minutes = Math.floor((seconds % 3600) / 60);
+      return `${hours}h ${minutes}m`;
+    };
 
     console.log(`\\n📋 Role Assignment Plan:`);
     console.log(`   Admin: ${adminAddr}`);
     console.log(`   Deployer: ${deployerAddr}`);
     console.log(`   Upgrader: ${upgraderAddr}`);
     console.log(
-      `   Timelock Delay: ${timelockDelay}s (${timelockDelay / 3600}h)`
+      `   Timelock Delay: ${timelockDelay}s (${formatTime(timelockDelay)})`
     );
 
     if (args.dryrun) {

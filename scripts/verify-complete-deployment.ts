@@ -2,6 +2,15 @@ import * as fs from 'fs';
 import { ethers } from 'hardhat';
 import * as path from 'path';
 
+// Fix for HardhatEthersProvider.resolveName not implemented
+const p: any = ethers.provider;
+if (typeof p.resolveName !== 'function') {
+  p.resolveName = async (name: string) => {
+    if (/^0x[0-9a-fA-F]{40}$/.test(name)) return name; // accept hex addresses
+    throw new Error('ENS not supported on Hardhat local provider');
+  };
+}
+
 interface DeploymentArtifact {
   contractName: string;
   address: string;
@@ -21,8 +30,8 @@ interface VerificationResult {
 }
 
 async function main() {
-  console.log('🔍 PayRox Go Beyond - Complete Deployment Verification');
-  console.log('=====================================================');
+  console.log('[INFO] PayRox Go Beyond - Complete Deployment Verification');
+  console.log('=======================================================');
 
   const results: VerificationResult[] = [];
   const network = await ethers.provider.getNetwork();

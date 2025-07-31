@@ -186,9 +186,12 @@ try {
     throw "Route application failed"
   }
 
-  # Step 10: Skip Route Activation (Script missing)
-  Write-Host "`nSkipping Route Activation..." -ForegroundColor Yellow
-  Write-Host "   [INFO] Route activation script not found - routes applied via apply-all-routes.ts" -ForegroundColor Cyan
+  # Step 10: Activate Root (New step for production readiness)
+  Write-Host "`nActivating committed root..." -ForegroundColor Yellow
+  if (!(Invoke-PayRoxCommand -Command "npx hardhat run scripts/activate-root.ts --network $Network" -Description "Activating Committed Root")) {
+    Write-Host "   [WARN] Root activation had issues but continuing..." -ForegroundColor Yellow
+    Write-Host "   [INFO] Routes are applied but governance state may lag - check manually if needed" -ForegroundColor Cyan
+  }
 
   # Step 11: Quick Address Verification
   if (!(Invoke-PayRoxCommand -Command "npx hardhat run scripts/quick-deployment-check.ts --network $Network" -Description "Quick Address Verification")) {
@@ -286,12 +289,20 @@ try {
   $facetAAddress = "Not deployed"
   $facetBAddress = "Not deployed"
 
-  if (Test-Path "deployments/$Network/facet-a.json") {
+  if (Test-Path "deployments/$Network/ExampleFacetA.json") {
+    $facetAData = Get-Content "deployments/$Network/ExampleFacetA.json" -Raw | ConvertFrom-Json
+    $facetAAddress = $facetAData.address
+  }
+  elseif (Test-Path "deployments/$Network/facet-a.json") {
     $facetAData = Get-Content "deployments/$Network/facet-a.json" -Raw | ConvertFrom-Json
     $facetAAddress = $facetAData.address
   }
 
-  if (Test-Path "deployments/$Network/facet-b.json") {
+  if (Test-Path "deployments/$Network/ExampleFacetB.json") {
+    $facetBData = Get-Content "deployments/$Network/ExampleFacetB.json" -Raw | ConvertFrom-Json
+    $facetBAddress = $facetBData.address
+  }
+  elseif (Test-Path "deployments/$Network/facet-b.json") {
     $facetBData = Get-Content "deployments/$Network/facet-b.json" -Raw | ConvertFrom-Json
     $facetBAddress = $facetBData.address
   }
@@ -309,7 +320,7 @@ try {
   Write-Host "   FacetB: $facetBAddress" -ForegroundColor White
   Write-Host ""
   Write-Host "System Capabilities:" -ForegroundColor Cyan
-  Write-Host "   [OK] EIP-170 Defeated - Unlimited facet expansion" -ForegroundColor Green
+  Write-Host "   [OK] EIP-170 Compliant - Scale by composing multiple small facets" -ForegroundColor Green
   Write-Host "   [OK] Cryptographic Security - EXTCODEHASH verification" -ForegroundColor Green
   Write-Host "   [OK] Enterprise Tooling - Complete production suite" -ForegroundColor Green
   Write-Host "   [OK] Utility Verification - Manifest & chunk testing passed" -ForegroundColor Green
