@@ -2,11 +2,13 @@
 
 ## 🏛️ Governance System
 
-The PayRox protocol includes a sophisticated governance system managed by the `GovernanceOrchestrator` contract.
+The PayRox protocol includes a sophisticated governance system managed by the
+`GovernanceOrchestrator` contract.
 
 ### Features
 
-- **Proposal Creation**: Authorized proposers can create governance proposals with target manifest hashes
+- **Proposal Creation**: Authorized proposers can create governance proposals with target manifest
+  hashes
 - **Decentralized Voting**: Token-weighted voting system with configurable quorum thresholds
 - **Execution Engine**: Automatic execution of passed proposals after voting deadline
 - **Access Control**: Role-based permissions for proposers, administrators, and emergency actions
@@ -15,6 +17,7 @@ The PayRox protocol includes a sophisticated governance system managed by the `G
 ### Key Components
 
 #### Governance Proposal Structure
+
 ```solidity
 struct GovernanceProposal {
     bytes32 proposalId;
@@ -29,6 +32,7 @@ struct GovernanceProposal {
 ```
 
 #### Roles
+
 - **PROPOSER_ROLE**: Can create new governance proposals
 - **EMERGENCY_ROLE**: Can pause/unpause the system in emergencies
 - **DEFAULT_ADMIN_ROLE**: Full administrative control
@@ -44,6 +48,7 @@ npm run dev
 ```
 
 Available operations:
+
 1. ✍️ Create proposal
 2. ✍️ Cast vote
 3. ✍️ Execute proposal
@@ -53,7 +58,8 @@ Available operations:
 
 ## 🔍 Security Audit System
 
-The `AuditRegistry` contract provides comprehensive security audit management for all PayRox manifests and contracts.
+The `AuditRegistry` contract provides comprehensive security audit management for all PayRox
+manifests and contracts.
 
 ### Features
 
@@ -66,6 +72,7 @@ The `AuditRegistry` contract provides comprehensive security audit management fo
 ### Key Components
 
 #### Audit Information Structure
+
 ```solidity
 struct AuditInfo {
     address auditor;
@@ -77,6 +84,7 @@ struct AuditInfo {
 ```
 
 #### Roles
+
 - **AUDITOR_ROLE**: Can submit security audit reports
 - **AUDIT_ADMIN_ROLE**: Can certify/revoke auditors and manage settings
 - **DEFAULT_ADMIN_ROLE**: Full administrative control
@@ -100,6 +108,7 @@ npm run dev
 ```
 
 Available operations:
+
 1. ✍️ Submit audit
 2. ✍️ Certify auditor
 3. ✍️ Revoke auditor
@@ -114,6 +123,7 @@ The `ManifestTypes` library has been extended with advanced structures for gover
 ### New Structures
 
 #### UpgradeManifest
+
 ```solidity
 struct UpgradeManifest {
     bytes32 fromVersion;
@@ -126,6 +136,7 @@ struct UpgradeManifest {
 ```
 
 #### AuditInfo
+
 ```solidity
 struct AuditInfo {
     address auditor;
@@ -137,6 +148,7 @@ struct AuditInfo {
 ```
 
 #### GovernanceProposal
+
 ```solidity
 struct GovernanceProposal {
     bytes32 proposalId;
@@ -168,11 +180,13 @@ struct GovernanceProposal {
 The `ManifestUtils` library includes new advanced utility functions:
 
 ### Governance Utilities
+
 - `validateUpgrade()`: Validate upgrade manifest compatibility
 - `calculateProposalHash()`: Generate governance proposal hashes
 - `checkGovernanceQuorum()`: Verify voting quorum requirements
 
 ### Audit Utilities
+
 - `verifyAudit()`: Verify audit information integrity
 - `checkAuditValidity()`: Check if audits are still valid
 
@@ -187,12 +201,12 @@ await cli.start();
 // Select: 4 -> 1 -> Enter proposal details
 
 // Direct contract interaction
-const governance = await ethers.getContractAt("GovernanceOrchestrator", address);
+const governance = await ethers.getContractAt('GovernanceOrchestrator', address);
 await governance.createProposal(
-    proposalId,
-    "Upgrade PayRox to v2.0",
-    [targetHash1, targetHash2],
-    7 * 24 * 60 * 60 // 7 days
+  proposalId,
+  'Upgrade PayRox to v2.0',
+  [targetHash1, targetHash2],
+  7 * 24 * 60 * 60 // 7 days
 );
 ```
 
@@ -205,29 +219,32 @@ await cli.start();
 // Select: 5 -> 1 -> Enter audit details
 
 // Direct contract interaction
-const auditRegistry = await ethers.getContractAt("AuditRegistry", address);
+const auditRegistry = await ethers.getContractAt('AuditRegistry', address);
 await auditRegistry.submitAudit(
-    manifestHash,
-    true, // passed
-    "ipfs://QmAuditReport..."
+  manifestHash,
+  true, // passed
+  'ipfs://QmAuditReport...'
 );
 ```
 
 ## 🔒 Security Considerations
 
 ### Governance Security
+
 - All proposals have minimum/maximum voting periods
 - Quorum thresholds prevent small-group manipulation
 - Role-based access control prevents unauthorized actions
 - Emergency pause capability for critical situations
 
 ### Audit Security
+
 - Only certified auditors can submit reports
 - Audit hashes prevent report tampering
 - Time-based expiration ensures fresh security reviews
 - Multiple auditors can audit the same manifest
 
 ### System Integration
+
 - Governance proposals can trigger system upgrades
 - Audit requirements can block unsafe deployments
 - Emergency roles can override normal operations
@@ -243,4 +260,5 @@ This advanced governance and audit system provides:
 4. **Compliance Framework**: Automated security requirement enforcement
 5. **Transparency**: Full audit trail of all governance and security actions
 
-The system is now ready for production deployment with enterprise-grade governance and security capabilities.
+The system is now ready for production deployment with enterprise-grade governance and security
+capabilities.

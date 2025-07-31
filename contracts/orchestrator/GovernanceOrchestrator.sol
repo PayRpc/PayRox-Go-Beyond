@@ -17,13 +17,13 @@ contract GovernanceOrchestrator is AccessControl, Pausable, ReentrancyGuard {
 
     /// @dev Role for proposal creators
     bytes32 public constant PROPOSER_ROLE = keccak256("PROPOSER_ROLE");
-    
+
     /// @dev Role for emergency actions
     bytes32 public constant EMERGENCY_ROLE = keccak256("EMERGENCY_ROLE");
 
     /// @dev Minimum voting period in seconds
     uint256 public constant MIN_VOTING_PERIOD = 3 days;
-    
+
     /// @dev Maximum voting period in seconds
     uint256 public constant MAX_VOTING_PERIOD = 30 days;
 
@@ -96,7 +96,7 @@ contract GovernanceOrchestrator is AccessControl, Pausable, ReentrancyGuard {
      */
     constructor(address admin) {
         if (admin == address(0)) revert ManifestTypes.UnauthorizedDeployer();
-        
+
         _grantRole(DEFAULT_ADMIN_ROLE, admin);
         _grantRole(PROPOSER_ROLE, admin);
         _grantRole(EMERGENCY_ROLE, admin);
@@ -118,7 +118,7 @@ contract GovernanceOrchestrator is AccessControl, Pausable, ReentrancyGuard {
         if (proposals[proposalId].proposalId != bytes32(0)) {
             revert ProposalAlreadyExists(proposalId);
         }
-        
+
         if (votingPeriod < MIN_VOTING_PERIOD || votingPeriod > MAX_VOTING_PERIOD) {
             revert VotingPeriodInvalid(votingPeriod);
         }
@@ -152,11 +152,11 @@ contract GovernanceOrchestrator is AccessControl, Pausable, ReentrancyGuard {
         bool support
     ) external whenNotPaused nonReentrant {
         ManifestTypes.GovernanceProposal storage proposal = proposals[proposalId];
-        
+
         if (proposal.proposalId == bytes32(0)) {
             revert ProposalNotFound(proposalId);
         }
-        
+
         if (block.timestamp > proposal.votingDeadline) {
             revert VotingEnded(proposalId);
         }
@@ -175,7 +175,7 @@ contract GovernanceOrchestrator is AccessControl, Pausable, ReentrancyGuard {
 
         // Record new vote
         votes[proposalId][msg.sender] = voterPower;
-        
+
         if (support) {
             proposal.forVotes += voterPower;
         } else {
@@ -192,15 +192,15 @@ contract GovernanceOrchestrator is AccessControl, Pausable, ReentrancyGuard {
      */
     function executeProposal(bytes32 proposalId) external whenNotPaused nonReentrant {
         ManifestTypes.GovernanceProposal storage proposal = proposals[proposalId];
-        
+
         if (proposal.proposalId == bytes32(0)) {
             revert ProposalNotFound(proposalId);
         }
-        
+
         if (proposal.executed || executedProposals[proposalId]) {
             revert ProposalAlreadyExecuted(proposalId);
         }
-        
+
         if (block.timestamp <= proposal.votingDeadline) {
             revert VotingActive(proposalId);
         }
@@ -210,7 +210,7 @@ contract GovernanceOrchestrator is AccessControl, Pausable, ReentrancyGuard {
             totalVotingSupply,
             quorumThreshold
         );
-        
+
         if (!hasPassed) {
             revert QuorumNotMet(proposalId);
         }
@@ -231,7 +231,7 @@ contract GovernanceOrchestrator is AccessControl, Pausable, ReentrancyGuard {
         uint256 newPower
     ) external onlyRole(DEFAULT_ADMIN_ROLE) {
         uint256 oldPower = votingPower[account];
-        
+
         votingPower[account] = newPower;
         totalVotingSupply = totalVotingSupply - oldPower + newPower;
 
@@ -283,7 +283,7 @@ contract GovernanceOrchestrator is AccessControl, Pausable, ReentrancyGuard {
         bytes32 proposalId
     ) external view returns (bool hasPassed) {
         ManifestTypes.GovernanceProposal memory proposal = proposals[proposalId];
-        
+
         if (proposal.proposalId == bytes32(0)) {
             return false;
         }

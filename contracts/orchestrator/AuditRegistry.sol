@@ -16,13 +16,13 @@ contract AuditRegistry is AccessControl, Pausable {
 
     /// @dev Role for certified auditors
     bytes32 public constant AUDITOR_ROLE = keccak256("AUDITOR_ROLE");
-    
+
     /// @dev Role for audit administrators
     bytes32 public constant AUDIT_ADMIN_ROLE = keccak256("AUDIT_ADMIN_ROLE");
 
     /// @dev Minimum audit validity period in seconds
     uint256 public constant MIN_AUDIT_VALIDITY = 30 days;
-    
+
     /// @dev Maximum audit validity period in seconds
     uint256 public constant MAX_AUDIT_VALIDITY = 365 days;
 
@@ -87,11 +87,11 @@ contract AuditRegistry is AccessControl, Pausable {
      */
     constructor(address admin) {
         if (admin == address(0)) revert ManifestTypes.UnauthorizedDeployer();
-        
+
         _grantRole(DEFAULT_ADMIN_ROLE, admin);
         _grantRole(AUDIT_ADMIN_ROLE, admin);
         _grantRole(AUDITOR_ROLE, admin);
-        
+
         certifiedAuditors[admin] = true;
     }
 
@@ -214,7 +214,7 @@ contract AuditRegistry is AccessControl, Pausable {
         bytes32 manifestHash
     ) external view returns (bool isValid, ManifestTypes.AuditInfo memory auditInfo) {
         auditInfo = audits[manifestHash];
-        
+
         if (auditInfo.auditor == address(0)) {
             return (false, auditInfo);
         }
@@ -231,7 +231,7 @@ contract AuditRegistry is AccessControl, Pausable {
 
         // Verify audit integrity
         bool verified = ManifestUtils.verifyAudit(auditInfo, manifestHash);
-        
+
         return (verified && auditInfo.passed, auditInfo);
     }
 
@@ -277,7 +277,7 @@ contract AuditRegistry is AccessControl, Pausable {
         uint256 limit
     ) external view returns (bytes32[] memory manifests, uint256 total) {
         total = auditedManifests.length;
-        
+
         if (offset >= total) {
             return (new bytes32[](0), total);
         }
@@ -302,10 +302,10 @@ contract AuditRegistry is AccessControl, Pausable {
     ) external onlyRole(AUDIT_ADMIN_ROLE) {
         for (uint256 i = 0; i < manifestHashes.length; i++) {
             bytes32 manifestHash = manifestHashes[i];
-            
-            if (block.timestamp > auditExpiration[manifestHash] && 
+
+            if (block.timestamp > auditExpiration[manifestHash] &&
                 audits[manifestHash].auditor != address(0)) {
-                
+
                 emit AuditExpired(manifestHash, audits[manifestHash].auditor);
             }
         }

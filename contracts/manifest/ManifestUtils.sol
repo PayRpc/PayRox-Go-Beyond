@@ -314,7 +314,7 @@ library ManifestUtils {
     ) internal pure returns (bool hasPassed) {
         uint256 totalVotes = proposal.forVotes + proposal.againstVotes;
         uint256 requiredQuorum = (totalSupply * quorumThreshold) / 100;
-        
+
         return totalVotes >= requiredQuorum && proposal.forVotes > proposal.againstVotes;
     }
 }
