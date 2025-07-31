@@ -1,14 +1,14 @@
 # PayRox Go Beyond: Real-World Social Platform Implementation Guide
 
-*A practical, technically accurate guide to building decentralized social platforms using PayRox Go Beyond's proven diamond pattern architecture.*
+_A practical, technically accurate guide to building decentralized social platforms using PayRox Go
+Beyond's proven diamond pattern architecture._
 
 ## Project Overview
 
-**Technical Foundation**: PayRox Go Beyond v1.0.0  
-**Architecture**: Diamond Pattern with Manifest-Gated Routing  
-**Deployment Method**: CREATE2 Deterministic Factory  
-**Real-World Scope**: 10K-100K users (realistic scaling targets)  
-**Gas Optimization**: L2-optimized with bounded operations  
+**Technical Foundation**: PayRox Go Beyond v1.0.0 **Architecture**: Diamond Pattern with
+Manifest-Gated Routing **Deployment Method**: CREATE2 Deterministic Factory **Real-World Scope**:
+10K-100K users (realistic scaling targets) **Gas Optimization**: L2-optimized with bounded
+operations
 
 ## Understanding PayRox Go Beyond Architecture
 
@@ -46,7 +46,7 @@ npm test
 
 # Create social platform structure
 mkdir contracts/social
-mkdir scripts/social  
+mkdir scripts/social
 mkdir test/social
 mkdir manifests/social
 ```
@@ -57,7 +57,7 @@ mkdir manifests/social
 # Check factory deployment
 npx hardhat run scripts/deploy-factory.ts --network localhost
 
-# Verify dispatcher functionality  
+# Verify dispatcher functionality
 npx hardhat run scripts/deploy-dispatcher.ts --network localhost
 
 # Test facet deployment
@@ -78,24 +78,24 @@ pragma solidity ^0.8.30;
  * @dev Uses diamond storage pattern with fixed slots for safety
  */
 contract SocialCoreFacet {
-    
+
     /* ─────────────────────── Diamond Storage ──────────────────────── */
     bytes32 private constant _SLOT = keccak256("payrox.social.core.v1");
-    
+
     struct Layout {
         mapping(uint256 => Post) posts;
-        mapping(address => Profile) profiles;  
+        mapping(address => Profile) profiles;
         mapping(address => mapping(address => bool)) isFollowing;
         mapping(uint256 => mapping(address => bool)) hasLiked;
         uint256 postCounter;
         uint256 totalUsers;
     }
-    
+
     function _layout() private pure returns (Layout storage l) {
         bytes32 slot = _SLOT;
         assembly { l.slot := slot }
     }
-    
+
     /* ─────────────────────── Data Structures ──────────────────────── */
     struct Post {
         uint256 id;
@@ -106,23 +106,23 @@ contract SocialCoreFacet {
         uint16 shares;
         bool isActive;
     }
-    
+
     struct Profile {
         string username;      // max 32 chars
         string avatarHash;    // IPFS hash
         uint32 followerCount;
-        uint32 followingCount; 
+        uint32 followingCount;
         uint32 postCount;
         uint32 joinDate;
         bool isVerified;
     }
-    
+
     /* ────────────────────────── Events ─────────────────────────── */
     event PostCreated(uint256 indexed postId, address indexed author);
     event PostLiked(uint256 indexed postId, address indexed liker);
     event UserFollowed(address indexed follower, address indexed following);
     event ProfileUpdated(address indexed user, string username);
-    
+
     /* ────────────────────────── Errors ─────────────────────────── */
     error PostNotFound();
     error AlreadyLiked();
@@ -130,24 +130,24 @@ contract SocialCoreFacet {
     error AlreadyFollowing();
     error ContentTooLarge();
     error InvalidUsername();
-    
+
     /* ─────────────────────── L2 Optimized Caps ──────────────────── */
     uint256 private constant MAX_CONTENT_LENGTH = 512;  // IPFS hash + metadata
     uint256 private constant MAX_USERNAME_LENGTH = 32;
     uint256 private constant MAX_POSTS_PER_TX = 1;      // Prevent batch abuse
-    
+
     /**
      * @notice Create a new post with L2-optimized storage
      * @param contentHash IPFS hash of post content
      */
     function createPost(string calldata contentHash) external returns (uint256) {
         Layout storage l = _layout();
-        
+
         if (bytes(contentHash).length > MAX_CONTENT_LENGTH) revert ContentTooLarge();
-        
+
         l.postCounter++;
         uint256 postId = l.postCounter;
-        
+
         l.posts[postId] = Post({
             id: postId,
             author: msg.sender,
@@ -157,46 +157,46 @@ contract SocialCoreFacet {
             shares: 0,
             isActive: true
         });
-        
+
         l.profiles[msg.sender].postCount++;
-        
+
         emit PostCreated(postId, msg.sender);
         return postId;
     }
-    
+
     /**
      * @notice Like a post (idempotent operation)
      * @param postId ID of post to like
      */
     function likePost(uint256 postId) external {
         Layout storage l = _layout();
-        
+
         if (l.posts[postId].author == address(0)) revert PostNotFound();
         if (l.hasLiked[postId][msg.sender]) revert AlreadyLiked();
-        
+
         l.hasLiked[postId][msg.sender] = true;
         l.posts[postId].likes++;
-        
+
         emit PostLiked(postId, msg.sender);
     }
-    
+
     /**
      * @notice Follow another user
      * @param userToFollow Address of user to follow
      */
     function followUser(address userToFollow) external {
         Layout storage l = _layout();
-        
+
         if (userToFollow == msg.sender) revert CannotFollowSelf();
         if (l.isFollowing[msg.sender][userToFollow]) revert AlreadyFollowing();
-        
+
         l.isFollowing[msg.sender][userToFollow] = true;
         l.profiles[msg.sender].followingCount++;
         l.profiles[userToFollow].followerCount++;
-        
+
         emit UserFollowed(msg.sender, userToFollow);
     }
-    
+
     /**
      * @notice Update user profile (gas-optimized)
      * @param username New username (max 32 chars)
@@ -207,23 +207,23 @@ contract SocialCoreFacet {
         string calldata avatarHash
     ) external {
         Layout storage l = _layout();
-        
+
         if (bytes(username).length > MAX_USERNAME_LENGTH) revert InvalidUsername();
-        
+
         Profile storage profile = l.profiles[msg.sender];
-        
+
         // Initialize profile if first time
         if (profile.joinDate == 0) {
             profile.joinDate = uint32(block.timestamp);
             l.totalUsers++;
         }
-        
+
         profile.username = username;
         profile.avatarHash = avatarHash;
-        
+
         emit ProfileUpdated(msg.sender, username);
     }
-    
+
     /**
      * @notice Get post data (view function)
      * @param postId ID of post to retrieve
@@ -237,9 +237,9 @@ contract SocialCoreFacet {
     ) {
         Layout storage l = _layout();
         Post storage post = l.posts[postId];
-        
+
         if (post.author == address(0)) revert PostNotFound();
-        
+
         return (
             post.author,
             post.contentHash,
@@ -248,7 +248,7 @@ contract SocialCoreFacet {
             post.shares
         );
     }
-    
+
     /**
      * @notice Get user profile
      * @param user Address of user
@@ -263,7 +263,7 @@ contract SocialCoreFacet {
     ) {
         Layout storage l = _layout();
         Profile storage profile = l.profiles[user];
-        
+
         return (
             profile.username,
             profile.avatarHash,
@@ -273,7 +273,7 @@ contract SocialCoreFacet {
             profile.isVerified
         );
     }
-    
+
     /**
      * @notice Check if user A follows user B
      */
@@ -281,7 +281,7 @@ contract SocialCoreFacet {
         Layout storage l = _layout();
         return l.isFollowing[follower][following];
     }
-    
+
     /**
      * @notice Get platform statistics
      */
@@ -302,15 +302,15 @@ contract SocialCoreFacet {
 pragma solidity ^0.8.30;
 
 /**
- * @title SocialMonetizationFacet  
+ * @title SocialMonetizationFacet
  * @notice Creator monetization with PayRox diamond storage
  * @dev Separate storage slot to avoid conflicts with SocialCoreFacet
  */
 contract SocialMonetizationFacet {
-    
+
     /* ─────────────────────── Diamond Storage ──────────────────────── */
     bytes32 private constant _SLOT = keccak256("payrox.social.monetization.v1");
-    
+
     struct Layout {
         mapping(address => uint256) creatorEarnings;
         mapping(address => uint256) totalTipsReceived;
@@ -318,12 +318,12 @@ contract SocialMonetizationFacet {
         mapping(address => mapping(uint256 => CreatorTier)) creatorTiers;
         uint256 platformRevenue;
     }
-    
+
     function _layout() private pure returns (Layout storage l) {
         bytes32 slot = _SLOT;
         assembly { l.slot := slot }
     }
-    
+
     /* ─────────────────────── Data Structures ──────────────────────── */
     struct Subscription {
         address subscriber;
@@ -333,25 +333,25 @@ contract SocialMonetizationFacet {
         uint32 endDate;
         bool isActive;
     }
-    
+
     struct CreatorTier {
         uint256 monthlyPrice;  // in wei
         string benefits;       // IPFS hash of benefits description
         bool exists;
     }
-    
+
     /* ─────────────────────── Constants ──────────────────────── */
     uint256 public constant PLATFORM_FEE = 500;      // 5%
     uint256 public constant FEE_DENOMINATOR = 10000;
     uint256 public constant MIN_TIP = 1e15;          // 0.001 ETH minimum
     uint256 public constant MAX_TIERS = 3;           // Limit tiers for gas efficiency
-    
+
     /* ────────────────────────── Events ─────────────────────────── */
     event TipSent(address indexed tipper, address indexed creator, uint256 amount);
     event SubscriptionCreated(address indexed subscriber, address indexed creator, uint256 tier);
     event CreatorTierSet(address indexed creator, uint256 tier, uint256 price);
     event CreatorWithdrawal(address indexed creator, uint256 amount);
-    
+
     /* ────────────────────────── Errors ─────────────────────────── */
     error TipTooSmall();
     error NoEarnings();
@@ -359,26 +359,26 @@ contract SocialMonetizationFacet {
     error TierNotExists();
     error InsufficientPayment();
     error WithdrawalFailed();
-    
+
     /**
      * @notice Send tip to creator (with platform fee)
      * @param creator Address of creator to tip
      */
     function tipCreator(address creator) external payable {
         Layout storage l = _layout();
-        
+
         if (msg.value < MIN_TIP) revert TipTooSmall();
-        
+
         uint256 platformFee = (msg.value * PLATFORM_FEE) / FEE_DENOMINATOR;
         uint256 creatorAmount = msg.value - platformFee;
-        
+
         l.creatorEarnings[creator] += creatorAmount;
         l.totalTipsReceived[creator] += msg.value;
         l.platformRevenue += platformFee;
-        
+
         emit TipSent(msg.sender, creator, msg.value);
     }
-    
+
     /**
      * @notice Set creator subscription tier
      * @param tier Tier number (1-3)
@@ -391,19 +391,19 @@ contract SocialMonetizationFacet {
         string calldata benefits
     ) external {
         Layout storage l = _layout();
-        
+
         if (tier == 0 || tier > MAX_TIERS) revert InvalidTier();
         if (monthlyPrice == 0) revert InsufficientPayment();
-        
+
         l.creatorTiers[msg.sender][tier] = CreatorTier({
             monthlyPrice: monthlyPrice,
             benefits: benefits,
             exists: true
         });
-        
+
         emit CreatorTierSet(msg.sender, tier, monthlyPrice);
     }
-    
+
     /**
      * @notice Subscribe to creator tier
      * @param creator Address of creator
@@ -416,24 +416,24 @@ contract SocialMonetizationFacet {
         uint256 months
     ) external payable {
         Layout storage l = _layout();
-        
+
         CreatorTier storage creatorTier = l.creatorTiers[creator][tier];
         if (!creatorTier.exists) revert TierNotExists();
-        
+
         uint256 totalCost = creatorTier.monthlyPrice * months;
         if (msg.value < totalCost) revert InsufficientPayment();
-        
+
         // Generate unique subscription ID
         bytes32 subscriptionId = keccak256(
             abi.encodePacked(msg.sender, creator, tier, block.timestamp)
         );
-        
+
         uint256 platformFee = (msg.value * PLATFORM_FEE) / FEE_DENOMINATOR;
         uint256 creatorAmount = msg.value - platformFee;
-        
+
         l.creatorEarnings[creator] += creatorAmount;
         l.platformRevenue += platformFee;
-        
+
         l.subscriptions[subscriptionId] = Subscription({
             subscriber: msg.sender,
             creator: creator,
@@ -442,27 +442,27 @@ contract SocialMonetizationFacet {
             endDate: uint32(block.timestamp + (months * 30 days)),
             isActive: true
         });
-        
+
         emit SubscriptionCreated(msg.sender, creator, tier);
     }
-    
+
     /**
      * @notice Creator withdraws earnings
      */
     function withdrawEarnings() external {
         Layout storage l = _layout();
-        
+
         uint256 amount = l.creatorEarnings[msg.sender];
         if (amount == 0) revert NoEarnings();
-        
+
         l.creatorEarnings[msg.sender] = 0;
-        
+
         (bool success, ) = payable(msg.sender).call{value: amount}("");
         if (!success) revert WithdrawalFailed();
-        
+
         emit CreatorWithdrawal(msg.sender, amount);
     }
-    
+
     /**
      * @notice Get creator earnings and statistics
      * @param creator Address of creator
@@ -473,7 +473,7 @@ contract SocialMonetizationFacet {
         uint256 tierCount
     ) {
         Layout storage l = _layout();
-        
+
         // Count active tiers
         uint256 activeTiers = 0;
         for (uint256 i = 1; i <= MAX_TIERS; i++) {
@@ -481,14 +481,14 @@ contract SocialMonetizationFacet {
                 activeTiers++;
             }
         }
-        
+
         return (
             l.creatorEarnings[creator],
             l.totalTipsReceived[creator],
             activeTiers
         );
     }
-    
+
     /**
      * @notice Get creator tier information
      * @param creator Address of creator
@@ -501,7 +501,7 @@ contract SocialMonetizationFacet {
     ) {
         Layout storage l = _layout();
         CreatorTier storage creatorTier = l.creatorTiers[creator][tier];
-        
+
         return (
             creatorTier.monthlyPrice,
             creatorTier.benefits,
@@ -523,14 +523,14 @@ import * as path from 'path';
 
 export async function buildSocialManifest(hre: HardhatRuntimeEnvironment) {
   const { ethers, artifacts, network } = hre;
-  
+
   console.log('📦 Building social platform manifest...');
-  
+
   // Load factory address from deployments
   const factoryPath = path.join(__dirname, '..', '..', 'deployments', network.name, 'factory.json');
   const factoryDeployment = JSON.parse(fs.readFileSync(factoryPath, 'utf8'));
   const factoryAddress = factoryDeployment.address;
-  
+
   // Define facet contracts
   const facetContracts = [
     {
@@ -538,17 +538,17 @@ export async function buildSocialManifest(hre: HardhatRuntimeEnvironment) {
       contract: 'SocialCoreFacet',
       functions: [
         'createPost(string)',
-        'likePost(uint256)', 
+        'likePost(uint256)',
         'followUser(address)',
         'updateProfile(string,string)',
         'getPost(uint256)',
         'getProfile(address)',
         'isUserFollowing(address,address)',
-        'getPlatformStats()'
-      ]
+        'getPlatformStats()',
+      ],
     },
     {
-      name: 'SocialMonetizationFacet', 
+      name: 'SocialMonetizationFacet',
       contract: 'SocialMonetizationFacet',
       functions: [
         'tipCreator(address)',
@@ -556,35 +556,37 @@ export async function buildSocialManifest(hre: HardhatRuntimeEnvironment) {
         'subscribeToCreator(address,uint256,uint256)',
         'withdrawEarnings()',
         'getCreatorStats(address)',
-        'getCreatorTier(address,uint256)'
-      ]
-    }
+        'getCreatorTier(address,uint256)',
+      ],
+    },
   ];
-  
+
   // Build facet entries with CREATE2 prediction
   const facets = [];
-  
+
   for (const facetConfig of facetContracts) {
     const artifact = await artifacts.readArtifact(facetConfig.contract);
     const bytecode = artifact.bytecode;
-    
+
     // Calculate CREATE2 salt and predicted address
     const salt = ethers.keccak256(
       ethers.toUtf8Bytes(`payrox.social.${facetConfig.name.toLowerCase()}.v1`)
     );
-    
+
     const predictedAddress = ethers.getCreate2Address(
       factoryAddress,
       salt,
       ethers.keccak256(bytecode)
     );
-    
+
     // Get function selectors
     const iface = new ethers.Interface(artifact.abi);
-    const selectors = facetConfig.functions.map(func => {
-      return iface.getFunction(func)?.selector;
-    }).filter(Boolean);
-    
+    const selectors = facetConfig.functions
+      .map(func => {
+        return iface.getFunction(func)?.selector;
+      })
+      .filter(Boolean);
+
     facets.push({
       name: facetConfig.name,
       contract: facetConfig.contract,
@@ -592,10 +594,10 @@ export async function buildSocialManifest(hre: HardhatRuntimeEnvironment) {
       salt: salt,
       bytecode: bytecode,
       selectors: selectors,
-      functions: facetConfig.functions
+      functions: facetConfig.functions,
     });
   }
-  
+
   // Build routes array for Merkle tree
   const routes = [];
   for (const facet of facets) {
@@ -603,13 +605,13 @@ export async function buildSocialManifest(hre: HardhatRuntimeEnvironment) {
       routes.push({
         selector: selector,
         facet: facet.address,
-        codehash: ethers.keccak256(facet.bytecode)
+        codehash: ethers.keccak256(facet.bytecode),
       });
     }
   }
-  
+
   // Build Merkle tree (simplified - use actual PayRox build-manifest.ts logic)
-  const leaves = routes.map(route => 
+  const leaves = routes.map(route =>
     ethers.keccak256(
       ethers.AbiCoder.defaultAbiCoder().encode(
         ['bytes4', 'address', 'bytes32'],
@@ -617,7 +619,7 @@ export async function buildSocialManifest(hre: HardhatRuntimeEnvironment) {
       )
     )
   );
-  
+
   // Create manifest
   const manifest = {
     version: '1.0.0',
@@ -626,32 +628,38 @@ export async function buildSocialManifest(hre: HardhatRuntimeEnvironment) {
     timestamp: new Date().toISOString(),
     network: {
       name: network.name,
-      chainId: (await ethers.provider.getNetwork()).chainId.toString()
+      chainId: (await ethers.provider.getNetwork()).chainId.toString(),
     },
     factory: factoryAddress,
     facets: facets.map(f => ({
       name: f.name,
-      contract: f.contract, 
+      contract: f.contract,
       address: f.address,
       salt: f.salt,
-      functions: f.functions
+      functions: f.functions,
     })),
     routes: routes,
     merkleRoot: leaves.length > 0 ? leaves[0] : ethers.ZeroHash, // Simplified
     deployment: {
       strategy: 'deterministic',
       gasEstimate: facets.length * 2000000, // Rough estimate
-      dependencies: ['DeterministicChunkFactory', 'ManifestDispatcher']
-    }
+      dependencies: ['DeterministicChunkFactory', 'ManifestDispatcher'],
+    },
   };
-  
+
   // Save manifest
-  const manifestPath = path.join(__dirname, '..', '..', 'manifests', 'social-platform.manifest.json');
+  const manifestPath = path.join(
+    __dirname,
+    '..',
+    '..',
+    'manifests',
+    'social-platform.manifest.json'
+  );
   fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
-  
+
   console.log('✅ Social platform manifest created');
   console.log(`📄 Saved to: ${manifestPath}`);
-  
+
   return manifest;
 }
 ```
@@ -670,69 +678,75 @@ import * as path from 'path';
 export async function main(hre: HardhatRuntimeEnvironment) {
   const { ethers, network } = hre;
   const [deployer] = await ethers.getSigners();
-  
+
   console.log('🚀 Deploying Social Platform on PayRox Go Beyond');
   console.log(`📡 Network: ${network.name}`);
   console.log(`👤 Deployer: ${deployer.address}`);
-  
+
   // Step 1: Build manifest
   const manifest = await buildSocialManifest(hre);
-  
+
   // Step 2: Get factory and dispatcher contracts
   const factoryAddress = manifest.factory;
   const factory = await ethers.getContractAt('DeterministicChunkFactory', factoryAddress);
-  
-  const dispatcherPath = path.join(__dirname, '..', '..', 'deployments', network.name, 'dispatcher.json');
+
+  const dispatcherPath = path.join(
+    __dirname,
+    '..',
+    '..',
+    'deployments',
+    network.name,
+    'dispatcher.json'
+  );
   const dispatcherDeployment = JSON.parse(fs.readFileSync(dispatcherPath, 'utf8'));
   const dispatcher = await ethers.getContractAt('ManifestDispatcher', dispatcherDeployment.address);
-  
+
   console.log(`🏭 Using factory: ${factoryAddress}`);
   console.log(`📮 Using dispatcher: ${dispatcherDeployment.address}`);
-  
+
   // Step 3: Deploy facets through factory
   const deployedFacets = [];
-  
+
   for (const facetInfo of manifest.facets) {
     console.log(`\n🔧 Deploying ${facetInfo.name}...`);
-    
+
     // Deploy through factory using CREATE2
     const deployTx = await factory.deployChunk(
       facetInfo.salt,
       facetInfo.contract // This would be bytecode in real implementation
     );
     await deployTx.wait();
-    
+
     console.log(`✅ ${facetInfo.name} deployed to: ${facetInfo.address}`);
-    
+
     deployedFacets.push({
       name: facetInfo.name,
       address: facetInfo.address,
-      deploymentTx: deployTx.hash
+      deploymentTx: deployTx.hash,
     });
   }
-  
+
   // Step 4: Commit routes to dispatcher (simplified)
   console.log('\n📮 Committing routes to dispatcher...');
-  
+
   // In real implementation, would build proper Merkle proofs
   const mockRoot = manifest.merkleRoot;
   const epoch = Math.floor(Date.now() / 1000);
-  
+
   try {
     const commitTx = await dispatcher.commitRoot(mockRoot, epoch);
     await commitTx.wait();
     console.log('✅ Routes committed to dispatcher');
-    
+
     // Activate routes (if no delay)
     const activateTx = await dispatcher.activateCommittedRoot(epoch);
     await activateTx.wait();
     console.log('✅ Routes activated');
-    
   } catch (error) {
     console.warn('⚠️  Route commitment failed (may need proper Merkle proofs)');
     console.warn('Error:', error.message);
   }
-  
+
   // Step 5: Save deployment summary
   const deployment = {
     network: network.name,
@@ -742,28 +756,37 @@ export async function main(hre: HardhatRuntimeEnvironment) {
     dispatcher: dispatcherDeployment.address,
     facets: deployedFacets,
     manifest: manifest,
-    status: 'deployed'
+    status: 'deployed',
   };
-  
-  const deploymentPath = path.join(__dirname, '..', '..', 'deployments', network.name, 'social-platform.json');
+
+  const deploymentPath = path.join(
+    __dirname,
+    '..',
+    '..',
+    'deployments',
+    network.name,
+    'social-platform.json'
+  );
   fs.writeFileSync(deploymentPath, JSON.stringify(deployment, null, 2));
-  
+
   console.log('\n🎉 Social Platform Deployment Complete!');
   console.log(`📄 Deployment saved: ${deploymentPath}`);
   console.log(`🔗 Main contract: ${dispatcherDeployment.address}`);
-  
+
   return deployment;
 }
 
 // CLI execution
 if (require.main === module) {
-  import('hardhat').then(async hre => {
-    await main(hre.default);
-    process.exit(0);
-  }).catch(error => {
-    console.error(error);
-    process.exit(1);
-  });
+  import('hardhat')
+    .then(async hre => {
+      await main(hre.default);
+      process.exit(0);
+    })
+    .catch(error => {
+      console.error(error);
+      process.exit(1);
+    });
 }
 ```
 
@@ -785,7 +808,7 @@ const SOCIAL_CORE_ABI = [
   'function getPost(uint256 postId) external view returns (address, string, uint32, uint32, uint16)',
   'function getProfile(address user) external view returns (string, string, uint32, uint32, uint32, bool)',
   'function isUserFollowing(address follower, address following) external view returns (bool)',
-  'function getPlatformStats() external view returns (uint256, uint256)'
+  'function getPlatformStats() external view returns (uint256, uint256)',
 ];
 
 const SOCIAL_MONETIZATION_ABI = [
@@ -794,7 +817,7 @@ const SOCIAL_MONETIZATION_ABI = [
   'function subscribeToCreator(address creator, uint256 tier, uint256 months) external payable',
   'function withdrawEarnings() external',
   'function getCreatorStats(address creator) external view returns (uint256, uint256, uint256)',
-  'function getCreatorTier(address creator, uint256 tier) external view returns (uint256, string, bool)'
+  'function getCreatorTier(address creator, uint256 tier) external view returns (uint256, string, bool)',
 ];
 
 interface SocialPlatformConfig {
@@ -807,13 +830,13 @@ export function useSocialPlatform({ dispatcherAddress, provider }: SocialPlatfor
   const [signer, setSigner] = useState<ethers.Signer | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [loading, setLoading] = useState(false);
-  
+
   useEffect(() => {
     const init = async () => {
       try {
         const signerInstance = await provider.getSigner();
         setSigner(signerInstance);
-        
+
         // Create contract instance with combined ABI
         const combinedABI = [...SOCIAL_CORE_ABI, ...SOCIAL_MONETIZATION_ABI];
         const contractInstance = new ethers.Contract(
@@ -821,48 +844,48 @@ export function useSocialPlatform({ dispatcherAddress, provider }: SocialPlatfor
           combinedABI,
           signerInstance
         );
-        
+
         setContract(contractInstance);
         setIsConnected(true);
       } catch (error) {
         console.error('Failed to initialize social platform:', error);
       }
     };
-    
+
     if (provider && dispatcherAddress) {
       init();
     }
   }, [provider, dispatcherAddress]);
-  
+
   // Social Core Functions
   const createPost = async (contentHash: string) => {
     if (!contract) throw new Error('Contract not initialized');
     setLoading(true);
-    
+
     try {
       const tx = await contract.createPost(contentHash);
       const receipt = await tx.wait();
-      
+
       // Extract post ID from events
-      const event = receipt.logs.find((log: any) => 
-        log.topics[0] === ethers.id('PostCreated(uint256,address)')
+      const event = receipt.logs.find(
+        (log: any) => log.topics[0] === ethers.id('PostCreated(uint256,address)')
       );
-      
+
       if (event) {
         const postId = ethers.AbiCoder.defaultAbiCoder().decode(['uint256'], event.data)[0];
         return { postId: postId.toString(), txHash: receipt.hash };
       }
-      
+
       return { txHash: receipt.hash };
     } finally {
       setLoading(false);
     }
   };
-  
+
   const likePost = async (postId: string) => {
     if (!contract) throw new Error('Contract not initialized');
     setLoading(true);
-    
+
     try {
       const tx = await contract.likePost(postId);
       const receipt = await tx.wait();
@@ -871,11 +894,11 @@ export function useSocialPlatform({ dispatcherAddress, provider }: SocialPlatfor
       setLoading(false);
     }
   };
-  
+
   const followUser = async (userAddress: string) => {
     if (!contract) throw new Error('Contract not initialized');
     setLoading(true);
-    
+
     try {
       const tx = await contract.followUser(userAddress);
       const receipt = await tx.wait();
@@ -884,11 +907,11 @@ export function useSocialPlatform({ dispatcherAddress, provider }: SocialPlatfor
       setLoading(false);
     }
   };
-  
+
   const updateProfile = async (username: string, avatarHash: string) => {
     if (!contract) throw new Error('Contract not initialized');
     setLoading(true);
-    
+
     try {
       const tx = await contract.updateProfile(username, avatarHash);
       const receipt = await tx.wait();
@@ -897,15 +920,15 @@ export function useSocialPlatform({ dispatcherAddress, provider }: SocialPlatfor
       setLoading(false);
     }
   };
-  
+
   // Monetization Functions
   const tipCreator = async (creatorAddress: string, amount: string) => {
     if (!contract) throw new Error('Contract not initialized');
     setLoading(true);
-    
+
     try {
       const tx = await contract.tipCreator(creatorAddress, {
-        value: ethers.parseEther(amount)
+        value: ethers.parseEther(amount),
       });
       const receipt = await tx.wait();
       return { txHash: receipt.hash };
@@ -913,19 +936,19 @@ export function useSocialPlatform({ dispatcherAddress, provider }: SocialPlatfor
       setLoading(false);
     }
   };
-  
+
   const subscribeToCreator = async (
-    creatorAddress: string, 
-    tier: number, 
+    creatorAddress: string,
+    tier: number,
     months: number,
     amount: string
   ) => {
     if (!contract) throw new Error('Contract not initialized');
     setLoading(true);
-    
+
     try {
       const tx = await contract.subscribeToCreator(creatorAddress, tier, months, {
-        value: ethers.parseEther(amount)
+        value: ethers.parseEther(amount),
       });
       const receipt = await tx.wait();
       return { txHash: receipt.hash };
@@ -933,70 +956,71 @@ export function useSocialPlatform({ dispatcherAddress, provider }: SocialPlatfor
       setLoading(false);
     }
   };
-  
+
   // View Functions
   const getPost = async (postId: string) => {
     if (!contract) throw new Error('Contract not initialized');
-    
+
     const [author, contentHash, timestamp, likes, shares] = await contract.getPost(postId);
     return {
       author,
       contentHash,
       timestamp: Number(timestamp),
       likes: Number(likes),
-      shares: Number(shares)
+      shares: Number(shares),
     };
   };
-  
+
   const getProfile = async (userAddress: string) => {
     if (!contract) throw new Error('Contract not initialized');
-    
-    const [username, avatarHash, followerCount, followingCount, postCount, isVerified] = 
+
+    const [username, avatarHash, followerCount, followingCount, postCount, isVerified] =
       await contract.getProfile(userAddress);
-    
+
     return {
       username,
       avatarHash,
       followerCount: Number(followerCount),
-      followingCount: Number(followingCount), 
+      followingCount: Number(followingCount),
       postCount: Number(postCount),
-      isVerified
+      isVerified,
     };
   };
-  
+
   const getCreatorStats = async (creatorAddress: string) => {
     if (!contract) throw new Error('Contract not initialized');
-    
-    const [availableEarnings, totalTipsReceived, tierCount] = 
-      await contract.getCreatorStats(creatorAddress);
-    
+
+    const [availableEarnings, totalTipsReceived, tierCount] = await contract.getCreatorStats(
+      creatorAddress
+    );
+
     return {
       availableEarnings: ethers.formatEther(availableEarnings),
       totalTipsReceived: ethers.formatEther(totalTipsReceived),
-      tierCount: Number(tierCount)
+      tierCount: Number(tierCount),
     };
   };
-  
+
   return {
     // State
     isConnected,
     loading,
     signer,
-    
+
     // Social Functions
     createPost,
     likePost,
     followUser,
     updateProfile,
-    
+
     // Monetization Functions
     tipCreator,
     subscribeToCreator,
-    
+
     // View Functions
     getPost,
     getProfile,
-    getCreatorStats
+    getCreatorStats,
   };
 }
 ```
@@ -1020,143 +1044,136 @@ describe('Social Platform Integration', function () {
   let user1: HardhatEthersSigner;
   let user2: HardhatEthersSigner;
   let creator: HardhatEthersSigner;
-  
+
   before(async function () {
     [deployer, user1, user2, creator] = await ethers.getSigners();
-    
+
     // Deploy PayRox infrastructure
     const Factory = await ethers.getContractFactory('DeterministicChunkFactory');
-    factory = await Factory.deploy(
-      deployer.address,
-      deployer.address, 
-      ethers.parseEther('0.001')
-    );
-    
+    factory = await Factory.deploy(deployer.address, deployer.address, ethers.parseEther('0.001'));
+
     const Dispatcher = await ethers.getContractFactory('ManifestDispatcher');
     dispatcher = await Dispatcher.deploy();
-    
+
     // Deploy social facets
     const SocialCore = await ethers.getContractFactory('SocialCoreFacet');
     socialCore = await SocialCore.deploy();
-    
+
     const Monetization = await ethers.getContractFactory('SocialMonetizationFacet');
     monetization = await Monetization.deploy();
-    
+
     console.log('✅ Infrastructure deployed');
   });
-  
+
   describe('Social Core Functionality', function () {
     it('Should create posts with IPFS hash', async function () {
       const contentHash = 'QmTestContent123';
-      
+
       const tx = await socialCore.connect(user1).createPost(contentHash);
       const receipt = await tx.wait();
-      
+
       expect(receipt.status).to.equal(1);
-      
+
       const post = await socialCore.getPost(1);
       expect(post.author).to.equal(user1.address);
       expect(post.contentHash).to.equal(contentHash);
     });
-    
+
     it('Should handle likes correctly', async function () {
       await socialCore.connect(user1).createPost('QmTestContent');
-      
+
       await socialCore.connect(user2).likePost(1);
-      
+
       const post = await socialCore.getPost(1);
       expect(post.likes).to.equal(1);
     });
-    
+
     it('Should manage follows', async function () {
       await socialCore.connect(user1).followUser(user2.address);
-      
+
       const isFollowing = await socialCore.isUserFollowing(user1.address, user2.address);
       expect(isFollowing).to.be.true;
-      
+
       const profile = await socialCore.getProfile(user2.address);
       expect(profile.followerCount).to.equal(1);
     });
-    
+
     it('Should update profiles with gas optimization', async function () {
       const username = 'TestUser1';
       const avatarHash = 'QmAvatar123';
-      
+
       await socialCore.connect(user1).updateProfile(username, avatarHash);
-      
+
       const profile = await socialCore.getProfile(user1.address);
       expect(profile.username).to.equal(username);
       expect(profile.avatarHash).to.equal(avatarHash);
     });
   });
-  
+
   describe('Monetization Features', function () {
     it('Should handle creator tips with platform fees', async function () {
       const tipAmount = ethers.parseEther('0.1');
-      
+
       await monetization.connect(user1).tipCreator(creator.address, {
-        value: tipAmount
+        value: tipAmount,
       });
-      
+
       const stats = await monetization.getCreatorStats(creator.address);
       expect(stats.totalTipsReceived).to.be.gt(0);
       expect(stats.availableEarnings).to.be.gt(0);
     });
-    
+
     it('Should manage creator tiers', async function () {
       const tierPrice = ethers.parseEther('0.01');
       const benefits = 'QmBenefitsHash';
-      
+
       await monetization.connect(creator).setCreatorTier(1, tierPrice, benefits);
-      
+
       const tier = await monetization.getCreatorTier(creator.address, 1);
       expect(tier.monthlyPrice).to.equal(tierPrice);
       expect(tier.exists).to.be.true;
     });
-    
+
     it('Should handle subscriptions', async function () {
       const tierPrice = ethers.parseEther('0.01');
-      
+
       await monetization.connect(creator).setCreatorTier(1, tierPrice, 'Premium');
-      
-      await monetization.connect(user1).subscribeToCreator(
-        creator.address, 
-        1, 
-        1, 
-        { value: tierPrice }
-      );
-      
+
+      await monetization
+        .connect(user1)
+        .subscribeToCreator(creator.address, 1, 1, { value: tierPrice });
+
       const stats = await monetization.getCreatorStats(creator.address);
       expect(stats.availableEarnings).to.be.gt(0);
     });
   });
-  
+
   describe('Platform Scaling', function () {
     it('Should handle multiple posts efficiently', async function () {
       const startGas = await ethers.provider.getBalance(user1.address);
-      
+
       // Create 10 posts
       for (let i = 0; i < 10; i++) {
         await socialCore.connect(user1).createPost(`QmContent${i}`);
       }
-      
+
       const endGas = await ethers.provider.getBalance(user1.address);
       const gasUsed = startGas - endGas;
-      
+
       console.log(`Gas used for 10 posts: ${ethers.formatEther(gasUsed)} ETH`);
-      
+
       const stats = await socialCore.getPlatformStats();
       expect(stats.totalPosts).to.equal(10);
     });
-    
+
     it('Should maintain performance under load', async function () {
       const users = [user1, user2, creator];
-      
+
       // Each user creates posts and follows others
       for (const user of users) {
         await socialCore.connect(user).createPost(`QmContent${user.address}`);
         await socialCore.connect(user).updateProfile(`User${user.address.slice(-4)}`, 'QmAvatar');
-        
+
         for (const otherUser of users) {
           if (user !== otherUser) {
             try {
@@ -1167,28 +1184,29 @@ describe('Social Platform Integration', function () {
           }
         }
       }
-      
+
       const stats = await socialCore.getPlatformStats();
       expect(stats.totalUsers).to.be.gte(3);
     });
   });
-  
+
   describe('Error Handling', function () {
     it('Should revert on invalid operations', async function () {
       // Try to like non-existent post
-      await expect(
-        socialCore.connect(user1).likePost(999)
-      ).to.be.revertedWithCustomError(socialCore, 'PostNotFound');
-      
+      await expect(socialCore.connect(user1).likePost(999)).to.be.revertedWithCustomError(
+        socialCore,
+        'PostNotFound'
+      );
+
       // Try to follow self
       await expect(
         socialCore.connect(user1).followUser(user1.address)
       ).to.be.revertedWithCustomError(socialCore, 'CannotFollowSelf');
-      
+
       // Try to tip with insufficient amount
       await expect(
         monetization.connect(user1).tipCreator(creator.address, {
-          value: ethers.parseEther('0.0001') // Below minimum
+          value: ethers.parseEther('0.0001'), // Below minimum
         })
       ).to.be.revertedWithCustomError(monetization, 'TipTooSmall');
     });
@@ -1251,7 +1269,7 @@ npx hardhat payrox:ops:watch --network mainnet
 **Revenue Projections (Conservative):**
 
 - 1K users × $5/month = $5K monthly revenue
-- 10K users × $3/month = $30K monthly revenue  
+- 10K users × $3/month = $30K monthly revenue
 - 100K users × $2/month = $200K monthly revenue
 
 **Cost Structure:**
@@ -1263,7 +1281,10 @@ npx hardhat payrox:ops:watch --network mainnet
 
 ## Conclusion
 
-This implementation guide provides a **technically accurate** approach to building social platforms using PayRox Go Beyond's proven architecture. The system leverages real diamond pattern implementation, deterministic deployment, and manifest-gated routing for scalable, secure social media applications.
+This implementation guide provides a **technically accurate** approach to building social platforms
+using PayRox Go Beyond's proven architecture. The system leverages real diamond pattern
+implementation, deterministic deployment, and manifest-gated routing for scalable, secure social
+media applications.
 
 **Key Advantages:**
 
@@ -1273,4 +1294,5 @@ This implementation guide provides a **technically accurate** approach to buildi
 - ✅ **Scalable**: Modular facet system for feature expansion
 - ✅ **Realistic**: Conservative projections and practical constraints
 
-For production deployment assistance and technical consulting, the PayRox Go Beyond system provides a solid foundation for next-generation decentralized social platforms.
+For production deployment assistance and technical consulting, the PayRox Go Beyond system provides
+a solid foundation for next-generation decentralized social platforms.

@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 
-import { Command } from 'commander';
-import * as readline from 'readline';
 import { spawn } from 'child_process';
-import * as path from 'path';
+import { Command } from 'commander';
 import * as fs from 'fs';
+import * as path from 'path';
+import * as readline from 'readline';
 
 const program = new Command();
 
@@ -16,7 +16,7 @@ class PayRoxCLI {
   constructor() {
     this.rl = readline.createInterface({
       input: process.stdin,
-      output: process.stdout
+      output: process.stdout,
     });
   }
 
@@ -41,12 +41,24 @@ class PayRoxCLI {
     const choice = await this.askQuestion('Select an option (0-6): ');
 
     switch (choice) {
-      case '1': await this.handleFactory(); break;
-      case '2': await this.handleDispatcher(); break;
-      case '3': await this.handleOrchestrator(); break;
-      case '4': await this.handleSettings(); break;
-      case '5': await this.handleStatus(); break;
-      case '6': await this.handleUtils(); break;
+      case '1':
+        await this.handleFactory();
+        break;
+      case '2':
+        await this.handleDispatcher();
+        break;
+      case '3':
+        await this.handleOrchestrator();
+        break;
+      case '4':
+        await this.handleSettings();
+        break;
+      case '5':
+        await this.handleStatus();
+        break;
+      case '6':
+        await this.handleUtils();
+        break;
       case '0':
         console.log('👋 Goodbye!');
         this.rl.close();
@@ -71,13 +83,26 @@ class PayRoxCLI {
     const choice = await this.askQuestion('Select method: ');
 
     switch (choice) {
-      case '1': await this.executeStage(); break;
-      case '2': await this.executeStageBatch(); break;
-      case '3': await this.executeGetChunkAddress(); break;
-      case '4': await this.executeIsChunkDeployed(); break;
-      case '5': await this.executeGetDeploymentFee(); break;
-      case '0': await this.showMainMenu(); return;
-      default: console.log('❌ Invalid option');
+      case '1':
+        await this.executeStage();
+        break;
+      case '2':
+        await this.executeStageBatch();
+        break;
+      case '3':
+        await this.executeGetChunkAddress();
+        break;
+      case '4':
+        await this.executeIsChunkDeployed();
+        break;
+      case '5':
+        await this.executeGetDeploymentFee();
+        break;
+      case '0':
+        await this.showMainMenu();
+        return;
+      default:
+        console.log('❌ Invalid option');
     }
 
     await this.handleFactory();
@@ -97,13 +122,26 @@ class PayRoxCLI {
     const choice = await this.askQuestion('Select method: ');
 
     switch (choice) {
-      case '1': await this.executeApplyRoutes(); break;
-      case '2': await this.executeActivateCommittedRoot(); break;
-      case '3': await this.executeGetFacetAddress(); break;
-      case '4': await this.executeGetCurrentRoot(); break;
-      case '5': await this.executeGetCommittedRoot(); break;
-      case '0': await this.showMainMenu(); return;
-      default: console.log('❌ Invalid option');
+      case '1':
+        await this.executeApplyRoutes();
+        break;
+      case '2':
+        await this.executeActivateCommittedRoot();
+        break;
+      case '3':
+        await this.executeGetFacetAddress();
+        break;
+      case '4':
+        await this.executeGetCurrentRoot();
+        break;
+      case '5':
+        await this.executeGetCommittedRoot();
+        break;
+      case '0':
+        await this.showMainMenu();
+        return;
+      default:
+        console.log('❌ Invalid option');
     }
 
     await this.handleDispatcher();
@@ -123,13 +161,26 @@ class PayRoxCLI {
     const choice = await this.askQuestion('Select method: ');
 
     switch (choice) {
-      case '1': await this.executeStartOrchestration(); break;
-      case '2': await this.executeOrchestrateStageBatch(); break;
-      case '3': await this.executeOrchestrateManifestUpdate(); break;
-      case '4': await this.executeCompleteOrchestration(); break;
-      case '5': await this.executeSetAuthorized(); break;
-      case '0': await this.showMainMenu(); return;
-      default: console.log('❌ Invalid option');
+      case '1':
+        await this.executeStartOrchestration();
+        break;
+      case '2':
+        await this.executeOrchestrateStageBatch();
+        break;
+      case '3':
+        await this.executeOrchestrateManifestUpdate();
+        break;
+      case '4':
+        await this.executeCompleteOrchestration();
+        break;
+      case '5':
+        await this.executeSetAuthorized();
+        break;
+      case '0':
+        await this.showMainMenu();
+        return;
+      default:
+        console.log('❌ Invalid option');
     }
 
     await this.handleOrchestrator();
@@ -149,12 +200,23 @@ class PayRoxCLI {
     const choice = await this.askQuestion('Select network: ');
 
     switch (choice) {
-      case '1': this.currentNetwork = 'localhost'; break;
-      case '2': this.currentNetwork = 'sepolia'; break;
-      case '3': this.currentNetwork = 'mainnet'; break;
-      case '4': this.currentNetwork = 'polygon'; break;
-      case '0': await this.showMainMenu(); return;
-      default: console.log('❌ Invalid network');
+      case '1':
+        this.currentNetwork = 'localhost';
+        break;
+      case '2':
+        this.currentNetwork = 'sepolia';
+        break;
+      case '3':
+        this.currentNetwork = 'mainnet';
+        break;
+      case '4':
+        this.currentNetwork = 'polygon';
+        break;
+      case '0':
+        await this.showMainMenu();
+        return;
+      default:
+        console.log('❌ Invalid network');
     }
 
     if (choice !== '0') {
@@ -169,7 +231,10 @@ class PayRoxCLI {
     console.log(`Network: ${this.currentNetwork}\n`);
 
     try {
-      const deploymentsPath = path.resolve('../deployments', this.currentNetwork);
+      const deploymentsPath = path.resolve(
+        '../deployments',
+        this.currentNetwork
+      );
       if (fs.existsSync(deploymentsPath)) {
         const files = fs.readdirSync(deploymentsPath);
         const contractFiles = files.filter(f => f.endsWith('.json'));
@@ -179,7 +244,9 @@ class PayRoxCLI {
           contractFiles.forEach(file => {
             const contractName = file.replace('.json', '');
             try {
-              const deployment = JSON.parse(fs.readFileSync(path.join(deploymentsPath, file), 'utf8'));
+              const deployment = JSON.parse(
+                fs.readFileSync(path.join(deploymentsPath, file), 'utf8')
+              );
               console.log(`  ✅ ${contractName}: ${deployment.address}`);
             } catch {
               console.log(`  ❓ ${contractName}: Error reading deployment`);
@@ -211,12 +278,23 @@ class PayRoxCLI {
     const choice = await this.askQuestion('Select utility: ');
 
     switch (choice) {
-      case '1': await this.deployCompleteSystem(); break;
-      case '2': await this.calculateChunkAddress(); break;
-      case '3': await this.generateManifest(); break;
-      case '4': await this.verifyDeployment(); break;
-      case '0': await this.showMainMenu(); return;
-      default: console.log('❌ Invalid option');
+      case '1':
+        await this.deployCompleteSystem();
+        break;
+      case '2':
+        await this.calculateChunkAddress();
+        break;
+      case '3':
+        await this.generateManifest();
+        break;
+      case '4':
+        await this.verifyDeployment();
+        break;
+      case '0':
+        await this.showMainMenu();
+        return;
+      default:
+        console.log('❌ Invalid option');
     }
 
     await this.handleUtils();
@@ -237,7 +315,9 @@ class PayRoxCLI {
 
   private async executeStageBatch() {
     console.log('\n🎯 Stage Batch of Chunks');
-    const blobs = await this.askQuestion('Enter bytecode array (comma-separated hex): ');
+    const blobs = await this.askQuestion(
+      'Enter bytecode array (comma-separated hex): '
+    );
 
     if (!blobs.trim()) {
       console.log('❌ Bytecode array required');
@@ -280,9 +360,15 @@ class PayRoxCLI {
     console.log('\n✍️ Apply Routes');
     console.log('This will apply new function routing rules');
 
-    const selectors = await this.askQuestion('Function selectors (comma-separated): ');
-    const facets = await this.askQuestion('Facet addresses (comma-separated): ');
-    const codehashes = await this.askQuestion('Code hashes (comma-separated): ');
+    const selectors = await this.askQuestion(
+      'Function selectors (comma-separated): '
+    );
+    const facets = await this.askQuestion(
+      'Facet addresses (comma-separated): '
+    );
+    const codehashes = await this.askQuestion(
+      'Code hashes (comma-separated): '
+    );
 
     if (!selectors || !facets || !codehashes) {
       console.log('❌ All parameters required');
@@ -295,14 +381,18 @@ class PayRoxCLI {
 
     if (confirm.toLowerCase() === 'y') {
       await this.executeHardhatTask('dispatcher', 'applyRoutes', {
-        selectors, facets, codehashes
+        selectors,
+        facets,
+        codehashes,
       });
     }
   }
 
   private async executeActivateCommittedRoot() {
     console.log('\n✍️ Activate Committed Root');
-    const confirm = await this.askQuestion('Activate the committed manifest root? (y/N): ');
+    const confirm = await this.askQuestion(
+      'Activate the committed manifest root? (y/N): '
+    );
 
     if (confirm.toLowerCase() === 'y') {
       await this.executeHardhatTask('dispatcher', 'activateCommittedRoot', {});
@@ -311,14 +401,18 @@ class PayRoxCLI {
 
   private async executeGetFacetAddress() {
     console.log('\n👁️ Get Facet Address');
-    const selector = await this.askQuestion('Enter function selector (bytes4): ');
+    const selector = await this.askQuestion(
+      'Enter function selector (bytes4): '
+    );
 
     if (!selector.trim()) {
       console.log('❌ Selector required');
       return;
     }
 
-    await this.executeHardhatTask('dispatcher', 'getFacetAddress', { selector });
+    await this.executeHardhatTask('dispatcher', 'getFacetAddress', {
+      selector,
+    });
   }
 
   private async executeGetCurrentRoot() {
@@ -341,7 +435,10 @@ class PayRoxCLI {
       return;
     }
 
-    await this.executeHardhatTask('orchestrator', 'startOrchestration', { id, gasLimit });
+    await this.executeHardhatTask('orchestrator', 'startOrchestration', {
+      id,
+      gasLimit,
+    });
   }
 
   private async executeOrchestrateStageBatch() {
@@ -354,7 +451,10 @@ class PayRoxCLI {
       return;
     }
 
-    await this.executeHardhatTask('orchestrator', 'orchestrateStageBatch', { id, blobs });
+    await this.executeHardhatTask('orchestrator', 'orchestrateStageBatch', {
+      id,
+      blobs,
+    });
   }
 
   private async executeOrchestrateManifestUpdate() {
@@ -367,10 +467,16 @@ class PayRoxCLI {
     }
 
     console.log('⚠️  This requires detailed manifest parameters');
-    const confirm = await this.askQuestion('Continue with manifest update? (y/N): ');
+    const confirm = await this.askQuestion(
+      'Continue with manifest update? (y/N): '
+    );
 
     if (confirm.toLowerCase() === 'y') {
-      await this.executeHardhatTask('orchestrator', 'orchestrateManifestUpdate', { id });
+      await this.executeHardhatTask(
+        'orchestrator',
+        'orchestrateManifestUpdate',
+        { id }
+      );
     }
   }
 
@@ -434,7 +540,11 @@ class PayRoxCLI {
     await this.executeScript('verify-deployment.ts');
   }
 
-  private async executeHardhatTask(contract: string, method: string, params: Record<string, string>) {
+  private async executeHardhatTask(
+    contract: string,
+    method: string,
+    params: Record<string, string>
+  ) {
     console.log('\n⚡ Executing transaction...');
 
     const args = [`${contract}:${method}`, '--network', this.currentNetwork];
@@ -442,14 +552,14 @@ class PayRoxCLI {
       args.push(`--${key}`, value);
     });
 
-    return new Promise<void>((resolve) => {
+    return new Promise<void>(resolve => {
       const child = spawn('npx', ['hardhat', ...args], {
         stdio: 'inherit',
         shell: true,
-        cwd: path.resolve('../')
+        cwd: path.resolve('../'),
       });
 
-      child.on('close', (code) => {
+      child.on('close', code => {
         if (code === 0) {
           console.log('✅ Success!');
         } else {
@@ -458,7 +568,7 @@ class PayRoxCLI {
         resolve();
       });
 
-      child.on('error', (error) => {
+      child.on('error', error => {
         console.log(`❌ Error: ${error.message}`);
         resolve();
       });
@@ -466,15 +576,25 @@ class PayRoxCLI {
   }
 
   private async executeScript(script: string, env?: Record<string, string>) {
-    return new Promise<void>((resolve) => {
-      const child = spawn('npx', ['hardhat', 'run', `scripts/${script}`, '--network', this.currentNetwork], {
-        stdio: 'inherit',
-        shell: true,
-        cwd: path.resolve('../'),
-        env: { ...process.env, ...env }
-      });
+    return new Promise<void>(resolve => {
+      const child = spawn(
+        'npx',
+        [
+          'hardhat',
+          'run',
+          `scripts/${script}`,
+          '--network',
+          this.currentNetwork,
+        ],
+        {
+          stdio: 'inherit',
+          shell: true,
+          cwd: path.resolve('../'),
+          env: { ...process.env, ...env },
+        }
+      );
 
-      child.on('close', (code) => {
+      child.on('close', code => {
         if (code === 0) {
           console.log('✅ Script completed successfully!');
         } else {
@@ -486,8 +606,8 @@ class PayRoxCLI {
   }
 
   private askQuestion(question: string): Promise<string> {
-    return new Promise((resolve) => {
-      this.rl.question(question, (answer) => {
+    return new Promise(resolve => {
+      this.rl.question(question, answer => {
         resolve(answer);
       });
     });
@@ -513,7 +633,7 @@ program
   .command('deploy')
   .description('Quick deploy complete system')
   .option('-n, --network <network>', 'target network', 'localhost')
-  .action(async (options) => {
+  .action(async options => {
     console.log(`🚀 Deploying PayRox system to ${options.network}...`);
     // Direct deployment implementation would go here
   });
@@ -522,7 +642,7 @@ program
   .command('status')
   .description('Check deployment status')
   .option('-n, --network <network>', 'target network', 'localhost')
-  .action(async (options) => {
+  .action(async options => {
     console.log(`📊 Checking status on ${options.network}...`);
     // Direct status check implementation would go here
   });

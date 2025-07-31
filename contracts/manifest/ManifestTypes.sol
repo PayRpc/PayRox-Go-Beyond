@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.30;
+pragma solidity 0.8.30;
 
 /**
  * @title ManifestTypes
  * @dev Common types and structures used throughout the manifest system
  */
 library ManifestTypes {
-    
+
     struct DeploymentData {
         bytes bytecode;
         bytes32 salt;
@@ -14,7 +14,7 @@ library ManifestTypes {
         uint256 gasLimit;
         address expectedAddress;
     }
-    
+
     struct ManifestHeader {
         bytes32 version;
         uint256 timestamp;
@@ -22,7 +22,7 @@ library ManifestTypes {
         uint256 chainId;
         bytes32 previousHash;
     }
-    
+
     struct FacetInfo {
         address facetAddress;
         bytes4[] selectors;
@@ -30,7 +30,7 @@ library ManifestTypes {
         uint256 priority;
         uint256 gasLimit;
     }
-    
+
     struct ChunkMapping {
         bytes32 chunkHash;
         address chunkAddress;
@@ -38,7 +38,7 @@ library ManifestTypes {
         uint256 deploymentBlock;
         bool verified;
     }
-    
+
     struct ReleaseManifest {
         ManifestHeader header;
         FacetInfo[] facets;
@@ -46,7 +46,7 @@ library ManifestTypes {
         bytes32 merkleRoot;
         bytes signature;
     }
-    
+
     struct NetworkConfig {
         uint256 chainId;
         string name;
@@ -55,7 +55,7 @@ library ManifestTypes {
         uint256 confirmations;
         bool isTestnet;
     }
-    
+
     struct SecurityPolicy {
         uint256 maxFacetSize;
         uint256 maxFacetCount;
@@ -63,7 +63,7 @@ library ManifestTypes {
         bool requireAudit;
         address[] authorizedDeployers;
     }
-    
+
     struct DeploymentResult {
         bool success;
         address deployedAddress;
@@ -71,26 +71,26 @@ library ManifestTypes {
         bytes32 transactionHash;
         string errorMessage;
     }
-    
+
     // Events
     event ManifestCreated(
         bytes32 indexed manifestHash,
         address indexed creator,
         uint256 timestamp
     );
-    
+
     event ManifestVerified(
         bytes32 indexed manifestHash,
         address indexed verifier,
         bool isValid
     );
-    
+
     event ChunkMapped(
         bytes32 indexed chunkHash,
         address indexed chunkAddress,
         uint256 size
     );
-    
+
     // Errors
     error InvalidManifestVersion();
     error InvalidSignature();
