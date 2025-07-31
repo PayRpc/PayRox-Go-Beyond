@@ -115,13 +115,17 @@ task(
           console.warn(`⚠️  facet ${r.facet} has empty code`);
           empty++;
         }
-        if (off === r.codehash.toLowerCase()) {
+        if (r.codehash && off === r.codehash.toLowerCase()) {
           ok++;
-        } else {
+        } else if (r.codehash) {
           console.error(
             `❌ codehash mismatch for selector ${r.selector} facet ${r.facet}\n  expected: ${r.codehash}\n  got:      ${off}`
           );
           bad++;
+        } else {
+          console.warn(
+            `⚠️  no codehash in manifest for selector ${r.selector} facet ${r.facet}`
+          );
         }
       }
       if (bad === 0) {
@@ -190,17 +194,11 @@ task(
       'DeterministicChunkFactory',
       factoryAddr
     );
-    // Prefer the on-chain view for parity with stage()
-    const predicted = await factory.predict(bytesHex);
-    // Some implementations return (address) only; others return (address,hash). Print both if present.
-    if (Array.isArray(predicted)) {
-      console.log(`📍 predicted chunk: ${predicted[0]}`);
-      if (predicted[1]) {
-        console.log(`🔎 content hash:   ${predicted[1]}`);
-      }
-    } else {
-      console.log(`📍 predicted chunk: ${predicted}`);
-    }
+    // The predict function returns (address predicted, bytes32 hash)
+    const result = await factory.predict(bytesHex);
+    // Result is a tuple with [predicted, hash]
+    console.log(`📍 predicted chunk: ${result[0]}`);
+    console.log(`🔎 content hash:   ${result[1]}`);
   });
 
 /** ----------------------------------------------------------------------------
