@@ -1,9 +1,9 @@
 {
   "version": "1.0.0",
-  "timestamp": "2025-07-31T01:13:45.086Z",
+  "timestamp": "2025-07-31T01:46:15.980Z",
   "description": "Initial release of PayRox Go Beyond deployment framework",
   "network": {
-    "name": "hardhat",
+    "name": "localhost",
     "chainId": "31337"
   },
   "factory": "0x5FbDB2315678afecb367f032d93F642f64180aa3",

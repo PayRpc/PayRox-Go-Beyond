@@ -382,6 +382,29 @@ async function verifySystemIntegration(
 
   // Verify both contracts can interact with each other
   try {
+    // Apply additional shim for getContractAt calls
+    const originalGetContractAt = ethers.getContractAt;
+    (ethers as any).getContractAt = async (
+      contractName: any,
+      address: any,
+      signer?: any
+    ) => {
+      const addrStr = address.toString();
+
+      // Validate address format before calling
+      if (!/^0x[0-9a-fA-F]{40}$/.test(addrStr)) {
+        throw new Error(`Invalid address format: ${addrStr}`);
+      }
+
+      // Check if contract exists
+      const code = await ethers.provider.getCode(addrStr);
+      if (code === '0x') {
+        throw new Error(`No code at address ${addrStr}`);
+      }
+
+      return originalGetContractAt.call(ethers, contractName, address, signer);
+    };
+
     const factory = await ethers.getContractAt(
       'DeterministicChunkFactory',
       factoryAddress

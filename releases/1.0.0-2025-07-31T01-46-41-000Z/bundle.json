@@ -1,0 +1,98 @@
+{
+  "version": "1.0.0",
+  "timestamp": 1753929988,
+  "network": "localhost",
+  "manifest": {
+    "version": "1.0.0-production-complete",
+    "timestamp": "2025-07-30T23:30:00.000Z",
+    "description": "Complete production release with FacetA and FacetB deployed and ready for expansion",
+    "network": {
+      "name": "localhost",
+      "chainId": "31337"
+    },
+    "factory": "0x90b97E83e22AFa2e6A96b3549A0E495D5Bae61aF",
+    "merkleRoot": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "routes": [
+      {
+        "selector": "0xb5211ec4",
+        "facet": "0xDDa0648FA8c9cD593416EC37089C2a2E6060B45c",
+        "name": "ExampleFacetA",
+        "function": "executeA"
+      },
+      {
+        "selector": "0x54f6127f",
+        "facet": "0xDDa0648FA8c9cD593416EC37089C2a2E6060B45c",
+        "name": "ExampleFacetA",
+        "function": "getData"
+      },
+      {
+        "selector": "0x37184e95",
+        "facet": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+        "name": "ExampleFacetB",
+        "function": "executeB"
+      },
+      {
+        "selector": "0x16c38b3c",
+        "facet": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+        "name": "ExampleFacetB",
+        "function": "setPaused"
+      }
+    ]
+  },
+  "chunks": [
+    {
+      "name": "ExampleFacetA",
+      "address": "0xDDa0648FA8c9cD593416EC37089C2a2E6060B45c",
+      "size": 0,
+      "codehash": "missing"
+    },
+    {
+      "name": "ExampleFacetA",
+      "address": "0xDDa0648FA8c9cD593416EC37089C2a2E6060B45c",
+      "size": 0,
+      "codehash": "missing"
+    },
+    {
+      "name": "ExampleFacetB",
+      "address": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+      "size": 0,
+      "codehash": "missing"
+    },
+    {
+      "name": "ExampleFacetB",
+      "address": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+      "size": 0,
+      "codehash": "missing"
+    }
+  ],
+  "deployment": {
+    "dispatcher": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+    "factory": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+    "deployer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    "blockNumber": 7,
+    "transactionHash": "0x0"
+  },
+  "verification": {
+    "manifestHash": "0x58cf539eb050abd514659625b9b6cb5acc4ec38864cb34aa71660e77cefaac32",
+    "merkleRoot": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "routeCount": 4,
+    "timestamp": 1753926401,
+    "gasUsed": "0"
+  },
+  "signatures": {},
+  "incomplete": true,
+  "completionStatus": {
+    "isComplete": false,
+    "totalRoutes": 4,
+    "verifiedRoutes": 0,
+    "missingContracts": 4,
+    "codehashMismatches": 0
+  },
+  "missingContracts": [
+    "ExampleFacetA at 0xDDa0648FA8c9cD593416EC37089C2a2E6060B45c",
+    "ExampleFacetA at 0xDDa0648FA8c9cD593416EC37089C2a2E6060B45c",
+    "ExampleFacetB at 0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+    "ExampleFacetB at 0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9"
+  ],
+  "codehashMismatches": []
+}

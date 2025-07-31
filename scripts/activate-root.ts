@@ -52,7 +52,15 @@ async function main() {
       if (manifest.epoch !== undefined) {
         epoch = BigInt(manifest.epoch);
         console.log('[INFO] Found epoch from manifest:', epoch.toString());
+      } else {
+        // Try header epoch or use default
+        epoch = manifest.header?.epoch ? BigInt(manifest.header.epoch) : 1n;
+        console.log('[INFO] Using default epoch:', epoch.toString());
       }
+    } else {
+      // Fallback to epoch 1
+      epoch = 1n;
+      console.log('[INFO] Using fallback epoch:', epoch.toString());
     }
   }
 
