@@ -1,12 +1,13 @@
-import { ethers } from "hardhat";
+import { ethers, network } from "hardhat";
 
 async function main() {
     console.log("=== TESTING DISPATCHER WITH ETHERS INTERFACE ===");
     
     const [deployer] = await ethers.getSigners();
     
-    // Load dispatcher address
-    const dispatcherData = require('../deployments/localhost/dispatcher.json');
+    // Load dispatcher address dynamically based on network
+    const networkName = network.name;
+    const dispatcherData = require(`../deployments/${networkName}/dispatcher.json`);
     const dispatcherAddress = dispatcherData.address;
     console.log("Dispatcher address:", dispatcherAddress);
     

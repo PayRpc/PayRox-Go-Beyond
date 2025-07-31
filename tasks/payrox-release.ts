@@ -416,9 +416,10 @@ task('payrox:release:bundle', 'Generate production-ready release bundle')
       dispatcher: args.dispatcher,
       deployer: signer.address,
       network: hre.network.name,
-      chainId:
+      chainId: Number(
         manifest.header?.chainId ||
-        (await ethers.provider.getNetwork().then(n => n.chainId)),
+        (await ethers.provider.getNetwork().then(n => n.chainId))
+      ),
     };
 
     const addressesPath = join(releaseDir, 'addresses.json');

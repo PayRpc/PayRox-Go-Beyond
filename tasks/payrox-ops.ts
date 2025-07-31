@@ -29,7 +29,7 @@ task('payrox:ops:watch', 'Monitor PayRox system for operational issues')
   .addOptionalParam('duration', 'Watch duration in minutes (0 = infinite)', '0')
   .addFlag('once', 'Run once instead of continuous monitoring')
   .addFlag('exitOnAlert', 'Exit with non-zero code on critical alerts')
-  .addFlag('verbose', 'Enable verbose logging')
+  .addFlag('debug', 'Enable debug logging')
   .setAction(async (args, hre) => {
     const { ethers } = hre;
 

@@ -1,7 +1,7 @@
-import { HardhatRuntimeEnvironment } from "hardhat/types";
-import * as fs from "fs";
-import * as path from "path";
-import * as yaml from "js-yaml";
+import * as fs from 'fs';
+import { HardhatRuntimeEnvironment } from 'hardhat/types';
+import * as yaml from 'js-yaml';
+import * as path from 'path';
 
 /**
  * Build a manifest & Merkle tree compatible with ManifestDispatcher:
@@ -16,7 +16,7 @@ function pairHash(a: string, b: string, ethers: any): string {
 export async function main(hre: HardhatRuntimeEnvironment) {
   const { ethers, artifacts, network } = hre;
 
-  console.log("📦 Building deployment manifest for network:", network.name);
+  console.log('📦 Building deployment manifest for network:', network.name);
 
   // 1) Load configs + factory address
   const release = await loadReleaseConfig();
@@ -36,10 +36,10 @@ export async function main(hre: HardhatRuntimeEnvironment) {
   const manifest = {
     version: release.version,
     timestamp: new Date().toISOString(),
-    description: release.description ?? "",
+    description: release.description ?? '',
     network: { name: network.name, chainId },
     factory,
-    facets: facets.map((f) => ({
+    facets: facets.map(f => ({
       name: f.name,
       contract: f.contract,
       address: f.predictedAddress,
@@ -50,7 +50,7 @@ export async function main(hre: HardhatRuntimeEnvironment) {
       priority: f.priority ?? 0,
       gasLimit: f.gasLimit ?? null,
     })),
-    routes: routes.map((r) => ({
+    routes: routes.map(r => ({
       selector: r.selector,
       facet: r.facet,
       codehash: r.codehash,
@@ -61,19 +61,24 @@ export async function main(hre: HardhatRuntimeEnvironment) {
   // 6) Persist all artifacts
   await saveManifestFiles(manifest, { root, leaves, proofs, tree });
 
-  console.log("✅ Manifest built successfully!");
-  console.log("   Merkle root:", root);
+  console.log('✅ Manifest built successfully!');
+  console.log('   Merkle root:', root);
   return manifest;
 }
 
 /* ───────────────────────────── Helpers ───────────────────────────── */
 
 async function loadReleaseConfig() {
-  const configPath = path.join(__dirname, "..", "config", "app.release.yaml");
-  if (!fs.existsSync(configPath)) throw new Error("Release configuration not found at config/app.release.yaml");
-  const config = yaml.load(fs.readFileSync(configPath, "utf8")) as any;
+  const configPath = path.join(__dirname, '..', 'config', 'app.release.yaml');
+  if (!fs.existsSync(configPath))
+    throw new Error(
+      'Release configuration not found at config/app.release.yaml'
+    );
+  const config = yaml.load(fs.readFileSync(configPath, 'utf8')) as any;
   if (!config?.version || !Array.isArray(config?.facets)) {
-    throw new Error("Invalid release configuration (missing version or facets[])");
+    throw new Error(
+      'Invalid release configuration (missing version or facets[])'
+    );
   }
   console.log(`  ✓ Loaded release config v${config.version}`);
   return config;
@@ -81,19 +86,49 @@ async function loadReleaseConfig() {
 
 async function resolveFactoryAddress(chainId: string): Promise<string> {
   // 1) Try deployments/<chainId>/factory.json
-  const depPath = path.join(__dirname, "..", "deployments", chainId, "factory.json");
+  const depPath = path.join(
+    __dirname,
+    '..',
+    'deployments',
+    chainId,
+    'factory.json'
+  );
   if (fs.existsSync(depPath)) {
-    const { address } = JSON.parse(fs.readFileSync(depPath, "utf8"));
-    if (address) {
-      console.log(`  ✓ Using factory from deployments: ${address}`);
-      return address;
+    try {
+      const { address } = JSON.parse(fs.readFileSync(depPath, 'utf8'));
+      if (address) {
+        console.log(`  ✓ Using factory from deployments: ${address}`);
+        return address;
+      }
+    } catch (error) {
+      console.warn(`  Warning: Failed to parse ${depPath}:`, error);
     }
   }
 
-  // 2) Fallback to config/networks.json
-  const networksPath = path.join(__dirname, "..", "config", "networks.json");
+  // 2) Try alternative deployment paths (hardhat network)
+  const altDepPath = path.join(
+    __dirname,
+    '..',
+    'deployments',
+    'hardhat',
+    'factory.json'
+  );
+  if (fs.existsSync(altDepPath)) {
+    try {
+      const { address } = JSON.parse(fs.readFileSync(altDepPath, 'utf8'));
+      if (address) {
+        console.log(`  ✓ Using factory from hardhat deployment: ${address}`);
+        return address;
+      }
+    } catch (error) {
+      console.warn(`  Warning: Failed to parse ${altDepPath}:`, error);
+    }
+  }
+
+  // 3) Fallback to config/networks.json
+  const networksPath = path.join(__dirname, '..', 'config', 'networks.json');
   if (fs.existsSync(networksPath)) {
-    const networks = JSON.parse(fs.readFileSync(networksPath, "utf8"));
+    const networks = JSON.parse(fs.readFileSync(networksPath, 'utf8'));
     const found = networks?.[chainId]?.factory;
     if (found) {
       console.log(`  ✓ Using factory from networks.json: ${found}`);
@@ -101,19 +136,47 @@ async function resolveFactoryAddress(chainId: string): Promise<string> {
     }
   }
 
-  throw new Error(`Factory address not found for chainId=${chainId}. Add deployments/${chainId}/factory.json or config/networks.json.`);
+  // 4) Auto-update networks.json if we found the factory in alternative path
+  if (fs.existsSync(altDepPath)) {
+    try {
+      const { address } = JSON.parse(fs.readFileSync(altDepPath, 'utf8'));
+      if (address) {
+        console.log(`  ✓ Auto-updating networks.json with factory: ${address}`);
+
+        // Update or create networks.json
+        let networks: any = {};
+        if (fs.existsSync(networksPath)) {
+          networks = JSON.parse(fs.readFileSync(networksPath, 'utf8'));
+        }
+
+        if (!networks[chainId]) {
+          networks[chainId] = {};
+        }
+        networks[chainId].factory = address;
+
+        fs.writeFileSync(networksPath, JSON.stringify(networks, null, 2));
+        return address;
+      }
+    } catch (error) {
+      console.warn(`  Warning: Failed to update networks.json:`, error);
+    }
+  }
+
+  throw new Error(
+    `Factory address not found for chainId=${chainId}. Add deployments/${chainId}/factory.json or config/networks.json.`
+  );
 }
 
 type FacetEntry = {
   name: string;
   contract: string;
-  creation: string;         // creation bytecode (0x…)
-  runtime: string;          // deployed bytecode (0x…)
-  runtimeHash: string;      // keccak256(runtime)
-  runtimeSize: number;      // bytes
-  salt: string;             // 0x…
+  creation: string; // creation bytecode (0x…)
+  runtime: string; // deployed bytecode (0x…)
+  runtimeHash: string; // keccak256(runtime)
+  runtimeSize: number; // bytes
+  salt: string; // 0x…
   predictedAddress: string; // CREATE2(factory, salt, keccak256(creation))
-  selectors: string[];      // bytes4 strings
+  selectors: string[]; // bytes4 strings
   priority?: number;
   gasLimit?: number;
 };
@@ -122,28 +185,35 @@ type FacetEntry = {
  * Build facet entries and predicted addresses deterministically:
  * salt = keccak256(runtime) unless a salt is provided in release.deployment[facetName].salt
  */
-async function buildFacetEntries(release: any, artifacts: any, ethers: any, factory: string): Promise<FacetEntry[]> {
+async function buildFacetEntries(
+  release: any,
+  artifacts: any,
+  ethers: any,
+  factory: string
+): Promise<FacetEntry[]> {
   const coder = ethers.AbiCoder.defaultAbiCoder();
   const out: FacetEntry[] = [];
 
   for (const facetCfg of release.facets) {
     console.log(`Processing facet: ${facetCfg.name} (${facetCfg.contract})`);
-    
+
     const artifact = await artifacts.readArtifact(facetCfg.contract);
-    
+
     if (!artifact) {
       throw new Error(`Failed to load artifact for ${facetCfg.contract}`);
     }
-    
+
     if (!artifact.abi) {
       console.warn(`Warning: No ABI found for ${facetCfg.contract}`);
     }
 
     const creation = normalizeHex(artifact.bytecode);
-    const runtime  = normalizeHex(artifact.deployedBytecode);
+    const runtime = normalizeHex(artifact.deployedBytecode);
 
-    if (!runtime || runtime === "0x") {
-      throw new Error(`Artifact ${facetCfg.contract} has empty deployedBytecode (is it abstract or an interface?)`);
+    if (!runtime || runtime === '0x') {
+      throw new Error(
+        `Artifact ${facetCfg.contract} has empty deployedBytecode (is it abstract or an interface?)`
+      );
     }
 
     const runtimeHash = ethers.keccak256(runtime);
@@ -155,12 +225,18 @@ async function buildFacetEntries(release: any, artifacts: any, ethers: any, fact
 
     // Predicted address (CREATE2)
     const initCodeHash = ethers.keccak256(creation);
-    const predictedAddress = getCreate2Address(factory, salt, initCodeHash, ethers);
+    const predictedAddress = getCreate2Address(
+      factory,
+      salt,
+      initCodeHash,
+      ethers
+    );
 
     // Selectors: prefer explicit list, else derive from ABI (external/public, exclude constructor/fallback/receive)
-    const selectors: string[] = Array.isArray(facetCfg.selectors) && facetCfg.selectors.length > 0
-      ? facetCfg.selectors.map(normalizeSelector)
-      : deriveSelectorsFromAbi(artifact.abi, ethers);
+    const selectors: string[] =
+      Array.isArray(facetCfg.selectors) && facetCfg.selectors.length > 0
+        ? facetCfg.selectors.map(normalizeSelector)
+        : deriveSelectorsFromAbi(artifact.abi, ethers);
 
     out.push({
       name: facetCfg.name,
@@ -176,7 +252,9 @@ async function buildFacetEntries(release: any, artifacts: any, ethers: any, fact
       gasLimit: facetCfg.gasLimit,
     });
 
-    console.log(`  📦 Facet ${facetCfg.name}: codehash=${runtimeHash} size=${runtimeSize}B addr=${predictedAddress}`);
+    console.log(
+      `  📦 Facet ${facetCfg.name}: codehash=${runtimeHash} size=${runtimeSize}B addr=${predictedAddress}`
+    );
     console.log(`    ✓ ${selectors.length} selectors`);
   }
 
@@ -216,9 +294,12 @@ function buildMerkleOverRoutes(
   const coder = ethers.AbiCoder.defaultAbiCoder();
 
   // Deterministic leaf list
-  const leaves = routes.map((r) =>
+  const leaves = routes.map(r =>
     ethers.keccak256(
-      coder.encode(["bytes4", "address", "bytes32"], [r.selector, r.facet, r.codehash])
+      coder.encode(
+        ['bytes4', 'address', 'bytes32'],
+        [r.selector, r.facet, r.codehash]
+      )
     )
   );
 
@@ -257,15 +338,20 @@ function buildMerkleOverRoutes(
 /**
  * Generate proof for ordered-pair trees (OpenZeppelin compatible).
  */
-function generateOrderedProof(tree: string[][], leafIndex: number, ethers: any): string[] {
+function generateOrderedProof(
+  tree: string[][],
+  leafIndex: number,
+  ethers: any
+): string[] {
   const proof: string[] = [];
   let idx = leafIndex;
 
   for (let level = 0; level < tree.length - 1; level++) {
     const levelNodes = tree[level];
-    const isLastOdd = levelNodes.length % 2 === 1 && idx === levelNodes.length - 1;
+    const isLastOdd =
+      levelNodes.length % 2 === 1 && idx === levelNodes.length - 1;
 
-    const siblingIndex = isLastOdd ? idx : (idx ^ 1); // if odd dup, sibling is itself; else flip last bit
+    const siblingIndex = isLastOdd ? idx : idx ^ 1; // if odd dup, sibling is itself; else flip last bit
     if (siblingIndex < levelNodes.length) {
       proof.push(levelNodes[siblingIndex]);
     }
@@ -278,21 +364,29 @@ function generateOrderedProof(tree: string[][], leafIndex: number, ethers: any):
 /* ───────────────────────────── IO ───────────────────────────── */
 
 async function saveManifestFiles(manifest: any, merkle: any) {
-  const manifestsDir = path.join(__dirname, "..", "manifests");
-  if (!fs.existsSync(manifestsDir)) fs.mkdirSync(manifestsDir, { recursive: true });
+  const manifestsDir = path.join(__dirname, '..', 'manifests');
+  if (!fs.existsSync(manifestsDir))
+    fs.mkdirSync(manifestsDir, { recursive: true });
 
   // Manifest
-  const manifestPath = path.join(manifestsDir, "current.manifest.json");
+  const manifestPath = path.join(manifestsDir, 'current.manifest.json');
   fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
   console.log(`  💾 Manifest saved: ${manifestPath}`);
 
   // Merkle meta
-  const merklePath = path.join(manifestsDir, "current.merkle.json");
-  fs.writeFileSync(merklePath, JSON.stringify({
-    root: merkle.root,
-    leaves: merkle.leaves,
-    proofs: merkle.proofs, // index-aligned with manifest.routes order (after sort, we saved routes independently)
-  }, null, 2));
+  const merklePath = path.join(manifestsDir, 'current.merkle.json');
+  fs.writeFileSync(
+    merklePath,
+    JSON.stringify(
+      {
+        root: merkle.root,
+        leaves: merkle.leaves,
+        proofs: merkle.proofs, // index-aligned with manifest.routes order (after sort, we saved routes independently)
+      },
+      null,
+      2
+    )
+  );
   console.log(`  💾 Merkle data saved: ${merklePath}`);
 
   // Chunk mapping (content-addressed facets)
@@ -306,7 +400,7 @@ async function saveManifestFiles(manifest: any, merkle: any) {
     };
     return acc;
   }, {});
-  const chunkMapPath = path.join(manifestsDir, "chunks.map.json");
+  const chunkMapPath = path.join(manifestsDir, 'chunks.map.json');
   fs.writeFileSync(chunkMapPath, JSON.stringify(chunkMap, null, 2));
   console.log(`  💾 Chunk mapping saved: ${chunkMapPath}`);
 }
@@ -314,14 +408,14 @@ async function saveManifestFiles(manifest: any, merkle: any) {
 /* ───────────────────────────── Utils ───────────────────────────── */
 
 function normalizeHex(x: string): string {
-  if (!x) return "0x";
-  return x.startsWith("0x") ? x : ("0x" + x);
+  if (!x) return '0x';
+  return x.startsWith('0x') ? x : '0x' + x;
 }
 
 function normalizeSelector(sel: string): string {
   const s = sel.toLowerCase();
-  if (!s.startsWith("0x")) return "0x" + s;
-  return "0x" + s.slice(2).padStart(8, "0"); // ensure 4 bytes / 8 hex chars after 0x
+  if (!s.startsWith('0x')) return '0x' + s;
+  return '0x' + s.slice(2).padStart(8, '0'); // ensure 4 bytes / 8 hex chars after 0x
 }
 
 /**
@@ -337,15 +431,15 @@ function lexi(a: string, b: string): number {
 /**
  * Ethers v6–safe CREATE2 address derivation.
  */
-function getCreate2Address(factory: string, salt: string, initCodeHash: string, ethers: any): string {
-  const packed = ethers.concat([
-    "0xff",
-    factory,
-    salt,
-    initCodeHash,
-  ]);
+function getCreate2Address(
+  factory: string,
+  salt: string,
+  initCodeHash: string,
+  ethers: any
+): string {
+  const packed = ethers.concat(['0xff', factory, salt, initCodeHash]);
   const hash = ethers.keccak256(packed);
-  return ethers.getAddress("0x" + hash.slice(26)); // last 20 bytes
+  return ethers.getAddress('0x' + hash.slice(26)); // last 20 bytes
 }
 
 /**
@@ -354,7 +448,9 @@ function getCreate2Address(factory: string, salt: string, initCodeHash: string, 
 function deriveSelectorsFromAbi(abi: any[], ethers: any): string[] {
   // Check if ABI is valid
   if (!abi || !Array.isArray(abi) || abi.length === 0) {
-    console.warn("Warning: ABI is undefined, null, or empty. Returning empty selectors array.");
+    console.warn(
+      'Warning: ABI is undefined, null, or empty. Returning empty selectors array.'
+    );
     return [];
   }
 
@@ -364,18 +460,20 @@ function deriveSelectorsFromAbi(abi: any[], ethers: any): string[] {
 
     // Use fragments instead of functions for better compatibility
     const fragments = iface.fragments || [];
-    const functionFragments = fragments.filter((fragment: any) => fragment.type === 'function');
-    
+    const functionFragments = fragments.filter(
+      (fragment: any) => fragment.type === 'function'
+    );
+
     if (functionFragments.length === 0) {
-      console.warn("Warning: No function fragments found in ABI");
+      console.warn('Warning: No function fragments found in ABI');
       return [];
     }
 
     for (const fragment of functionFragments) {
       // skip constructors / fallback / receive
-      const name = fragment.name ?? "";
-      if (!name || name === "constructor") continue;
-      
+      const name = fragment.name ?? '';
+      if (!name || name === 'constructor') continue;
+
       try {
         // Use getFunction to get the function descriptor, then get its selector
         const func = iface.getFunction(name);
@@ -391,9 +489,13 @@ function deriveSelectorsFromAbi(abi: any[], ethers: any): string[] {
     // De‑dupe and sort for stability
     return Array.from(new Set(selectors)).sort(lexi);
   } catch (error) {
-    console.error("Error processing ABI:", error);
-    console.error("ABI content:", JSON.stringify(abi, null, 2));
-    throw new Error(`Failed to derive selectors from ABI: ${error instanceof Error ? error.message : "Unknown error"}`);
+    console.error('Error processing ABI:', error);
+    console.error('ABI content:', JSON.stringify(abi, null, 2));
+    throw new Error(
+      `Failed to derive selectors from ABI: ${
+        error instanceof Error ? error.message : 'Unknown error'
+      }`
+    );
   }
 }
 
@@ -402,10 +504,10 @@ function deriveSelectorsFromAbi(abi: any[], ethers: any): string[] {
 if (require.main === module) {
   // When run via: npx hardhat run scripts/build-manifest.ts --network <net>
   // Hardhat injects HRE, so the below is only for direct node execution fallback.
-  const hre: HardhatRuntimeEnvironment = require("hardhat");
+  const hre: HardhatRuntimeEnvironment = require('hardhat');
   main(hre)
     .then(() => process.exit(0))
-    .catch((err) => {
+    .catch(err => {
       console.error(err);
       process.exit(1);
     });
