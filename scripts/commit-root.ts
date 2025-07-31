@@ -58,7 +58,10 @@ async function readCurrentRoot(dispatcherAddr: string) {
   try {
     return await disp.activeRoot();
   } catch (error) {
-    console.log('   [WARN] Could not read active root:', error instanceof Error ? error.message : String(error));
+    console.log(
+      '   [WARN] Could not read active root:',
+      error instanceof Error ? error.message : String(error)
+    );
     return '0x0000000000000000000000000000000000000000000000000000000000000000';
   }
 }

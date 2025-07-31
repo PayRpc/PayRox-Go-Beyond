@@ -213,13 +213,32 @@ try {
 
   if ($rootCommitSuccess) {
     Write-Host "   [INFO] Root was committed successfully - proceeding with activation" -ForegroundColor Cyan
-    if (Invoke-PayRoxCommand -Command "npx hardhat run scripts/activate-root.ts --network $Network" -Description "Activating Committed Root") {
-      $activationSuccess = $true
-      Write-Host "   [OK] Root activation successful - governance state is current!" -ForegroundColor Green
-    }
-    else {
-      Write-Host "   [WARN] Root activation failed despite successful commit" -ForegroundColor Yellow
-      Write-Host "   [INFO] Routes are applied but governance state may lag - manual activation may be needed" -ForegroundColor Cyan
+
+    # Give network time to stabilize after route application
+    Start-Sleep 3
+
+    # Try activation with retry logic
+    $activationRetries = 2
+    $activationAttempt = 0
+
+    while (-not $activationSuccess -and $activationAttempt -lt $activationRetries) {
+      $activationAttempt++
+      if ($activationAttempt -gt 1) {
+        Write-Host "   [INFO] Activation retry attempt $activationAttempt..." -ForegroundColor Cyan
+        Start-Sleep 2
+      }
+
+      if (Invoke-PayRoxCommand -Command "npx hardhat run scripts/activate-root.ts --network $Network" -Description "Activating Committed Root (Attempt $activationAttempt)") {
+        $activationSuccess = $true
+        Write-Host "   [OK] Root activation successful - governance state is current!" -ForegroundColor Green
+      }
+      elseif ($activationAttempt -lt $activationRetries) {
+        Write-Host "   [WARN] Root activation failed, will retry..." -ForegroundColor Yellow
+      }
+      else {
+        Write-Host "   [WARN] Root activation failed after retries - routes are still applied" -ForegroundColor Yellow
+        Write-Host "   [INFO] System is functional but governance state may lag - manual activation may be needed" -ForegroundColor Cyan
+      }
     }
   }
   else {
@@ -229,7 +248,7 @@ try {
 
   # Step 11: Quick Address Verification
   if (!(Invoke-PayRoxCommand -Command "npx hardhat run scripts/quick-deployment-check.ts --network $Network" -Description "Quick Address Verification")) {
-    Write-Host "   [WARN] Address verification had issues but continuing..." -ForegroundColor Yellow Yellow
+    Write-Host "   [WARN] Address verification had issues but continuing..." -ForegroundColor Yellow
     Write-Host "   [INFO] This can happen with Hardhat node restart - addresses are verified above" -ForegroundColor Cyan
   }
 
