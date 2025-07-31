@@ -1,0 +1,349 @@
+{
+  "metadata": {
+    "version": "1.0.0",
+    "generatedAt": "2025-07-31T03:53:22.103Z",
+    "generator": "PayRox SBOM Generator",
+    "project": "PayRox Go Beyond",
+    "commit": "1dbb570c1f583821896a315487006fa8220c63ed",
+    "branch": "main",
+    "repository": "https://github.com/PayRpc/PayRox-Go-Beyond.git"
+  },
+  "compiler": {
+    "solcVersion": "0.8.30",
+    "optimizerEnabled": true,
+    "optimizerRuns": 200,
+    "evmVersion": "paris"
+  },
+  "contracts": [
+    {
+      "name": "AccessControl",
+      "version": "1.0.0",
+      "type": "contract",
+      "path": "@openzeppelin/contracts/access/AccessControl.sol",
+      "sourceHash": "0x1a6b4f6b7798ab80929d491b89d5427a9b3338c0fd1acd0ba325f69c6f1646af",
+      "dependencies": [],
+      "solcVersion": "0.8.30",
+      "optimizerEnabled": true,
+      "optimizerRuns": 200,
+      "bytecodeHash": "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
+    },
+    {
+      "name": "IAccessControl",
+      "version": "1.0.0",
+      "type": "interface",
+      "path": "@openzeppelin/contracts/access/IAccessControl.sol",
+      "sourceHash": "0xbff9f59c84e5337689161ce7641c0ef8e872d6a7536fbc1f5133f128887aba3c",
+      "dependencies": [],
+      "solcVersion": "0.8.30",
+      "optimizerEnabled": true,
+      "optimizerRuns": 200,
+      "bytecodeHash": "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
+    },
+    {
+      "name": "Context",
+      "version": "1.0.0",
+      "type": "contract",
+      "path": "@openzeppelin/contracts/utils/Context.sol",
+      "sourceHash": "0x493033a8d1b176a037b2cc6a04dad01a5c157722049bbecf632ca876224dd4b2",
+      "dependencies": [],
+      "solcVersion": "0.8.30",
+      "optimizerEnabled": true,
+      "optimizerRuns": 200,
+      "bytecodeHash": "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
+    },
+    {
+      "name": "Panic",
+      "version": "1.0.0",
+      "type": "contract",
+      "path": "@openzeppelin/contracts/utils/Panic.sol",
+      "sourceHash": "0xf7fe324703a64fc51702311dc51562d5cb1497734f074e4f483bfb6717572d7a",
+      "dependencies": [],
+      "solcVersion": "0.8.30",
+      "optimizerEnabled": true,
+      "optimizerRuns": 200,
+      "bytecodeHash": "0xa3cb1600477714cd8c30dbf814fcb6be0f0f6d4b3db261e6c6c05c5435f962bd"
+    },
+    {
+      "name": "Pausable",
+      "version": "1.0.0",
+      "type": "contract",
+      "path": "@openzeppelin/contracts/utils/Pausable.sol",
+      "sourceHash": "0xdb484371dfbb848cb6f5d70464e9ac9b2900e4164ead76bbce4fef0b44bcc68f",
+      "dependencies": [],
+      "solcVersion": "0.8.30",
+      "optimizerEnabled": true,
+      "optimizerRuns": 200,
+      "bytecodeHash": "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
+    },
+    {
+      "name": "ReentrancyGuard",
+      "version": "1.0.0",
+      "type": "contract",
+      "path": "@openzeppelin/contracts/utils/ReentrancyGuard.sol",
+      "sourceHash": "0x11a5a79827df29e915a12740caf62fe21ebe27c08c9ae3e09abe9ee3ba3866d3",
+      "dependencies": [],
+      "solcVersion": "0.8.30",
+      "optimizerEnabled": true,
+      "optimizerRuns": 200,
+      "bytecodeHash": "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
+    },
+    {
+      "name": "Strings",
+      "version": "1.0.0",
+      "type": "contract",
+      "path": "@openzeppelin/contracts/utils/Strings.sol",
+      "sourceHash": "0xad148d59f05165f9217d0a9e1ac8f772abb02ea6aaad8a756315c532bf79f9f4",
+      "dependencies": [],
+      "solcVersion": "0.8.30",
+      "optimizerEnabled": true,
+      "optimizerRuns": 200,
+      "bytecodeHash": "0xde0b7b0a41e42492dbd7a75c2590903dea383ae53e16347dfb75f9f2bc16a53d"
+    },
+    {
+      "name": "ECDSA",
+      "version": "1.0.0",
+      "type": "contract",
+      "path": "@openzeppelin/contracts/utils/cryptography/ECDSA.sol",
+      "sourceHash": "0x69f54c02b7d81d505910ec198c11ed4c6a728418a868b906b4a0cf29946fda84",
+      "dependencies": [],
+      "solcVersion": "0.8.30",
+      "optimizerEnabled": true,
+      "optimizerRuns": 200,
+      "bytecodeHash": "0xb4b579221af0ed8155a8fed7d2c9fabf4a5ecd89d29f97f48df322b29dc8f0a4"
+    },
+    {
+      "name": "MessageHashUtils",
+      "version": "1.0.0",
+      "type": "contract",
+      "path": "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol",
+      "sourceHash": "0x26670fef37d4adf55570ba78815eec5f31cb017e708f61886add4fc4da665631",
+      "dependencies": [],
+      "solcVersion": "0.8.30",
+      "optimizerEnabled": true,
+      "optimizerRuns": 200,
+      "bytecodeHash": "0x4315e1d04a32488aaa00fe6f567deb89b898fbc3e00903396c91f72a1693bf83"
+    },
+    {
+      "name": "ERC165",
+      "version": "1.0.0",
+      "type": "contract",
+      "path": "@openzeppelin/contracts/utils/introspection/ERC165.sol",
+      "sourceHash": "0x2d9dc2fe26180f74c11c13663647d38e259e45f95eb88f57b61d2160b0109d3e",
+      "dependencies": [],
+      "solcVersion": "0.8.30",
+      "optimizerEnabled": true,
+      "optimizerRuns": 200,
+      "bytecodeHash": "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
+    },
+    {
+      "name": "IERC165",
+      "version": "1.0.0",
+      "type": "interface",
+      "path": "@openzeppelin/contracts/utils/introspection/IERC165.sol",
+      "sourceHash": "0x8891738ffe910f0cf2da09566928589bf5d63f4524dd734fd9cedbac3274dd5c",
+      "dependencies": [],
+      "solcVersion": "0.8.30",
+      "optimizerEnabled": true,
+      "optimizerRuns": 200,
+      "bytecodeHash": "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
+    },
+    {
+      "name": "Math",
+      "version": "1.0.0",
+      "type": "contract",
+      "path": "@openzeppelin/contracts/utils/math/Math.sol",
+      "sourceHash": "0x1225214420c83ebcca88f2ae2b50f053aaa7df7bd684c3e878d334627f2edfc6",
+      "dependencies": [],
+      "solcVersion": "0.8.30",
+      "optimizerEnabled": true,
+      "optimizerRuns": 200,
+      "bytecodeHash": "0x5109994fe2572a7ec387ce5287283087818a73073cfe8181af57d5e79f6c72fa"
+    },
+    {
+      "name": "SafeCast",
+      "version": "1.0.0",
+      "type": "contract",
+      "path": "@openzeppelin/contracts/utils/math/SafeCast.sol",
+      "sourceHash": "0x195533c86d0ef72bcc06456a4f66a9b941f38eb403739b00f21fd7c1abd1ae54",
+      "dependencies": [],
+      "solcVersion": "0.8.30",
+      "optimizerEnabled": true,
+      "optimizerRuns": 200,
+      "bytecodeHash": "0x3fb06fc475a24c09e7be3404f3ceaade719863a7acd58e729bd29f4837d444f2"
+    },
+    {
+      "name": "SignedMath",
+      "version": "1.0.0",
+      "type": "contract",
+      "path": "@openzeppelin/contracts/utils/math/SignedMath.sol",
+      "sourceHash": "0xb1970fac7b64e6c09611e6691791e848d5e3fe410fa5899e7df2e0afd77a99e3",
+      "dependencies": [],
+      "solcVersion": "0.8.30",
+      "optimizerEnabled": true,
+      "optimizerRuns": 200,
+      "bytecodeHash": "0x4d9e10d0cbc7e80df9c147ce5759da4b8b7c37c51ec5b1990e3ccc123b1b0c7e"
+    },
+    {
+      "name": "ManifestDispatcher",
+      "version": "1.0.0",
+      "type": "contract",
+      "path": "contracts/dispatcher/ManifestDispatcher.sol",
+      "sourceHash": "0x77095c03deea50d84a6ab3bd5538f16b9732749651e65b424de6784bd66de826",
+      "dependencies": [],
+      "solcVersion": "0.8.30",
+      "optimizerEnabled": true,
+      "optimizerRuns": 200,
+      "bytecodeHash": "0xd08a77f523c280c69cfe8d92a33abf9b42bdb2f16c73e97698ea48954ff4493d"
+    },
+    {
+      "name": "ExampleFacetA",
+      "version": "1.0.0",
+      "type": "contract",
+      "path": "contracts/facets/ExampleFacetA.sol",
+      "sourceHash": "0x1188d14d4b5a831257b88cb82d30f12c3897d252389ae0b680e411815ce0af54",
+      "dependencies": [],
+      "solcVersion": "0.8.30",
+      "optimizerEnabled": true,
+      "optimizerRuns": 200,
+      "bytecodeHash": "0x28787103020fd18c90b9e24ab4c3dd828bcfd68da5827c3bf746b3a82f31079d"
+    },
+    {
+      "name": "ExampleFacetB",
+      "version": "1.0.0",
+      "type": "contract",
+      "path": "contracts/facets/ExampleFacetB.sol",
+      "sourceHash": "0x2d22828f8ebb1c1f2969c2426e4dc317a3804e1b921de584d54d9cf40aaf9e91",
+      "dependencies": [],
+      "solcVersion": "0.8.30",
+      "optimizerEnabled": true,
+      "optimizerRuns": 200,
+      "bytecodeHash": "0x58f0c7c4b9bd15403be89876796504853febc17ec934dcbdc4fed6c72ade552c"
+    },
+    {
+      "name": "IPingFacet",
+      "version": "1.0.0",
+      "type": "interface",
+      "path": "contracts/facets/PingFacet.sol",
+      "sourceHash": "0x7ad78bb88b4626f41ed6b0d7a572bf9831236e1053459bc417b9c10eba76c2fa",
+      "dependencies": [],
+      "solcVersion": "0.8.30",
+      "optimizerEnabled": true,
+      "optimizerRuns": 200,
+      "bytecodeHash": "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
+    },
+    {
+      "name": "PingFacet",
+      "version": "1.0.0",
+      "type": "contract",
+      "path": "contracts/facets/PingFacet.sol",
+      "sourceHash": "0x7ad78bb88b4626f41ed6b0d7a572bf9831236e1053459bc417b9c10eba76c2fa",
+      "dependencies": [],
+      "solcVersion": "0.8.30",
+      "optimizerEnabled": true,
+      "optimizerRuns": 200,
+      "bytecodeHash": "0x70511fa4da2935725e2f3fa64393bdc2407d7957b90454227ee8049e5ce50e45"
+    },
+    {
+      "name": "DeterministicChunkFactory",
+      "version": "1.0.0",
+      "type": "contract",
+      "path": "contracts/factory/DeterministicChunkFactory.sol",
+      "sourceHash": "0x5c789056f2801589b47f3757260cbf1964263b155fb4424da8da7763845c5480",
+      "dependencies": [],
+      "solcVersion": "0.8.30",
+      "optimizerEnabled": true,
+      "optimizerRuns": 200,
+      "bytecodeHash": "0xc8967a71b4c2e8eefcf19e3d53e8712c18fa385b3c8877e097496d707b0bcab4"
+    },
+    {
+      "name": "ManifestTypes",
+      "version": "1.0.0",
+      "type": "contract",
+      "path": "contracts/manifest/ManifestTypes.sol",
+      "sourceHash": "0x8fa9df7662d8bfbd314dbc8e862d840f59fe3de50f522e4e871aa95b830d91fd",
+      "dependencies": [],
+      "solcVersion": "0.8.30",
+      "optimizerEnabled": true,
+      "optimizerRuns": 200,
+      "bytecodeHash": "0x116a3b0c2837673dd6d44a41cf555f59c8b64e4e0d9ded8e986d1ec454a5f52c"
+    },
+    {
+      "name": "ManifestUtils",
+      "version": "1.0.0",
+      "type": "contract",
+      "path": "contracts/manifest/ManifestUtils.sol",
+      "sourceHash": "0xcee7b24d7aa7026f975bb2bf7cec736b6b497f41c8270654edc84fc8ee3b314f",
+      "dependencies": [
+        "./ManifestTypes.sol"
+      ],
+      "solcVersion": "0.8.30",
+      "optimizerEnabled": true,
+      "optimizerRuns": 200,
+      "bytecodeHash": "0x1af9cef07693d42f7ec5c3b10c08322ea674b6bcf778aa61ba3dbae536aaacbf"
+    },
+    {
+      "name": "Orchestrator",
+      "version": "1.0.0",
+      "type": "contract",
+      "path": "contracts/orchestrator/Orchestrator.sol",
+      "sourceHash": "0xeef2dac38e5012c1e8b39641654b764128cc20766bc6ebe5bb7eb8551093ccc1",
+      "dependencies": [],
+      "solcVersion": "0.8.30",
+      "optimizerEnabled": true,
+      "optimizerRuns": 200,
+      "bytecodeHash": "0x26d8433c8295ae6da9826401a4d50908879f70e4ce0281fcf7599d8498a10bf0"
+    },
+    {
+      "name": "OrderedMerkle",
+      "version": "1.0.0",
+      "type": "contract",
+      "path": "contracts/utils/OrderedMerkle.sol",
+      "sourceHash": "0xc00e6c854b5031b2a4e223e76d7ad7203f05c93e1f559db0bed83901bb332c4e",
+      "dependencies": [],
+      "solcVersion": "0.8.30",
+      "optimizerEnabled": true,
+      "optimizerRuns": 200,
+      "bytecodeHash": "0x81f89083e1497d2489abe5225d3c0c3a25ba60fbe038eb207f9ae2caa8548a69"
+    }
+  ],
+  "dependencies": {
+    "npm": {
+      "@openzeppelin/contracts": "^5.4.0",
+      "chalk": "^5.4.1",
+      "commander": "^14.0.0",
+      "dotenv": "^17.2.1",
+      "ethers": "^6.15.0",
+      "merkletreejs": "^0.5.2",
+      "ora": "^8.2.0",
+      "@eslint/js": "^9.15.0",
+      "@nomicfoundation/hardhat-toolbox": "^6.1.0",
+      "@types/js-yaml": "^4.0.9",
+      "@types/node": "^24.1.0",
+      "@typescript-eslint/eslint-plugin": "^8.38.0",
+      "@typescript-eslint/parser": "^8.38.0",
+      "eslint": "^9.32.0",
+      "hardhat": "^2.26.1",
+      "hardhat-contract-sizer": "^2.10.0",
+      "js-yaml": "^4.1.0",
+      "solidity-coverage": "^0.8.16",
+      "ts-node": "^10.9.2",
+      "typescript": "^5.8.3"
+    },
+    "hardhat": {
+      "hardhat": "^2.26.1",
+      "@nomicfoundation/hardhat-toolbox": "^6.1.0",
+      "@openzeppelin/contracts": "^5.4.0"
+    }
+  },
+  "security": {
+    "auditStatus": "Internal Review Complete",
+    "knownVulnerabilities": [],
+    "securityChecks": [
+      "Reentrancy protection",
+      "Access control validation",
+      "Integer overflow protection",
+      "EXTCODEHASH verification",
+      "CREATE2 deterministic deployment"
+    ]
+  }
+}

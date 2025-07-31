@@ -142,7 +142,7 @@ function getGitInfo() {
 
     return { commit, branch, repository };
   } catch (error) {
-    console.warn('⚠️  Could not retrieve Git information');
+    console.warn('⚠️  Could not retrieve Git information:', error);
     return {
       commit: 'unknown',
       branch: 'unknown',
@@ -155,12 +155,18 @@ function getCompilerSettings(hre: HardhatRuntimeEnvironment): CompilerSettings {
   const config = hre.config.solidity;
 
   // Handle both single compiler and multiple compilers config
-  const compilerConfig =
-    typeof config === 'string'
-      ? { version: config, settings: {} }
-      : Array.isArray(config.compilers)
-      ? config.compilers[0]
-      : config;
+  let compilerConfig: any;
+  if (typeof config === 'string') {
+    compilerConfig = { version: config, settings: {} };
+  } else if (
+    typeof config === 'object' &&
+    'compilers' in config &&
+    Array.isArray(config.compilers)
+  ) {
+    compilerConfig = config.compilers[0];
+  } else {
+    compilerConfig = config;
+  }
 
   return {
     solcVersion: compilerConfig.version || 'unknown',
@@ -190,30 +196,88 @@ async function analyzeContracts(
     }
 
     // Calculate source hash
-    const sourceCode = fs.readFileSync(
-      path.join(__dirname, '../', sourcePath),
-      'utf8'
-    );
-    const sourceHash = hre.ethers.keccak256(hre.ethers.toUtf8Bytes(sourceCode));
+    let sourceCode = '';
+    let sourceHash = '';
+
+    try {
+      // First try the direct path
+      sourceCode = fs.readFileSync(
+        path.join(__dirname, '../', sourcePath),
+        'utf8'
+      );
+    } catch (error: any) {
+      // If that fails and it's an OpenZeppelin contract, try node_modules
+      if (sourcePath.startsWith('@openzeppelin/')) {
+        try {
+          sourceCode = fs.readFileSync(
+            path.join(__dirname, '../node_modules', sourcePath),
+            'utf8'
+          );
+        } catch (nodeModulesError: any) {
+          console.warn(
+            `⚠️  Could not read source for ${contractName}: ${sourcePath} - ${nodeModulesError.message}`
+          );
+          sourceCode = `// Source not available: ${sourcePath}`;
+        }
+      } else {
+        console.warn(
+          `⚠️  Could not read source for ${contractName}: ${sourcePath} - ${error.message}`
+        );
+        sourceCode = `// Source not available: ${sourcePath}`;
+      }
+    }
+
+    sourceHash = hre.ethers.keccak256(hre.ethers.toUtf8Bytes(sourceCode));
 
     // Calculate bytecode hash
     const bytecodeHash = hre.ethers.keccak256(artifact.bytecode);
 
     // Check if deployed
     let deploymentInfo;
-    const deploymentPath = path.join(
-      __dirname,
-      `../deployments/${chainId}`,
-      `${contractName.toLowerCase().replace('example', '')}.json`
-    );
-    if (fs.existsSync(deploymentPath)) {
-      const deployment = JSON.parse(fs.readFileSync(deploymentPath, 'utf8'));
-      deploymentInfo = {
-        address: deployment.address,
-        transactionHash: deployment.transactionHash,
-        blockNumber: deployment.blockNumber,
-        network: hre.network.name,
-      };
+    try {
+      // Try multiple deployment file patterns
+      const possiblePaths = [
+        path.join(
+          __dirname,
+          `../deployments/${hre.network.name}`,
+          `${contractName}.json`
+        ),
+        path.join(
+          __dirname,
+          `../deployments/${chainId}`,
+          `${contractName}.json`
+        ),
+        path.join(
+          __dirname,
+          `../deployments/${hre.network.name}`,
+          `${contractName.toLowerCase()}.json`
+        ),
+        path.join(
+          __dirname,
+          `../deployments/localhost`,
+          `${contractName}.json`
+        ),
+      ];
+
+      for (const deploymentPath of possiblePaths) {
+        if (fs.existsSync(deploymentPath)) {
+          const deployment = JSON.parse(
+            fs.readFileSync(deploymentPath, 'utf8')
+          );
+          deploymentInfo = {
+            address: deployment.address,
+            transactionHash: deployment.transactionHash || 'unknown',
+            blockNumber: deployment.blockNumber || 0,
+            network: hre.network.name,
+          };
+          break;
+        }
+      }
+    } catch (error) {
+      console.warn(
+        `⚠️  Could not read deployment info for ${contractName}:`,
+        error
+      );
     }
 
     contracts.push({

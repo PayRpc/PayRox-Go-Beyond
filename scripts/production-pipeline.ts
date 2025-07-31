@@ -21,6 +21,33 @@ import { promisify } from 'util';
 
 const execAsync = promisify(exec);
 
+// Simplified execution with better error handling and progress tracking
+async function execWithProgress(
+  command: string,
+  timeoutMs: number = 300000
+): Promise<{ stdout: string; stderr: string }> {
+  console.log(
+    `   🔄 Executing: ${command.substring(0, 80)}${
+      command.length > 80 ? '...' : ''
+    }`
+  );
+
+  try {
+    const result = await execAsync(command, {
+      maxBuffer: 1024 * 1024 * 10, // 10MB buffer
+      timeout: timeoutMs,
+    });
+
+    console.log(`   ✅ Command completed successfully`);
+    return result;
+  } catch (error: any) {
+    if (error.signal === 'SIGTERM' || error.code === 'ETIMEDOUT') {
+      throw new Error(`Command timed out after ${timeoutMs}ms: ${command}`);
+    }
+    throw error;
+  }
+}
+
 interface PipelineConfig {
   network: string;
   version: string;
@@ -31,7 +58,7 @@ interface PipelineConfig {
   dryRun?: boolean;
 }
 
-interface PipelineResult {
+export interface PipelineResult {
   success: boolean;
   steps: {
     [key: string]: {
@@ -75,8 +102,10 @@ export async function runProductionPipeline(
           return;
         }
 
-        await execAsync(
-          `npx hardhat run scripts/preflight.ts --network ${config.network}`
+        // Use the pre-deploy script with shorter timeout for validation
+        await execWithProgress(
+          `npx ts-node scripts/pre-deploy.ts --network=${config.network}`,
+          120000 // 2 minutes timeout
         );
       }
     );
@@ -88,21 +117,40 @@ export async function runProductionPipeline(
         return;
       }
 
-      // Use our cleaned PowerShell script for deployment
-      if (process.platform === 'win32') {
-        await execAsync(
-          `powershell -ExecutionPolicy Bypass -File deploy-complete-system.ps1 -Network ${config.network} -Version ${config.version}`
+      // For local networks, use individual scripts to avoid PowerShell complexity
+      if (config.network === 'hardhat' || config.network === 'localhost') {
+        console.log(
+          '   📝 Deploying to local network with individual scripts...'
+        );
+
+        await execWithProgress(
+          `npx hardhat run scripts/deploy-factory.ts --network ${config.network}`,
+          180000 // 3 minutes
+        );
+
+        // Only deploy dispatcher if factory deployment succeeded
+        await execWithProgress(
+          `npx hardhat run scripts/deploy-dispatcher.ts --network ${config.network}`,
+          180000 // 3 minutes
+        );
+      } else if (process.platform === 'win32') {
+        await execWithProgress(
+          `powershell -ExecutionPolicy Bypass -File deploy-complete-system.ps1 -Network ${config.network} -Version ${config.version}`,
+          600000 // 10 minutes for production deployment
         );
       } else {
-        // Fallback to individual deployment scripts
-        await execAsync(
-          `npx hardhat run scripts/deploy-factory.ts --network ${config.network}`
+        // Fallback for non-Windows systems
+        await execWithProgress(
+          `npx hardhat run scripts/deploy-factory.ts --network ${config.network}`,
+          300000 // 5 minutes
         );
-        await execAsync(
-          `npx hardhat run scripts/deploy-dispatcher.ts --network ${config.network}`
+        await execWithProgress(
+          `npx hardhat run scripts/deploy-dispatcher.ts --network ${config.network}`,
+          300000 // 5 minutes
         );
-        await execAsync(
-          `npx hardhat run scripts/apply-manifest-routes.ts --network ${config.network}`
+        await execWithProgress(
+          `npx hardhat run scripts/apply-manifest-routes.ts --network ${config.network}`,
+          180000 // 3 minutes
         );
       }
     });
@@ -118,8 +166,9 @@ export async function runProductionPipeline(
           return;
         }
 
-        await execAsync(
-          `npx hardhat run scripts/postverify.ts --network ${config.network}`
+        await execWithProgress(
+          `npx hardhat run scripts/postverify.ts --network ${config.network}`,
+          180000 // 3 minutes
         );
       }
     );
@@ -136,8 +185,9 @@ export async function runProductionPipeline(
             return;
           }
 
-          await execAsync(
-            `npx hardhat run scripts/verify-on-etherscan.ts --network ${config.network}`
+          await execWithProgress(
+            `npx hardhat run scripts/verify-on-etherscan.ts --network ${config.network}`,
+            600000 // 10 minutes for Etherscan verification
           );
         }
       );
@@ -157,7 +207,10 @@ export async function runProductionPipeline(
           return;
         }
 
-        await execAsync(`npx hardhat run scripts/generate-sbom.ts`);
+        await execWithProgress(
+          `npx hardhat sbom --network ${config.network}`,
+          120000 // 2 minutes
+        );
       });
     } else {
       result.steps.sbom = {
@@ -179,7 +232,10 @@ export async function runProductionPipeline(
             return;
           }
 
-          await execAsync(`npx hardhat run scripts/assess-freeze-readiness.ts`);
+          await execWithProgress(
+            `npx hardhat run scripts/assess-freeze-readiness.ts --network ${config.network}`,
+            180000 // 3 minutes
+          );
         }
       );
     } else {
@@ -202,14 +258,14 @@ export async function runProductionPipeline(
             return;
           }
 
-          const { stdout } = await execAsync(
-            `npx hardhat run scripts/create-release-bundle.ts --network ${config.network}`
+          const { stdout } = await execWithProgress(
+            `npx hardhat run scripts/create-release-bundle.ts --network ${config.network}`,
+            300000 // 5 minutes
           );
 
           // Extract bundle path from output
-          const bundleMatch = stdout.match(
-            /Bundle created successfully at: (.+)/
-          );
+          const bundleRegex = /Bundle created successfully at: (.+)/;
+          const bundleMatch = bundleRegex.exec(stdout);
           if (bundleMatch) {
             result.bundlePath = bundleMatch[1].trim();
           }
@@ -332,8 +388,9 @@ async function generateProductionReport(
         deploymentInfo = JSON.parse(fs.readFileSync(factoryPath, 'utf8'));
       }
     }
-  } catch (e) {
-    // Ignore deployment info loading errors
+  } catch (e: any) {
+    // Ignore deployment info loading errors - this is optional information
+    console.warn('Could not load deployment info:', e.message);
   }
 
   // Generate comprehensive report
@@ -352,7 +409,25 @@ function generateReportContent(
   const timestamp = new Date().toISOString();
   const status = result.success ? '✅ SUCCESS' : '❌ FAILED';
 
-  let report = `# PayRox Go Beyond Production Pipeline Report
+  let report = generateReportHeader(config, status, timestamp);
+  report += generateStepSummaryTable(result);
+  report += generateDeploymentSection(deploymentInfo);
+  report += generateBundleSection(result);
+  report += generateVerificationSection(result);
+  report += generateSBOMSection(result);
+  report += generateFreezeSection(result);
+  report += generateErrorSection(error);
+  report += generateSecuritySection(timestamp);
+
+  return report;
+}
+
+function generateReportHeader(
+  config: PipelineConfig,
+  status: string,
+  timestamp: string
+): string {
+  return `# PayRox Go Beyond Production Pipeline Report
 
 ## Executive Summary
 
@@ -373,23 +448,35 @@ ${JSON.stringify(config, null, 2)}
 | Step | Status | Duration | Message |
 |------|--------|----------|---------|
 `;
+}
+
+function generateStepSummaryTable(result: PipelineResult): string {
+  let tableContent = '';
 
   for (const [stepName, stepResult] of Object.entries(result.steps)) {
     const duration = stepResult.duration
       ? `${Math.round(stepResult.duration / 1000)}s`
       : 'N/A';
-    const statusIcon =
-      stepResult.status === 'success'
-        ? '✅'
-        : stepResult.status === 'failed'
-        ? '❌'
-        : '⏭️';
 
-    report += `| ${stepName} | ${statusIcon} ${stepResult.status} | ${duration} | ${stepResult.message} |\n`;
+    let statusIcon = '⏭️'; // default for skipped
+    if (stepResult.status === 'success') {
+      statusIcon = '✅';
+    } else if (stepResult.status === 'failed') {
+      statusIcon = '❌';
+    }
+
+    tableContent += `| ${stepName} | ${statusIcon} ${stepResult.status} | ${duration} | ${stepResult.message} |\n`;
   }
 
-  if (deploymentInfo) {
-    report += `\n## Deployment Information
+  return tableContent;
+}
+
+function generateDeploymentSection(deploymentInfo: any): string {
+  if (!deploymentInfo) {
+    return '';
+  }
+
+  return `\n## Deployment Information
 
 - **Factory Address**: ${deploymentInfo.address}
 - **Transaction Hash**: ${deploymentInfo.transactionHash}
@@ -397,20 +484,27 @@ ${JSON.stringify(config, null, 2)}
 - **Gas Used**: ${deploymentInfo.receipt?.gasUsed || 'N/A'}
 - **Deployer**: ${deploymentInfo.receipt?.from || 'N/A'}
 `;
+}
+
+function generateBundleSection(result: PipelineResult): string {
+  if (!result.bundlePath) {
+    return '';
   }
 
-  if (result.bundlePath) {
-    report += `\n## Release Bundle
+  return `\n## Release Bundle
 
 - **Path**: ${result.bundlePath}
 - **Archive**: ${result.bundlePath}.tar.gz
 `;
+}
+
+function generateVerificationSection(result: PipelineResult): string {
+  const verificationStep = result.steps.etherscan;
+  if (!verificationStep) {
+    return '';
   }
 
-  // Add verification status
-  const verificationStep = result.steps.etherscan;
-  if (verificationStep) {
-    report += `\n## Contract Verification
+  return `\n## Contract Verification
 
 - **Status**: ${verificationStep.status}
 - **Message**: ${verificationStep.message}
@@ -421,12 +515,15 @@ ${
     : '⚠️ Contract verification requires attention.'
 }
 `;
+}
+
+function generateSBOMSection(result: PipelineResult): string {
+  const sbomStep = result.steps.sbom;
+  if (!sbomStep) {
+    return '';
   }
 
-  // Add SBOM status
-  const sbomStep = result.steps.sbom;
-  if (sbomStep) {
-    report += `\n## Software Bill of Materials (SBOM)
+  return `\n## Software Bill of Materials (SBOM)
 
 - **Status**: ${sbomStep.status}
 - **Message**: ${sbomStep.message}
@@ -437,12 +534,15 @@ ${
     : '⚠️ SBOM generation requires attention.'
 }
 `;
+}
+
+function generateFreezeSection(result: PipelineResult): string {
+  const freezeStep = result.steps.freeze;
+  if (!freezeStep) {
+    return '';
   }
 
-  // Add freeze assessment
-  const freezeStep = result.steps.freeze;
-  if (freezeStep) {
-    report += `\n## Freeze Readiness Assessment
+  return `\n## Freeze Readiness Assessment
 
 - **Status**: ${freezeStep.status}
 - **Message**: ${freezeStep.message}
@@ -453,20 +553,24 @@ ${
     : '⚠️ Freeze assessment requires attention.'
 }
 `;
+}
+
+function generateErrorSection(error?: Error): string {
+  if (!error) {
+    return '';
   }
 
-  if (error) {
-    report += `\n## Error Details
+  return `\n## Error Details
 
 \`\`\`
 ${error.message}
 ${error.stack || ''}
 \`\`\`
 `;
-  }
+}
 
-  // Add security recommendations
-  report += `\n## Security Recommendations
+function generateSecuritySection(timestamp: string): string {
+  return `\n## Security Recommendations
 
 ### Production Checklist
 
@@ -503,8 +607,6 @@ ${error.stack || ''}
 - **Version**: 1.0.0
 - **Timestamp**: ${timestamp}
 `;
-
-  return report;
 }
 
 // CLI interface
