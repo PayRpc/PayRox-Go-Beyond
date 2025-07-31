@@ -92,7 +92,7 @@ async function main() {
 
   // Check current state
   try {
-    const currentEpoch = (await disp.currentEpoch?.()) || 0n;
+    const currentEpoch = (await disp.activeEpoch?.()) || 0n;
     console.log('[INFO] Current active epoch:', currentEpoch.toString());
 
     if (currentEpoch >= epoch) {
@@ -130,8 +130,8 @@ async function main() {
 
   // Activate the root
   try {
-    console.log('[INFO] Activating root for epoch', epoch.toString(), '...');
-    const tx = await disp.activateCommittedRoot(epoch);
+    console.log('[INFO] Activating committed root...');
+    const tx = await disp.activateCommittedRoot();
     console.log('[INFO] Transaction submitted:', tx.hash);
 
     const rc = await tx.wait();
@@ -141,8 +141,8 @@ async function main() {
 
     // Verify activation
     try {
-      const newCurrentEpoch = (await disp.currentEpoch?.()) || 0n;
-      const newCurrentRoot = (await disp.currentRoot?.()) || '0x0';
+      const newCurrentEpoch = (await disp.activeEpoch?.()) || 0n;
+      const newCurrentRoot = (await disp.activeRoot?.()) || '0x0';
       console.log('[INFO] New active epoch:', newCurrentEpoch.toString());
       console.log('[INFO] New active root:', newCurrentRoot);
 

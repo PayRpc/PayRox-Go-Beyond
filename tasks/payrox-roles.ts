@@ -283,7 +283,7 @@ task('payrox:roles:status', 'Check role assignments and permissions')
 
       // System status
       const isPaused = await dispatcher.paused();
-      const epoch = await dispatcher.currentEpoch();
+      const epoch = await dispatcher.activeEpoch();
 
       console.log(`\\n⚙️  System Status:`);
       console.log(`   Paused: ${isPaused}`);

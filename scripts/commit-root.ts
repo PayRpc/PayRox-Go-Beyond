@@ -1,5 +1,19 @@
 import fs from 'fs';
-import { artifacts, ethers } from 'hardhat';
+import { artifacts, ethers async function readCurrentRoot(dispatcherAddr: string) {
+  const art = await artifacts.readArtifact('ManifestDispatcher');
+  const disp = new ethers.Contract(
+    dispatcherAddr,
+    art.abi,
+    (await ethers.getSigners())[0]
+  );
+
+  try {
+    return await disp.activeRoot();
+  } catch (error) {
+    console.log('   [WARN] Could not read active root:', error instanceof Error ? error.message : String(error));
+    return '0x0000000000000000000000000000000000000000000000000000000000000000';
+  }
+}';
 import path from 'path';
 
 // Defensive function to read pending fields from dispatcher
@@ -56,9 +70,9 @@ async function readCurrentRoot(dispatcherAddr: string) {
   );
 
   try {
-    return await disp.currentRoot();
+    return await disp.activeRoot();
   } catch (error) {
-    console.log('   Current root not accessible (new deployment)');
+    console.log('   [WARN] Could not read active root:', error instanceof Error ? error.message : String(error));
     return '0x0000000000000000000000000000000000000000000000000000000000000000';
   }
 }

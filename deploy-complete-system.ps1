@@ -176,9 +176,30 @@ try {
     }
   }
 
-  # Step 8: Commit Root (Skip if fails - not critical for basic deployment)
-  if (!(Invoke-PayRoxCommand -Command "npx hardhat run scripts/commit-root.ts --network $Network" -Description "Committing Merkle Root")) {
-    Write-Host "   [WARN] Root commit had issues but continuing..." -ForegroundColor Yellow
+  # Step 8: Commit Root with comprehensive error handling
+  Write-Host "`nCommitting Merkle Root..." -ForegroundColor Yellow
+  $rootCommitSuccess = $false
+  $maxRetries = 3
+  $retryCount = 0
+
+  while (-not $rootCommitSuccess -and $retryCount -lt $maxRetries) {
+    $retryCount++
+    if ($retryCount -gt 1) {
+      Write-Host "   [INFO] Retry attempt $retryCount of $maxRetries..." -ForegroundColor Cyan
+      Start-Sleep 2
+    }
+
+    if (Invoke-PayRoxCommand -Command "npx hardhat run scripts/commit-root.ts --network $Network" -Description "Committing Merkle Root (Attempt $retryCount)") {
+      $rootCommitSuccess = $true
+      Write-Host "   [OK] Root commit successful!" -ForegroundColor Green
+    }
+    elseif ($retryCount -lt $maxRetries) {
+      Write-Host "   [WARN] Root commit failed, will retry..." -ForegroundColor Yellow
+    }
+    else {
+      Write-Host "   [WARN] Root commit failed after all retries - continuing with deployment" -ForegroundColor Yellow
+      Write-Host "   [INFO] System will work without committed root, but governance features may be limited" -ForegroundColor Cyan
+    }
   }
 
   # Step 9: Apply Routes
@@ -186,16 +207,29 @@ try {
     throw "Route application failed"
   }
 
-  # Step 10: Activate Root (New step for production readiness)
+  # Step 10: Activate Root with intelligent handling
   Write-Host "`nActivating committed root..." -ForegroundColor Yellow
-  if (!(Invoke-PayRoxCommand -Command "npx hardhat run scripts/activate-root.ts --network $Network" -Description "Activating Committed Root")) {
-    Write-Host "   [WARN] Root activation had issues but continuing..." -ForegroundColor Yellow
-    Write-Host "   [INFO] Routes are applied but governance state may lag - check manually if needed" -ForegroundColor Cyan
+  $activationSuccess = $false
+
+  if ($rootCommitSuccess) {
+    Write-Host "   [INFO] Root was committed successfully - proceeding with activation" -ForegroundColor Cyan
+    if (Invoke-PayRoxCommand -Command "npx hardhat run scripts/activate-root.ts --network $Network" -Description "Activating Committed Root") {
+      $activationSuccess = $true
+      Write-Host "   [OK] Root activation successful - governance state is current!" -ForegroundColor Green
+    }
+    else {
+      Write-Host "   [WARN] Root activation failed despite successful commit" -ForegroundColor Yellow
+      Write-Host "   [INFO] Routes are applied but governance state may lag - manual activation may be needed" -ForegroundColor Cyan
+    }
+  }
+  else {
+    Write-Host "   [INFO] Skipping root activation since commit was unsuccessful" -ForegroundColor Cyan
+    Write-Host "   [INFO] System is functional but governance features are in basic mode" -ForegroundColor Cyan
   }
 
   # Step 11: Quick Address Verification
   if (!(Invoke-PayRoxCommand -Command "npx hardhat run scripts/quick-deployment-check.ts --network $Network" -Description "Quick Address Verification")) {
-    Write-Host "   [WARN] Address verification had issues but continuing..." -ForegroundColor Yellow
+    Write-Host "   [WARN] Address verification had issues but continuing..." -ForegroundColor Yellow Yellow
     Write-Host "   [INFO] This can happen with Hardhat node restart - addresses are verified above" -ForegroundColor Cyan
   }
 
@@ -324,6 +358,15 @@ try {
   Write-Host "   [OK] Cryptographic Security - EXTCODEHASH verification" -ForegroundColor Green
   Write-Host "   [OK] Enterprise Tooling - Complete production suite" -ForegroundColor Green
   Write-Host "   [OK] Utility Verification - Manifest & chunk testing passed" -ForegroundColor Green
+  if ($rootCommitSuccess -and $activationSuccess) {
+    Write-Host "   [OK] Governance State - Fully synchronized and active" -ForegroundColor Green
+  }
+  elseif ($rootCommitSuccess) {
+    Write-Host "   [PARTIAL] Governance State - Root committed but activation pending" -ForegroundColor Yellow
+  }
+  else {
+    Write-Host "   [BASIC] Governance State - Routes active, root commit in basic mode" -ForegroundColor Yellow
+  }
   Write-Host "   [OK] Role-Based Access - Production governance ready" -ForegroundColor Green
   Write-Host ""
   Write-Host "Release Bundles:" -ForegroundColor Cyan

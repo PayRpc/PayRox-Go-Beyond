@@ -241,7 +241,7 @@ async function verifyDispatcher(chainId: string): Promise<VerificationResult> {
     let currentRoot =
       '0x0000000000000000000000000000000000000000000000000000000000000000';
     try {
-      currentRoot = await dispatcher.currentRoot();
+      currentRoot = await dispatcher.activeRoot();
     } catch (error) {
       // This is okay for fresh deployments
     }
