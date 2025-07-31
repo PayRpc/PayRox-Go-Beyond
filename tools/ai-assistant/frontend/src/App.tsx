@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import './styles/globals.css';
+import React, { useState } from 'react';
+import { ContractAnalysisRequest, usePayRoxBackend } from './services/PayRoxBackend';
 import './styles/components.css';
+import './styles/globals.css';
 
 // Types
 interface ContractAnalysis {
@@ -35,11 +36,20 @@ interface AnalysisStatus {
 }
 
 // Components
-const Header: React.FC = () => (
+const Header: React.FC<{ isConnected: boolean }> = ({ isConnected }) => (
   <header className="header">
     <div className="container">
-      <h1>PayRox Go Beyond</h1>
-      <p>AI-Powered Smart Contract Modularization Platform</p>
+      <div className="header-content">
+        <div className="header-text">
+          <h1>PayRox Go Beyond</h1>
+          <p>AI-Powered Smart Contract Modularization Platform</p>
+        </div>
+        <div className="connection-status">
+          <span className={`status-indicator ${isConnected ? 'connected' : 'disconnected'}`}>
+            {isConnected ? '● Backend Connected' : '● Offline Mode'}
+          </span>
+        </div>
+      </div>
     </div>
   </header>
 );
@@ -130,7 +140,7 @@ contract ExampleContract {
               required
             />
           </div>
-          
+
           <div className="form-group">
             <label htmlFor="contractCode">Solidity Contract Code</label>
             <textarea
@@ -143,7 +153,7 @@ contract ExampleContract {
               required
             />
           </div>
-          
+
           <div className="form-actions">
             <button
               type="button"
@@ -178,7 +188,7 @@ const AnalysisResults: React.FC<{ analysis: ContractAnalysis }> = ({ analysis })
   <section className="analysis-results">
     <div className="container">
       <h2>Analysis Results</h2>
-      
+
       <div className="results-grid">
         <div className="metrics-card">
           <h3>Basic Metrics</h3>
@@ -319,66 +329,36 @@ const App: React.FC = () => {
     hasError: false,
   });
 
+  // Initialize PayRox backend connection
+  const { analyzeContract, isConnected } = usePayRoxBackend();
+
   const handleAnalyze = async (contractCode: string, contractName: string) => {
     setStatus({ isAnalyzing: true, hasError: false });
     setAnalysis(null);
 
     try {
-      // Simulate API call - replace with actual backend integration
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Mock analysis result - replace with actual API response
-      const mockAnalysis: ContractAnalysis = {
-        name: contractName,
-        functions: 11,
-        variables: 4,
-        size: 1404,
-        deploymentStrategy: 'faceted',
-        chunkingRequired: false,
-        facetCandidates: [
-          {
-            name: 'CoreFacet',
-            functions: [
-              { name: 'constructor', visibility: 'default', stateMutability: 'nonpayable' },
-              { name: 'transfer', visibility: 'external', stateMutability: 'nonpayable' }
-            ]
-          },
-          {
-            name: 'AdminFacet',
-            functions: [
-              { name: 'setOwner', visibility: 'external', stateMutability: 'nonpayable' },
-              { name: 'pause', visibility: 'external', stateMutability: 'nonpayable' },
-              { name: 'unpause', visibility: 'external', stateMutability: 'nonpayable' }
-            ]
-          },
-          {
-            name: 'ViewFacet',
-            functions: [
-              { name: 'getBalance', visibility: 'external', stateMutability: 'view' }
-            ]
-          }
-        ],
-        manifestRoutes: [
-          { functionName: 'setOwner', selector: '0x40caae06', securityLevel: 'critical' },
-          { functionName: 'pause', selector: '0x8456cb59', securityLevel: 'critical' },
-          { functionName: 'transfer', selector: '0x8a4068dd', securityLevel: 'medium' }
-        ],
-        storageWarnings: [
-          'Contract may not be diamond storage compliant - consider using diamond storage pattern'
-        ],
-        gasOptimizations: [
-          'Modular facet deployment reduces individual deployment costs',
-          'Implement diamond storage pattern to avoid storage collisions'
-        ],
-        securityConsiderations: [
-          '3 critical functions require enhanced access control',
-          'Storage collisions detected - implement proper facet isolation',
-          'Separate AdminFacet recommended for privileged functions'
-        ]
+      const request: ContractAnalysisRequest = {
+        contractCode,
+        contractName,
+        analysisType: 'refactor',
+        preferences: {
+          facetSize: 'medium',
+          optimization: 'gas'
+        }
       };
 
-      setAnalysis(mockAnalysis);
-      setStatus({ isAnalyzing: false, hasError: false });
+      const result = await analyzeContract(request);
+
+      if (result.success && result.analysis) {
+        setAnalysis(result.analysis);
+        setStatus({ isAnalyzing: false, hasError: false });
+      } else {
+        setStatus({
+          isAnalyzing: false,
+          hasError: true,
+          errorMessage: result.error || 'Analysis failed - check connection and try again'
+        });
+      }
     } catch (error) {
       setStatus({
         isAnalyzing: false,
@@ -394,18 +374,18 @@ const App: React.FC = () => {
 
   return (
     <div className="app">
-      <Header />
-      
+      <Header isConnected={isConnected ?? false} />
+
       <main className="main-content">
         <ContractInput onAnalyze={handleAnalyze} isAnalyzing={status.isAnalyzing} />
-        
+
         {status.hasError && status.errorMessage && (
           <ErrorDisplay message={status.errorMessage} onClear={clearError} />
         )}
-        
+
         {analysis && <AnalysisResults analysis={analysis} />}
       </main>
-      
+
       <footer className="footer">
         <div className="container">
           <p>PayRox Go Beyond - AI-Powered Smart Contract Modularization</p>

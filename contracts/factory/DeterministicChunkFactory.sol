@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.30;
+pragma solidity 0.8.30;
 
 import {AccessControl}   from "@openzeppelin/contracts/access/AccessControl.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
@@ -24,7 +24,7 @@ contract DeterministicChunkFactory is IChunkFactory, AccessControl, ReentrancyGu
     ──────────────────────────────────────────────────────────────────────────*/
     /// @dev keep a small headroom under the 24,576 byte EIP‑170 runtime limit
     uint256 public constant MAX_CHUNK_BYTES = 24_000;
-    
+
     /// @dev Revert prologue size: 0x60006000fd = PUSH1 0x00; PUSH1 0x00; REVERT (5 bytes)
     uint256 public constant CHUNK_PROLOGUE_SIZE = 5;
 

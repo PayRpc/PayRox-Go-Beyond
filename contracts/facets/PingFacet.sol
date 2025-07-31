@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.30;
+pragma solidity 0.8.30;
 
 /// @title PingFacet - minimal facet for smoke tests & EXTCODEHASH routing checks
 /// @notice Returns its canonical selector and echoes input. No storage; tiny runtime.

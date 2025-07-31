@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.30;
+pragma solidity 0.8.30;
 
 import {IChunkFactory} from "../factory/interfaces/IChunkFactory.sol";
 import {IManifestDispatcher} from "../dispatcher/interfaces/IManifestDispatcher.sol";

@@ -1,7 +1,7 @@
 {
   "name": "@payrox/cli",
-  "version": "0.1.0",
-  "description": "PayRox Go Beyond CLI for one-click deployment",
+  "version": "1.0.0",
+  "description": "PayRox Go Beyond Interactive CLI for Smart Contracts",
   "main": "dist/index.js",
   "bin": {
     "payrox": "./dist/index.js"
@@ -9,13 +9,22 @@
   "scripts": {
     "build": "tsc",
     "dev": "ts-node src/index.ts",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "interactive": "npm run dev interactive",
+    "ui": "npm run dev ui"
   },
-  "keywords": ["payrox", "blockchain", "deployment", "hardhat"],
+  "keywords": [
+    "payrox",
+    "blockchain",
+    "cli",
+    "smart-contracts",
+    "hardhat"
+  ],
   "author": "PayRox Team",
   "license": "MIT",
   "dependencies": {
-    "commander": "^14.0.0"
+    "commander": "^14.0.0",
+    "readline": "^1.3.0"
   },
   "devDependencies": {
     "@types/node": "^22.10.6",
