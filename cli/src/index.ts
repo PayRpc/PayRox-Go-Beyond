@@ -33,12 +33,24 @@ class PayRoxCLI {
     console.log('1. 🏭 DeterministicChunkFactory - Deploy contract chunks');
     console.log('2. 🗂️  ManifestDispatcher - Function routing');
     console.log('3. 🎯 Orchestrator - Coordinate deployments');
-    console.log('4. ⚙️  Settings - Network configuration');
-    console.log('5. 📊 Status - View deployment status');
-    console.log('6. 🔧 Utils - Utilities and helpers');
+    console.log('4. 🏛️  GovernanceOrchestrator - Protocol governance');
+    console.log('5. 🔍 AuditRegistry - Security audit management');
+    console.log('6. ⚙️  Settings - Network configuration');
+    console.log('7. 📊 Status - View deployment status');
+    console.log('8. 🔧 Utils - Utilities and helpers');
     console.log('0. Exit\n');
 
-    const choice = await this.askQuestion('Select an option (0-6): ');
+    const choice = await this.askQuestion('Select an option (0-8): ');
+
+    switch (choice) {
+      case '1': await this.handleFactory(); break;
+      case '2': await this.handleDispatcher(); break;
+      case '3': await this.handleOrchestrator(); break;
+      case '4': await this.handleGovernance(); break;
+      case '5': await this.handleAuditRegistry(); break;
+      case '6': await this.handleSettings(); break;
+      case '7': await this.handleStatus(); break;
+      case '8': await this.handleUtils(); break;
 
     switch (choice) {
       case '1': await this.handleFactory(); break;
@@ -490,6 +502,202 @@ class PayRoxCLI {
       this.rl.question(question, (answer) => {
         resolve(answer);
       });
+    });
+  }
+
+  private async handleGovernance() {
+    console.log('\n🏛️ GovernanceOrchestrator');
+    console.log('Manage protocol governance and voting\n');
+
+    console.log('1. ✍️  Create proposal');
+    console.log('2. ✍️  Cast vote');
+    console.log('3. ✍️  Execute proposal');
+    console.log('4. 👁️  Get proposal details');
+    console.log('5. 👁️  Check proposal status');
+    console.log('6. ⚙️  Update voting power');
+    console.log('0. Back to main menu\n');
+
+    const choice = await this.askQuestion('Select method: ');
+
+    switch (choice) {
+      case '1': await this.executeCreateProposal(); break;
+      case '2': await this.executeCastVote(); break;
+      case '3': await this.executeExecuteProposal(); break;
+      case '4': await this.executeGetProposal(); break;
+      case '5': await this.executeCheckProposalStatus(); break;
+      case '6': await this.executeUpdateVotingPower(); break;
+      case '0': await this.showMainMenu(); return;
+      default: console.log('❌ Invalid option');
+    }
+
+    await this.handleGovernance();
+  }
+
+  private async handleAuditRegistry() {
+    console.log('\n🔍 AuditRegistry');
+    console.log('Manage security audits and certifications\n');
+
+    console.log('1. ✍️  Submit audit');
+    console.log('2. ✍️  Certify auditor');
+    console.log('3. ✍️  Revoke auditor');
+    console.log('4. 👁️  Get audit status');
+    console.log('5. 👁️  Check if audit required');
+    console.log('6. 👁️  Get auditor info');
+    console.log('0. Back to main menu\n');
+
+    const choice = await this.askQuestion('Select method: ');
+
+    switch (choice) {
+      case '1': await this.executeSubmitAudit(); break;
+      case '2': await this.executeCertifyAuditor(); break;
+      case '3': await this.executeRevokeAuditor(); break;
+      case '4': await this.executeGetAuditStatus(); break;
+      case '5': await this.executeRequiresAudit(); break;
+      case '6': await this.executeGetAuditorInfo(); break;
+      case '0': await this.showMainMenu(); return;
+      default: console.log('❌ Invalid option');
+    }
+
+    await this.handleAuditRegistry();
+  }
+
+  // Governance methods
+  private async executeCreateProposal() {
+    console.log('\n📋 Create Governance Proposal');
+    const proposalId = await this.askQuestion('Proposal ID (bytes32): ');
+    const description = await this.askQuestion('Description: ');
+    const targetHashes = await this.askQuestion('Target hashes (comma-separated): ');
+    const votingPeriod = await this.askQuestion('Voting period (seconds): ');
+
+    const confirmation = await this.askQuestion(`Create proposal with ID ${proposalId}? (y/n): `);
+    if (confirmation.toLowerCase() === 'y') {
+      await this.executeHardhatTask('GovernanceOrchestrator', 'createProposal', {
+        proposalId,
+        description,
+        targetHashes,
+        votingPeriod
+      });
+    }
+  }
+
+  private async executeCastVote() {
+    console.log('\n🗳️ Cast Vote');
+    const proposalId = await this.askQuestion('Proposal ID: ');
+    const support = await this.askQuestion('Support (true/false): ');
+
+    const confirmation = await this.askQuestion(`Cast ${support} vote for proposal ${proposalId}? (y/n): `);
+    if (confirmation.toLowerCase() === 'y') {
+      await this.executeHardhatTask('GovernanceOrchestrator', 'castVote', {
+        proposalId,
+        support
+      });
+    }
+  }
+
+  private async executeExecuteProposal() {
+    console.log('\n⚡ Execute Proposal');
+    const proposalId = await this.askQuestion('Proposal ID: ');
+
+    const confirmation = await this.askQuestion(`Execute proposal ${proposalId}? (y/n): `);
+    if (confirmation.toLowerCase() === 'y') {
+      await this.executeHardhatTask('GovernanceOrchestrator', 'executeProposal', {
+        proposalId
+      });
+    }
+  }
+
+  private async executeGetProposal() {
+    console.log('\n👁️ Get Proposal Details');
+    const proposalId = await this.askQuestion('Proposal ID: ');
+    await this.executeHardhatTask('GovernanceOrchestrator', 'getProposal', {
+      proposalId
+    });
+  }
+
+  private async executeCheckProposalStatus() {
+    console.log('\n📊 Check Proposal Status');
+    const proposalId = await this.askQuestion('Proposal ID: ');
+    await this.executeHardhatTask('GovernanceOrchestrator', 'checkProposalStatus', {
+      proposalId
+    });
+  }
+
+  private async executeUpdateVotingPower() {
+    console.log('\n⚙️ Update Voting Power');
+    const account = await this.askQuestion('Account address: ');
+    const newPower = await this.askQuestion('New voting power: ');
+
+    const confirmation = await this.askQuestion(`Update voting power for ${account} to ${newPower}? (y/n): `);
+    if (confirmation.toLowerCase() === 'y') {
+      await this.executeHardhatTask('GovernanceOrchestrator', 'updateVotingPower', {
+        account,
+        newPower
+      });
+    }
+  }
+
+  // Audit Registry methods
+  private async executeSubmitAudit() {
+    console.log('\n📝 Submit Audit');
+    const manifestHash = await this.askQuestion('Manifest hash: ');
+    const passed = await this.askQuestion('Audit passed (true/false): ');
+    const reportUri = await this.askQuestion('Report URI: ');
+
+    const confirmation = await this.askQuestion(`Submit audit for ${manifestHash}? (y/n): `);
+    if (confirmation.toLowerCase() === 'y') {
+      await this.executeHardhatTask('AuditRegistry', 'submitAudit', {
+        manifestHash,
+        passed,
+        reportUri
+      });
+    }
+  }
+
+  private async executeCertifyAuditor() {
+    console.log('\n✅ Certify Auditor');
+    const auditor = await this.askQuestion('Auditor address: ');
+
+    const confirmation = await this.askQuestion(`Certify auditor ${auditor}? (y/n): `);
+    if (confirmation.toLowerCase() === 'y') {
+      await this.executeHardhatTask('AuditRegistry', 'certifyAuditor', {
+        auditor
+      });
+    }
+  }
+
+  private async executeRevokeAuditor() {
+    console.log('\n❌ Revoke Auditor');
+    const auditor = await this.askQuestion('Auditor address: ');
+
+    const confirmation = await this.askQuestion(`Revoke auditor certification for ${auditor}? (y/n): `);
+    if (confirmation.toLowerCase() === 'y') {
+      await this.executeHardhatTask('AuditRegistry', 'revokeAuditor', {
+        auditor
+      });
+    }
+  }
+
+  private async executeGetAuditStatus() {
+    console.log('\n👁️ Get Audit Status');
+    const manifestHash = await this.askQuestion('Manifest hash: ');
+    await this.executeHardhatTask('AuditRegistry', 'getAuditStatus', {
+      manifestHash
+    });
+  }
+
+  private async executeRequiresAudit() {
+    console.log('\n🔍 Check if Audit Required');
+    const manifestHash = await this.askQuestion('Manifest hash: ');
+    await this.executeHardhatTask('AuditRegistry', 'requiresAudit', {
+      manifestHash
+    });
+  }
+
+  private async executeGetAuditorInfo() {
+    console.log('\n👁️ Get Auditor Info');
+    const auditor = await this.askQuestion('Auditor address: ');
+    await this.executeHardhatTask('AuditRegistry', 'getAuditorInfo', {
+      auditor
     });
   }
 }

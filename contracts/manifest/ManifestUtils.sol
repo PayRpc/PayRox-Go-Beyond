@@ -232,4 +232,89 @@ library ManifestUtils {
 
         return true;
     }
+
+    /**
+     * @dev Validate upgrade manifest compatibility
+     * @param upgrade The upgrade manifest
+     * @param currentManifest The current manifest
+     * @return isValid Whether the upgrade is valid
+     */
+    function validateUpgrade(
+        ManifestTypes.UpgradeManifest memory upgrade,
+        ManifestTypes.ReleaseManifest memory currentManifest
+    ) internal view returns (bool isValid) {
+        // Check version progression
+        bytes32 currentVersionHash = calculateManifestHash(currentManifest);
+        if (upgrade.fromVersion != currentVersionHash) {
+            return false;
+        }
+
+        // Check upgrade deadline
+        if (block.timestamp > upgrade.upgradeDeadline) {
+            return false;
+        }
+
+        // Validate affected contracts
+        if (upgrade.affectedContracts.length == 0) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @dev Calculate governance proposal hash
+     * @param proposal The governance proposal
+     * @return proposalHash The calculated hash
+     */
+    function calculateProposalHash(
+        ManifestTypes.GovernanceProposal memory proposal
+    ) internal pure returns (bytes32 proposalHash) {
+        return keccak256(abi.encode(
+            proposal.proposalId,
+            proposal.proposer,
+            proposal.description,
+            proposal.targetHashes,
+            proposal.votingDeadline
+        ));
+    }
+
+    /**
+     * @dev Verify audit information
+     * @param auditInfo The audit information
+     * @param manifestHash The manifest hash being audited
+     * @return isValid Whether the audit is valid
+     */
+    function verifyAudit(
+        ManifestTypes.AuditInfo memory auditInfo,
+        bytes32 manifestHash
+    ) internal pure returns (bool isValid) {
+        // Verify audit hash includes manifest hash
+        bytes32 expectedAuditHash = keccak256(abi.encode(
+            manifestHash,
+            auditInfo.auditor,
+            auditInfo.auditTimestamp,
+            auditInfo.reportUri
+        ));
+
+        return auditInfo.auditHash == expectedAuditHash;
+    }
+
+    /**
+     * @dev Check if governance proposal has sufficient votes
+     * @param proposal The governance proposal
+     * @param totalSupply The total voting supply
+     * @param quorumThreshold The quorum threshold percentage (1-100)
+     * @return hasPassed Whether the proposal has passed
+     */
+    function checkGovernanceQuorum(
+        ManifestTypes.GovernanceProposal memory proposal,
+        uint256 totalSupply,
+        uint256 quorumThreshold
+    ) internal pure returns (bool hasPassed) {
+        uint256 totalVotes = proposal.forVotes + proposal.againstVotes;
+        uint256 requiredQuorum = (totalSupply * quorumThreshold) / 100;
+        
+        return totalVotes >= requiredQuorum && proposal.forVotes > proposal.againstVotes;
+    }
 }

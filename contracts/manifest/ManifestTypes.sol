@@ -72,6 +72,34 @@ library ManifestTypes {
         string errorMessage;
     }
 
+    struct UpgradeManifest {
+        bytes32 fromVersion;
+        bytes32 toVersion;
+        address[] affectedContracts;
+        bytes32[] migrationHashes;
+        uint256 upgradeDeadline;
+        bool requiresEmergencyPause;
+    }
+
+    struct AuditInfo {
+        address auditor;
+        bytes32 auditHash;
+        uint256 auditTimestamp;
+        bool passed;
+        string reportUri;
+    }
+
+    struct GovernanceProposal {
+        bytes32 proposalId;
+        address proposer;
+        string description;
+        bytes32[] targetHashes;
+        uint256 votingDeadline;
+        uint256 forVotes;
+        uint256 againstVotes;
+        bool executed;
+    }
+
     // Events
     event ManifestCreated(
         bytes32 indexed manifestHash,
@@ -91,6 +119,26 @@ library ManifestTypes {
         uint256 size
     );
 
+    event UpgradeProposed(
+        bytes32 indexed proposalId,
+        bytes32 indexed fromVersion,
+        bytes32 indexed toVersion,
+        address proposer
+    );
+
+    event AuditCompleted(
+        bytes32 indexed manifestHash,
+        address indexed auditor,
+        bool passed
+    );
+
+    event GovernanceVoteCast(
+        bytes32 indexed proposalId,
+        address indexed voter,
+        bool support,
+        uint256 weight
+    );
+
     // Errors
     error InvalidManifestVersion();
     error InvalidSignature();
@@ -98,4 +146,8 @@ library ManifestTypes {
     error FacetSizeExceeded();
     error ChunkNotFound();
     error VerificationFailed();
+    error UpgradeDeadlineExceeded();
+    error AuditRequired();
+    error InsufficientVotes();
+    error ProposalNotFound();
 }
