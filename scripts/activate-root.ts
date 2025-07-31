@@ -1,7 +1,12 @@
 // scripts/activate-root.ts
-import fs from 'fs';
 import { artifacts, ethers } from 'hardhat';
-import path from 'path';
+import { getNetworkManager } from '../src/utils/network';
+import {
+  fileExists,
+  getPathManager,
+  readFileContent,
+  safeParseJSON,
+} from '../src/utils/paths';
 
 async function main() {
   console.log('[INFO] Activating committed root...');
@@ -10,52 +15,83 @@ async function main() {
   let dispatcherAddr = process.env.DISPATCHER || process.argv[2];
   let epoch = process.env.EPOCH ? BigInt(process.env.EPOCH) : undefined;
 
-  // If not provided via args, try to read from deployment artifacts
+  // If not provided via args, try to read from deployment artifacts using consolidated utilities
   if (!dispatcherAddr) {
+    const pathManager = getPathManager();
+    const networkManager = getNetworkManager();
+
     const network = await ethers.provider.getNetwork();
     const chainId = network.chainId.toString();
+    const networkDetection = networkManager.determineNetworkName(chainId);
+    const networkName = networkDetection.networkName;
 
-    // Try network-specific deployment first
-    let dispatcherPath = path.join(
-      __dirname,
-      `../deployments/${chainId}/dispatcher.json`
+    // Check primary dispatcher.json file
+    const dispatcherPath = pathManager.getDeploymentPath(
+      networkName,
+      'dispatcher.json'
     );
 
-    if (!fs.existsSync(dispatcherPath)) {
-      // Fallback to hardhat deployment
-      dispatcherPath = path.join(
-        __dirname,
-        '../deployments/hardhat/dispatcher.json'
-      );
+    if (fileExists(dispatcherPath)) {
+      try {
+        const dispatcherData = safeParseJSON(readFileContent(dispatcherPath));
+        dispatcherAddr = dispatcherData.address;
+        console.log(
+          '[INFO] Found dispatcher address from deployment artifacts:',
+          dispatcherAddr
+        );
+      } catch (error) {
+        console.warn('[WARN] Failed to read dispatcher artifact:', error);
+      }
     }
 
-    if (fs.existsSync(dispatcherPath)) {
-      const dispatcherData = JSON.parse(
-        fs.readFileSync(dispatcherPath, 'utf8')
+    // Fallback: check ManifestDispatcher.json
+    if (!dispatcherAddr) {
+      const altDispatcherPath = pathManager.getDeploymentPath(
+        networkName,
+        'ManifestDispatcher.json'
       );
-      dispatcherAddr = dispatcherData.address;
-      console.log(
-        '[INFO] Found dispatcher address from deployment artifacts:',
-        dispatcherAddr
-      );
+      if (fileExists(altDispatcherPath)) {
+        try {
+          const dispatcherData = safeParseJSON(
+            readFileContent(altDispatcherPath)
+          );
+          dispatcherAddr = dispatcherData.address;
+          console.log(
+            '[INFO] Found dispatcher address from alternative path:',
+            dispatcherAddr
+          );
+        } catch (error) {
+          console.warn(
+            '[WARN] Failed to read alternative dispatcher artifact:',
+            error
+          );
+        }
+      }
     }
   }
 
-  // Try to get epoch from manifest if not provided
+  // Try to get epoch from manifest if not provided using consolidated utilities
   if (epoch === undefined) {
-    const manifestPath = path.join(
-      __dirname,
-      '../manifests/current.manifest.json'
-    );
-    if (fs.existsSync(manifestPath)) {
-      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-      if (manifest.epoch !== undefined) {
-        epoch = BigInt(manifest.epoch);
-        console.log('[INFO] Found epoch from manifest:', epoch.toString());
-      } else {
-        // Try header epoch or use default
-        epoch = manifest.header?.epoch ? BigInt(manifest.header.epoch) : 1n;
-        console.log('[INFO] Using default epoch:', epoch.toString());
+    const pathManager = getPathManager();
+    const manifestPath = pathManager.getManifestPath('current.manifest.json');
+
+    if (fileExists(manifestPath)) {
+      try {
+        const manifest = safeParseJSON(readFileContent(manifestPath));
+        if (manifest.epoch !== undefined) {
+          epoch = BigInt(manifest.epoch);
+          console.log('[INFO] Found epoch from manifest:', epoch.toString());
+        } else {
+          // Try header epoch or use default
+          epoch = manifest.header?.epoch ? BigInt(manifest.header.epoch) : 1n;
+          console.log(
+            '[INFO] Using epoch from header or default:',
+            epoch.toString()
+          );
+        }
+      } catch (error) {
+        console.warn('[WARN] Failed to read manifest:', error);
+        epoch = 1n; // Safe default
       }
     } else {
       // Fallback to epoch 1

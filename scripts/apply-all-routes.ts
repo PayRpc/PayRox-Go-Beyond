@@ -1,6 +1,13 @@
 import * as fs from 'fs';
 import { ethers } from 'hardhat';
 import * as path from 'path';
+import { getNetworkManager } from '../src/utils/network';
+import {
+  fileExists,
+  getPathManager,
+  readFileContent,
+  safeParseJSON,
+} from '../src/utils/paths';
 
 /**
  * Calculate the isRight array for a merkle proof based on leaf index
@@ -45,36 +52,62 @@ async function main() {
   console.log('📋 Loaded manifest with', manifest.routes.length, 'routes');
   console.log('🌳 Merkle root:', merkleData.root);
 
-  // Connect to the dispatcher - read from deployment artifacts
-  let dispatcherAddress = '';
+  // Connect to the dispatcher - read from deployment artifacts using consolidated utilities
+  const pathManager = getPathManager();
+  const networkManager = getNetworkManager();
 
-  // Try network-specific deployment first
   const network = await ethers.provider.getNetwork();
   const chainId = network.chainId.toString();
-  const dispatcherPath = path.join(
-    __dirname,
-    `../deployments/${chainId}/dispatcher.json`
+  const networkDetection = networkManager.determineNetworkName(chainId);
+  const networkName = networkDetection.networkName;
+
+  let dispatcherAddress = '';
+
+  // Check primary dispatcher.json file
+  const dispatcherPath = pathManager.getDeploymentPath(
+    networkName,
+    'dispatcher.json'
   );
 
-  if (fs.existsSync(dispatcherPath)) {
-    const dispatcherData = JSON.parse(fs.readFileSync(dispatcherPath, 'utf8'));
-    dispatcherAddress = dispatcherData.address;
-  } else {
-    // Fallback to hardhat deployment
-    const hardhatDispatcherPath = path.join(
-      __dirname,
-      '../deployments/hardhat/dispatcher.json'
-    );
-    if (fs.existsSync(hardhatDispatcherPath)) {
-      const dispatcherData = JSON.parse(
-        fs.readFileSync(hardhatDispatcherPath, 'utf8')
-      );
+  if (fileExists(dispatcherPath)) {
+    try {
+      const dispatcherData = safeParseJSON(readFileContent(dispatcherPath));
       dispatcherAddress = dispatcherData.address;
+      console.log(
+        `📍 Found dispatcher at ${dispatcherAddress} from ${networkName} network`
+      );
+    } catch (error) {
+      console.warn(`⚠️ Failed to read dispatcher artifact: ${error}`);
+    }
+  }
+
+  // Fallback: check ManifestDispatcher.json
+  if (!dispatcherAddress) {
+    const altDispatcherPath = pathManager.getDeploymentPath(
+      networkName,
+      'ManifestDispatcher.json'
+    );
+    if (fileExists(altDispatcherPath)) {
+      try {
+        const dispatcherData = safeParseJSON(
+          readFileContent(altDispatcherPath)
+        );
+        dispatcherAddress = dispatcherData.address;
+        console.log(
+          `📍 Found dispatcher at ${dispatcherAddress} from alternative path`
+        );
+      } catch (error) {
+        console.warn(
+          `⚠️ Failed to read alternative dispatcher artifact: ${error}`
+        );
+      }
     }
   }
 
   if (!dispatcherAddress) {
-    throw new Error('Dispatcher address not found in deployment artifacts');
+    throw new Error(
+      `Dispatcher address not found in deployment artifacts for network ${networkName}. Check deployments/${networkName}/ directory for dispatcher.json`
+    );
   }
 
   const dispatcher = await ethers.getContractAt(
@@ -83,6 +116,28 @@ async function main() {
   );
 
   console.log('📡 Connected to dispatcher at:', dispatcherAddress);
+
+  // Check if there's a pending root before applying routes
+  console.log('\n🔍 Checking dispatcher state...');
+  try {
+    const pendingRoot = await dispatcher.pendingRoot();
+    const pendingEpoch = await dispatcher.pendingEpoch();
+
+    if (pendingRoot === ethers.ZeroHash || pendingEpoch === 0n) {
+      console.log('⚠️  No pending root found - routes cannot be applied');
+      console.log('ℹ️  A root must be committed before routes can be applied');
+      console.log(
+        'ℹ️  Run commit-root.ts first to commit the current manifest'
+      );
+      process.exit(0); // Exit gracefully, not an error
+    }
+
+    console.log(`✅ Found pending root: ${pendingRoot}`);
+    console.log(`✅ Pending epoch: ${pendingEpoch.toString()}`);
+  } catch (error) {
+    console.error('❌ Failed to check dispatcher state:', error);
+    throw error;
+  }
 
   // Calculate leaf indices for all routes
   console.log('\n📝 Building route mapping...');
@@ -166,14 +221,10 @@ async function main() {
     }
   }
 
-  // Activate the committed root
-  console.log('\n🚀 Activating committed root...');
-  const activateTx = await dispatcher.activateCommittedRoot();
-  const activateReceipt = await activateTx.wait();
-  const activateGas = Number(activateReceipt?.gasUsed || 0);
-  totalGasUsed += activateGas;
-
-  console.log('✅ Root activated! Gas used:', activateGas.toLocaleString());
+  console.log('\n� Route application completed');
+  console.log(
+    'ℹ️  Root activation should be handled separately via activate-root.ts'
+  );
 
   // Verify some routes
   console.log('\n🔍 Verifying routes...');

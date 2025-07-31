@@ -1,13 +1,13 @@
 {
   "ExampleFacetA": {
-    "address": "0x922D6956C99E12DFeB3224DEA977D0939758A1Fe",
+    "address": "0xa82fF9aFd8f496c3d6ac40E2a0F282E47488CFc9",
     "salt": "0x027a5f51700ada2bf3bd13e3ce487d055e0a30bbdf50773847698f4c0b544f1b",
     "hash": "0x027a5f51700ada2bf3bd13e3ce487d055e0a30bbdf50773847698f4c0b544f1b",
     "size": 3517,
     "gasLimit": 500000
   },
   "ExampleFacetB": {
-    "address": "0x5081a39b8A5f0E35a8D959395a630b68B74Dd30f",
+    "address": "0x1613beB3B2C4f22Ee086B2b38C1476A3cE7f78E8",
     "salt": "0xf84333b460438bb427a4f59ef5faf1858b88e1b540d01b4a08784cb50c864949",
     "hash": "0xf84333b460438bb427a4f59ef5faf1858b88e1b540d01b4a08784cb50c864949",
     "size": 5370,

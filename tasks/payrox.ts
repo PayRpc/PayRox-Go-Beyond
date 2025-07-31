@@ -6,16 +6,12 @@ import {
   verifyRouteAgainstRoot,
 } from '../src/payrox/orderedMerkle';
 import {
-  createInvalidResult,
-  createValidResult,
-  NetworkError,
-  ValidationResult,
   logError,
   logInfo,
   logSuccess,
   logWarning,
+  NetworkError,
 } from '../src/utils/errors';
-import { getNetworkManager } from '../src/utils/network';
 import {
   fileExists,
   getPathManager,
@@ -61,7 +57,7 @@ async function extcodehashOffchain(
 function readFileAsHex(filePath: string): string {
   const pathManager = getPathManager();
   const absolutePath = pathManager.getAbsolutePath(filePath);
-  
+
   if (!fileExists(absolutePath)) {
     throw new NetworkError(`File not found: ${absolutePath}`, 'FILE_NOT_FOUND');
   }
@@ -70,7 +66,7 @@ function readFileAsHex(filePath: string): string {
     // Try reading as text first (for hex files)
     const content = readFileContent(absolutePath);
     const trimmed = content.trim();
-    
+
     if (trimmed.startsWith('0x') && /^0x[0-9a-fA-F]*$/.test(trimmed)) {
       return trimmed;
     } else if (/^[0-9a-fA-F]+$/.test(trimmed)) {
@@ -79,7 +75,7 @@ function readFileAsHex(filePath: string): string {
   } catch {
     // If text reading fails, try binary
   }
-  
+
   // Read as binary and convert to hex
   try {
     const fs = require('fs');
@@ -87,7 +83,9 @@ function readFileAsHex(filePath: string): string {
     return '0x' + raw.toString('hex');
   } catch (error) {
     throw new NetworkError(
-      `Failed to read file ${absolutePath}: ${error instanceof Error ? error.message : String(error)}`,
+      `Failed to read file ${absolutePath}: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
       'FILE_READ_ERROR'
     );
   }
@@ -113,94 +111,102 @@ task(
   .setAction(async (args, hre) => {
     try {
       logInfo(`Starting manifest selfcheck for: ${args.path}`);
-      
+
       const pathManager = getPathManager();
       const manifestPath = pathManager.getAbsolutePath(args.path);
-      
+
       if (!fileExists(manifestPath)) {
-        throw new NetworkError(`Manifest not found at ${manifestPath}`, 'MANIFEST_NOT_FOUND');
+        throw new NetworkError(
+          `Manifest not found at ${manifestPath}`,
+          'MANIFEST_NOT_FOUND'
+        );
       }
-      
+
       const manifestContent = readFileContent(manifestPath);
       const manifest: Manifest = safeParseJSON(manifestContent, manifestPath);
 
-    // Basic shape checks
-    const root = manifest.merkleRoot || manifest.root;
-    if (!root || !manifest.routes?.length) {
-      throw new Error('Manifest missing merkleRoot/root or routes');
-    }
-    const rootLower = root.toLowerCase();
-
-    // 1) Verify each route proof is valid and positions mask has no extra bits (if proofs available)
-    let proofsVerified = 0;
-    for (const r of manifest.routes) {
-      if (r.proof && r.positions) {
-        verifyRouteAgainstRoot(r, rootLower);
-        proofsVerified++;
+      // Basic shape checks
+      const root = manifest.merkleRoot || manifest.root;
+      if (!root || !manifest.routes?.length) {
+        throw new Error('Manifest missing merkleRoot/root or routes');
       }
-    }
+      const rootLower = root.toLowerCase();
 
-    if (proofsVerified > 0) {
-      logSuccess(`${proofsVerified} route proofs verified against root`);
-      console.log(`✅ ${proofsVerified} route proofs verified against root.`);
-    } else {
-      logInfo('No route proofs found in manifest for verification');
-      console.log('ℹ️  No route proofs found in manifest for verification');
-    }
-
-    // 2) Recompute manifestHash and display (if header exists)
-    if (manifest.header) {
-      logInfo('Computing manifest hash from header...');
-      const mHash = computeManifestHash(
-        {
-          versionBytes32: manifest.header.versionBytes32,
-          timestamp: manifest.header.timestamp,
-          deployer: manifest.header.deployer,
-          chainId: manifest.header.chainId,
-          previousHash: manifest.header.previousHash,
-        },
-        rootLower
-      );
-      logSuccess('Manifest hash computed successfully');
-      console.log(`📦 manifestHash: ${mHash}`);
-    } else {
-      logWarning('No header found for manifest hash computation');
-      console.log('ℹ️  No header found for manifest hash computation');
-    }
-
-    // 3) Optional: off-chain EXTCODEHASH parity for each facet
-    if (args.checkFacets) {
-      const provider = hre.ethers.provider;
-      let ok = 0,
-        bad = 0,
-        empty = 0;
+      // 1) Verify each route proof is valid and positions mask has no extra bits (if proofs available)
+      let proofsVerified = 0;
       for (const r of manifest.routes) {
-        const off = await extcodehashOffchain(r.facet, provider);
-        if (off === keccak256('0x')) {
-          console.warn(`⚠️  facet ${r.facet} has empty code`);
-          empty++;
-        }
-        if (r.codehash && off === r.codehash.toLowerCase()) {
-          ok++;
-        } else if (r.codehash) {
-          console.error(
-            `❌ codehash mismatch for selector ${r.selector} facet ${r.facet}\n  expected: ${r.codehash}\n  got:      ${off}`
-          );
-          bad++;
-        } else {
-          console.warn(
-            `⚠️  no codehash in manifest for selector ${r.selector} facet ${r.facet}`
-          );
+        if (r.proof && r.positions) {
+          verifyRouteAgainstRoot(r, rootLower);
+          proofsVerified++;
         }
       }
-      if (bad === 0) {
-        logSuccess(`EXTCODEHASH parity ok for ${ok} route(s). Empty facets: ${empty}.`);
+
+      if (proofsVerified > 0) {
+        logSuccess(`${proofsVerified} route proofs verified against root`);
+        console.log(`✅ ${proofsVerified} route proofs verified against root.`);
       } else {
-        throw new NetworkError(`Facet codehash mismatches detected: ${bad}`, 'CODEHASH_MISMATCH');
+        logInfo('No route proofs found in manifest for verification');
+        console.log('ℹ️  No route proofs found in manifest for verification');
       }
-    }
-    
-    logSuccess('Manifest selfcheck completed successfully');
+
+      // 2) Recompute manifestHash and display (if header exists)
+      if (manifest.header) {
+        logInfo('Computing manifest hash from header...');
+        const mHash = computeManifestHash(
+          {
+            versionBytes32: manifest.header.versionBytes32,
+            timestamp: manifest.header.timestamp,
+            deployer: manifest.header.deployer,
+            chainId: manifest.header.chainId,
+            previousHash: manifest.header.previousHash,
+          },
+          rootLower
+        );
+        logSuccess('Manifest hash computed successfully');
+        console.log(`📦 manifestHash: ${mHash}`);
+      } else {
+        logWarning('No header found for manifest hash computation');
+        console.log('ℹ️  No header found for manifest hash computation');
+      }
+
+      // 3) Optional: off-chain EXTCODEHASH parity for each facet
+      if (args.checkFacets) {
+        const provider = hre.ethers.provider;
+        let ok = 0,
+          bad = 0,
+          empty = 0;
+        for (const r of manifest.routes) {
+          const off = await extcodehashOffchain(r.facet, provider);
+          if (off === keccak256('0x')) {
+            console.warn(`⚠️  facet ${r.facet} has empty code`);
+            empty++;
+          }
+          if (r.codehash && off === r.codehash.toLowerCase()) {
+            ok++;
+          } else if (r.codehash) {
+            console.error(
+              `❌ codehash mismatch for selector ${r.selector} facet ${r.facet}\n  expected: ${r.codehash}\n  got:      ${off}`
+            );
+            bad++;
+          } else {
+            console.warn(
+              `⚠️  no codehash in manifest for selector ${r.selector} facet ${r.facet}`
+            );
+          }
+        }
+        if (bad === 0) {
+          logSuccess(
+            `EXTCODEHASH parity ok for ${ok} route(s). Empty facets: ${empty}.`
+          );
+        } else {
+          throw new NetworkError(
+            `Facet codehash mismatches detected: ${bad}`,
+            'CODEHASH_MISMATCH'
+          );
+        }
+      }
+
+      logSuccess('Manifest selfcheck completed successfully');
     } catch (error) {
       logError(error, 'Manifest selfcheck');
       throw error;
@@ -237,13 +243,16 @@ task(
   .setAction(async (args, hre) => {
     try {
       logInfo(`Predicting chunk address using factory: ${args.factory}`);
-      
+
       const { ethers } = hre;
       const factoryAddr = args.factory;
-      
+
       // Enhanced validation using consolidated utilities
       if (!factoryAddr || factoryAddr.length !== 42) {
-        throw new NetworkError('Invalid factory address format', 'INVALID_FACTORY_ADDRESS');
+        throw new NetworkError(
+          'Invalid factory address format',
+          'INVALID_FACTORY_ADDRESS'
+        );
       }
 
       let bytesHex: string | undefined = args.data;
@@ -251,7 +260,10 @@ task(
         bytesHex = readFileAsHex(args.file);
       }
       if (!bytesHex) {
-        throw new NetworkError('Provide --data 0x... or --file path', 'MISSING_DATA');
+        throw new NetworkError(
+          'Provide --data 0x... or --file path',
+          'MISSING_DATA'
+        );
       }
 
       logInfo(`Processing ${bytesHex.length} characters of hex data`);
@@ -260,15 +272,14 @@ task(
         'DeterministicChunkFactory',
         factoryAddr
       );
-      
+
       // The predict function returns (address predicted, bytes32 hash)
       const result = await factory.predict(bytesHex);
-      
+
       // Result is a tuple with [predicted, hash]
       logSuccess('Chunk prediction successful');
       console.log(`📍 predicted chunk: ${result[0]}`);
       console.log(`🔎 content hash:   ${result[1]}`);
-      
     } catch (error) {
       logError(error, 'Chunk prediction');
       throw error;
@@ -301,13 +312,16 @@ task(
   .setAction(async (args, hre) => {
     try {
       logInfo(`Staging chunk via factory: ${args.factory}`);
-      
+
       const { ethers } = hre;
       const factoryAddr = args.factory;
-      
+
       // Enhanced validation using consolidated utilities
       if (!factoryAddr || factoryAddr.length !== 42) {
-        throw new NetworkError('Invalid factory address format', 'INVALID_FACTORY_ADDRESS');
+        throw new NetworkError(
+          'Invalid factory address format',
+          'INVALID_FACTORY_ADDRESS'
+        );
       }
 
       let bytesHex: string | undefined = args.data;
@@ -315,10 +329,15 @@ task(
         bytesHex = readFileAsHex(args.file);
       }
       if (!bytesHex) {
-        throw new NetworkError('Provide --data 0x... or --file path', 'MISSING_DATA');
+        throw new NetworkError(
+          'Provide --data 0x... or --file path',
+          'MISSING_DATA'
+        );
       }
 
-      logInfo(`Processing ${bytesHex.length} characters of hex data with ${args.value} ETH fee`);
+      logInfo(
+        `Processing ${bytesHex.length} characters of hex data with ${args.value} ETH fee`
+      );
 
       const [signer] = await ethers.getSigners();
       const factory = await ethers.getContractAt(
@@ -328,15 +347,14 @@ task(
       );
 
       const valueWei = args.value === '0' ? 0n : ethers.parseEther(args.value);
-      
+
       logInfo('Submitting staging transaction...');
       const tx = await factory.stage(bytesHex, { value: valueWei });
       console.log(`⛓️  stage(tx): ${tx.hash}`);
-      
+
       const rcpt = await tx.wait();
       logSuccess(`Chunk staged successfully in block ${rcpt?.blockNumber}`);
       console.log(`✅ mined in block ${rcpt?.blockNumber}`);
-      
     } catch (error) {
       logError(error, 'Chunk staging');
       throw error;

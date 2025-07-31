@@ -1,0 +1,10 @@
+{
+  "network": "localhost",
+  "contracts": {
+    "dispatcher": "0x162A433068F51e18b7d13932F27e66a3f99E6890",
+    "factory": "0xB0D4afd8879eD9F52b28595d31B441D079B2Ca07"
+  },
+  "deployer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+  "timestamp": 1753956302,
+  "blockNumber": 79
+}

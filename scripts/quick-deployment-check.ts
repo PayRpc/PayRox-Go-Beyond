@@ -19,6 +19,7 @@
 import * as fs from 'fs';
 import { ethers } from 'hardhat';
 import * as path from 'path';
+import { getNetworkManager } from '../src/utils/network';
 
 // Constants
 const MINIMUM_CONTRACTS = 2;
@@ -74,13 +75,13 @@ class NetworkError extends Error {
 }
 
 /**
- * Finds the deployment directory for the given chain ID with fallback logic
- * @param chainId - The chain ID to look for deployments
+ * Finds the deployment directory for the given network name with fallback logic
+ * @param networkName - The network name to look for deployments
  * @returns Path to the deployment directory
  * @throws {DeploymentValidationError} When no deployment directory is found
  */
-function findDeploymentDirectory(chainId: string): string {
-  const primaryDir = path.join(__dirname, `../deployments/${chainId}`);
+function findDeploymentDirectory(networkName: string): string {
+  const primaryDir = path.join(__dirname, `../deployments/${networkName}`);
   const fallbackDir = path.join(__dirname, '../deployments/hardhat');
 
   if (fs.existsSync(primaryDir)) {
@@ -252,13 +253,16 @@ async function main(): Promise<void> {
 
     const network = await ethers.provider.getNetwork();
     const chainId = network.chainId.toString();
+    const networkManager = getNetworkManager();
+    const networkDetection = networkManager.determineNetworkName(chainId);
+    const networkName = networkDetection.networkName;
 
-    Logger.info(`Network: ${network.name} (Chain ID: ${chainId})`);
+    Logger.info(`Network: ${networkName} (Chain ID: ${chainId})`);
 
-    const deploymentDir = findDeploymentDirectory(chainId);
+    const deploymentDir = findDeploymentDirectory(networkName);
     Logger.info(`Reading from: ${deploymentDir}`);
 
-    const result = await validateAllDeployments(deploymentDir, network.name);
+    const result = await validateAllDeployments(deploymentDir, networkName);
 
     displaySummary(result);
 
