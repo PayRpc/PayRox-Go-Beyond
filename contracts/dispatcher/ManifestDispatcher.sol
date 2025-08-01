@@ -38,7 +38,7 @@ contract ManifestDispatcher is IManifestDispatcher, AccessControl, Pausable, Ree
     // ───────────────────────── Storage ─────────────────────────
     // selector => route
     mapping(bytes4 => Route) public routes;
-    
+
     // Track all registered selectors for collision detection
     mapping(bytes4 => bool) public registeredSelectors;
     bytes4[] public allSelectors;
@@ -54,7 +54,7 @@ contract ManifestDispatcher is IManifestDispatcher, AccessControl, Pausable, Ree
     // Governance guards
     uint64  public activationDelay; // seconds; 0 = no delay
     bool    public frozen;
-    
+
     // Route counting for gas cost predictability
     uint256 public routeCount;
 
@@ -82,7 +82,7 @@ contract ManifestDispatcher is IManifestDispatcher, AccessControl, Pausable, Ree
     constructor(address admin, uint64 _activationDelay) {
         // Security: Zero-address validation for critical parameters
         require(admin != address(0), "ManifestDispatcher: zero admin address");
-        
+
         _grantRole(DEFAULT_ADMIN_ROLE, admin);
         _grantRole(COMMIT_ROLE, admin);
         _grantRole(APPLY_ROLE, admin);
@@ -123,56 +123,56 @@ contract ManifestDispatcher is IManifestDispatcher, AccessControl, Pausable, Ree
         bytes calldata manifestData
     ) external override onlyRole(APPLY_ROLE) nonReentrant {
         if (frozen) revert FrozenError();
-        
+
         // Validate manifest size to prevent gas limit issues
         if (manifestData.length > MAX_MANIFEST_SIZE) {
             revert ManifestTooLarge(manifestData.length, MAX_MANIFEST_SIZE);
         }
-        
+
         // Validate manifest format (must be multiple of entry size)
         if (manifestData.length % ENTRY_SIZE != 0) {
             revert InvalidManifestFormat();
         }
-        
+
         // Verify manifest hash
         if (keccak256(manifestData) != manifestHash) {
             revert InvalidManifestFormat();
         }
-        
+
         uint256 entryCount = manifestData.length / ENTRY_SIZE;
-        
+
         // Process manifest entries with collision detection
         for (uint256 i = 0; i < entryCount; i++) {
             uint256 offset = i * ENTRY_SIZE;
-            
+
             // Extract selector (4 bytes)
             bytes4 selector;
             assembly {
                 selector := shr(224, calldataload(add(manifestData.offset, offset)))
             }
-            
+
             // Extract address (20 bytes, skip 4 byte selector)
             address facet;
             assembly {
                 facet := shr(96, calldataload(add(add(manifestData.offset, offset), 4)))
             }
-            
+
             if (selector == bytes4(0)) revert EmptySelector();
             if (facet == address(0)) revert ZeroAddress();
             if (facet == address(this)) revert FacetIsSelf();
-            
+
             // Check for selector collision
             if (registeredSelectors[selector] && routes[selector].facet != facet) {
                 revert SelectorCollision(selector);
             }
-            
+
             // Update route
             address oldFacet = routes[selector].facet;
             routes[selector] = Route({
                 facet: facet,
                 codehash: facet.codehash
             });
-            
+
             // Track selectors
             if (!registeredSelectors[selector]) {
                 registeredSelectors[selector] = true;
@@ -183,7 +183,7 @@ contract ManifestDispatcher is IManifestDispatcher, AccessControl, Pausable, Ree
                 emit RouteUpdated(selector, oldFacet, facet);
             }
         }
-        
+
         // Increment version counter
         uint64 oldVersion = manifestVersion;
         manifestVersion++;
@@ -195,33 +195,33 @@ contract ManifestDispatcher is IManifestDispatcher, AccessControl, Pausable, Ree
      * @param data Complete call data including selector
      * @return result Return data from the routed call
      */
-    function routeCall(bytes calldata data) 
-        external 
-        payable 
-        override 
-        nonReentrant 
-        whenNotPaused 
-        returns (bytes memory result) 
+    function routeCall(bytes calldata data)
+        external
+        payable
+        override
+        nonReentrant
+        whenNotPaused
+        returns (bytes memory result)
     {
         if (data.length < 4) revert InvalidManifestFormat();
-        
+
         bytes4 selector = bytes4(data[:4]);
         Route memory r = routes[selector];
         address facet = r.facet;
-        
+
         if (facet == address(0)) revert NoRoute();
-        
+
         // Per-call EXTCODEHASH gate (prevents facet code swaps)
         if (facet.codehash != r.codehash) revert CodehashMismatch();
-        
+
         // Make the call with return data size protection
         (bool success, bytes memory returnData) = facet.delegatecall(data);
-        
+
         // Protect against return data griefing
         if (returnData.length > MAX_RETURN_DATA_SIZE) {
             revert ReturnDataTooLarge(returnData.length, MAX_RETURN_DATA_SIZE);
         }
-        
+
         if (!success) {
             // Preserve revert reason
             if (returnData.length > 0) {
@@ -233,7 +233,7 @@ contract ManifestDispatcher is IManifestDispatcher, AccessControl, Pausable, Ree
                 revert("Delegatecall failed");
             }
         }
-        
+
         return returnData;
     }
 
@@ -258,8 +258,8 @@ contract ManifestDispatcher is IManifestDispatcher, AccessControl, Pausable, Ree
         }
 
         for (uint256 i; i < n; ++i) {
-            // Merkle inclusion with ordered-pair verification
-            bytes32 leaf = keccak256(abi.encode(selectors[i], facets[i], codehashes[i]));
+            // Use the legacy compatibility function that handles boolean arrays internally
+            bytes32 leaf = OrderedMerkle.leafOfSelectorRoute(selectors[i], facets[i], codehashes[i]);
             require(OrderedMerkle.verify(proofs[i], isRight[i], pendingRoot, leaf), "bad proof");
 
             // Safety: don't allow routing back to the dispatcher itself
@@ -343,11 +343,11 @@ contract ManifestDispatcher is IManifestDispatcher, AccessControl, Pausable, Ree
     /**
      * @dev Verify manifest hash and return current hash for better DX
      */
-    function verifyManifest(bytes32 manifestHash) 
-        external 
-        view 
-        override 
-        returns (bool valid, bytes32 currentHash) 
+    function verifyManifest(bytes32 manifestHash)
+        external
+        view
+        override
+        returns (bool valid, bytes32 currentHash)
     {
         currentHash = activeRoot;
         valid = (manifestHash == currentHash);
