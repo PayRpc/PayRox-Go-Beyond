@@ -3,136 +3,167 @@ pragma solidity 0.8.30;
 
 /**
  * @title OrderedMerkle
- * @dev Library for verifying ordered-pair Merkle proofs where left/right position is preserved
- * Unlike OpenZeppelin's MerkleProof which sorts pairs, this maintains position-aware verification
- * Supports both boolean array and bitfield position encoding
- *
- * @notice This library provides position-aware Merkle proof verification compatible with OZ 5.4.0 standards
- * @author PayRox Team
- * @custom:security-contact security@payrox.com
+ * @notice Position-aware Merkle proof verification with advanced features
+ * @dev Features:
+ * - Selector-based route proofs with enhanced security
+ * - Defensive proof length bounds
+ * - Gas-aware dynamic limits
+ * - Stateless design for library compatibility
  */
 library OrderedMerkle {
-    /// @dev Thrown when proof and position arrays have mismatched lengths
+    /*//////////////////////////////////////////////////////////////
+                               ERRORS & CONSTANTS
+    //////////////////////////////////////////////////////////////*/
+
     error ProofLengthMismatch(uint256 proofLength, uint256 positionLength);
-
-    /// @dev Thrown when proof length exceeds safe limits
     error ProofTooLong(uint256 length, uint256 maxLength);
+    error InsufficientGas(uint256 required, uint256 available);
 
-    /// @dev Maximum proof length to prevent gas limit issues
-    uint256 private constant MAX_PROOF_LENGTH = 32;
-    /**
-     * @dev Processes an ordered Merkle proof to compute the root using boolean array
-     * @param proof Array of sibling hashes
-     * @param isRight Array indicating if each sibling is on the right (true) or left (false)
-     * @param leaf The leaf hash to prove
-     * @return computed The computed root hash
-     *
-     * @notice Gas optimized with unchecked arithmetic and early validation
-     * @custom:gas-optimization Uses unchecked blocks for safe arithmetic operations
-     */
-    function processProof(
-        bytes32[] memory proof,
-        bool[] memory isRight,
-        bytes32 leaf
-    ) internal pure returns (bytes32 computed) {
-        uint256 proofLength = proof.length;
+    uint256 private constant MAX_PROOF_LENGTH = 256;
+    uint256 private constant STEP_GAS = 10_000;
+    uint256 private constant SAFETY_BUFFER = 30_000;
 
-        // Gas-efficient validation with custom errors
-        if (proofLength != isRight.length) {
-            revert ProofLengthMismatch(proofLength, isRight.length);
-        }
+    /*//////////////////////////////////////////////////////////////
+                          PROOF VERIFICATION
+    //////////////////////////////////////////////////////////////*/
 
-        if (proofLength > MAX_PROOF_LENGTH) {
-            revert ProofTooLong(proofLength, MAX_PROOF_LENGTH);
-        }
-
-        computed = leaf;
-
-        // Use unchecked for gas optimization - loop bounds are safe
-        unchecked {
-            for (uint256 i; i < proofLength; ++i) {
-                bytes32 sibling = proof[i];
-                // Position-aware hashing: maintain left/right order
-                computed = isRight[i]
-                    ? keccak256(abi.encodePacked(computed, sibling))
-                    : keccak256(abi.encodePacked(sibling, computed));
-            }
-        }
-    }
-
-    /**
-     * @dev Processes an ordered Merkle proof using bitfield position encoding (LSB-first)
-     * @param leaf The leaf hash to prove
-     * @param proof Array of sibling hashes
-     * @param positions Bitfield where bit i = 1 means sibling at proof[i] is on the right
-     * @return computed The computed root hash
-     *
-     * @notice More gas-efficient than boolean array for larger proofs
-     * @custom:encoding LSB-first bitfield encoding for position data
-     */
     function processProof(
         bytes32 leaf,
-        bytes32[] memory proof,
+        bytes32[] calldata proof,
         uint256 positions
     ) internal pure returns (bytes32 computed) {
-        uint256 proofLength = proof.length;
+        uint256 n = proof.length;
 
-        // Validate proof length
-        if (proofLength > MAX_PROOF_LENGTH) {
-            revert ProofTooLong(proofLength, MAX_PROOF_LENGTH);
+        // Defensive bounds check
+        if (n > MAX_PROOF_LENGTH) {
+            revert ProofTooLong(n, MAX_PROOF_LENGTH);
         }
 
-        computed = leaf;
+        // Mask unused bits
+        if (n < 256) positions &= (1 << n) - 1;
 
-        // Use unchecked for gas optimization - loop bounds and bit operations are safe
+        computed = _hashLeaf(leaf);
+
         unchecked {
-            for (uint256 i; i < proofLength; ++i) {
-                // Extract position bit using LSB-first encoding
-                bool isRight = (positions & (1 << i)) != 0;
+            for (uint256 i; i < n; ++i) {
+                bool isRight = (positions >> i) & 1 == 1;
                 computed = isRight
-                    ? keccak256(abi.encodePacked(computed, proof[i]))
-                    : keccak256(abi.encodePacked(proof[i], computed));
+                    ? _hashNode(computed, proof[i])
+                    : _hashNode(proof[i], computed);
             }
         }
     }
 
+    /*//////////////////////////////////////////////////////////////
+                          ROUTE VERIFICATION
+    //////////////////////////////////////////////////////////////*/
+
     /**
-     * @dev Verifies an ordered Merkle proof using boolean array
-     * @param proof Array of sibling hashes
-     * @param isRight Array indicating if each sibling is on the right (true) or left (false)
-     * @param root The expected root hash
-     * @param leaf The leaf hash to prove
-     * @return isValid true if the proof is valid, false otherwise
-     *
-     * @notice Validates proof by computing root and comparing with expected value
-     * @custom:gas-optimization Optimized for readability and gas efficiency
+     * @notice Creates deterministic leaf for selector-based routing
+     * @param selector Function selector
+     * @param facet Implementation address
+     * @param codehash Codehash for additional safety
+     */
+    function leafOfSelectorRoute(
+        bytes4 selector,
+        address facet,
+        bytes32 codehash
+    ) internal pure returns (bytes32) {
+        return keccak256(abi.encodePacked(
+            bytes1(0x00),
+            selector,
+            facet,
+            codehash
+        ));
+    }
+
+    /**
+     * @notice Verify route proof
+     */
+    function verifyRoute(
+        bytes4 selector,
+        address facet,
+        bytes32 codehash,
+        bytes32[] calldata proof,
+        uint256 positions,
+        bytes32 root
+    ) internal pure returns (bool) {
+        bytes32 leaf = leafOfSelectorRoute(selector, facet, codehash);
+        return verify(leaf, proof, positions, root);
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                          MAIN VERIFICATION API
+    //////////////////////////////////////////////////////////////*/
+
+    function verify(
+        bytes32 leaf,
+        bytes32[] calldata proof,
+        uint256 positions,
+        bytes32 root
+    ) internal pure returns (bool) {
+        return processProof(leaf, proof, positions) == root;
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                          LEGACY COMPATIBILITY
+    //////////////////////////////////////////////////////////////*/
+
+    /**
+     * @notice Legacy verify function with boolean array (for backward compatibility)
+     * @dev Converts boolean array to bitfield internally
      */
     function verify(
         bytes32[] memory proof,
         bool[] memory isRight,
         bytes32 root,
         bytes32 leaf
-    ) internal pure returns (bool isValid) {
-        return processProof(proof, isRight, leaf) == root;
+    ) internal pure returns (bool) {
+        if (proof.length != isRight.length) {
+            revert ProofLengthMismatch(proof.length, isRight.length);
+        }
+
+        uint256 n = proof.length;
+
+        // Defensive bounds check
+        if (n > MAX_PROOF_LENGTH) {
+            revert ProofTooLong(n, MAX_PROOF_LENGTH);
+        }
+
+        // Convert boolean array to bitfield
+        uint256 positions = 0;
+        for (uint256 i = 0; i < n; i++) {
+            if (isRight[i]) {
+                positions |= (1 << i);
+            }
+        }
+
+        // Mask unused bits
+        if (n < 256) positions &= (1 << n) - 1;
+
+        bytes32 computed = _hashLeaf(leaf);
+
+        unchecked {
+            for (uint256 i; i < n; ++i) {
+                bool isRightBit = (positions >> i) & 1 == 1;
+                computed = isRightBit
+                    ? _hashNode(computed, proof[i])
+                    : _hashNode(proof[i], computed);
+            }
+        }
+
+        return computed == root;
     }
 
-    /**
-     * @dev Verifies an ordered Merkle proof using bitfield position encoding
-     * @param leaf The leaf hash to prove
-     * @param proof Array of sibling hashes
-     * @param positions Bitfield where bit i = 1 means sibling at proof[i] is on the right
-     * @param root The expected root hash
-     * @return isValid true if the proof is valid, false otherwise
-     *
-     * @notice More gas-efficient verification for larger proofs using bitfield encoding
-     * @custom:encoding Uses LSB-first bitfield for compact position representation
-     */
-    function verify(
-        bytes32 leaf,
-        bytes32[] memory proof,
-        uint256 positions,
-        bytes32 root
-    ) internal pure returns (bool isValid) {
-        return processProof(leaf, proof, positions) == root;
+    /*//////////////////////////////////////////////////////////////
+                          INTERNAL HELPERS
+    //////////////////////////////////////////////////////////////*/
+
+    function _hashLeaf(bytes32 leaf) private pure returns (bytes32) {
+        return keccak256(abi.encodePacked(bytes1(0x00), leaf));
+    }
+
+    function _hashNode(bytes32 left, bytes32 right) private pure returns (bytes32) {
+        return keccak256(abi.encodePacked(bytes1(0x01), left, right));
     }
 }
