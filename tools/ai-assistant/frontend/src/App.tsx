@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import ContractInterface from './components/ContractInterfaceV2';
 import { ContractAnalysisRequest, usePayRoxBackend } from './services/PayRoxBackend';
 import './styles/components.css';
+import './styles/contract-dashboard.css';
 import './styles/globals.css';
 
 // Contract configuration (simplified for frontend)
@@ -344,6 +346,7 @@ const App: React.FC = () => {
     isAnalyzing: false,
     hasError: false,
   });
+  const [activeTab, setActiveTab] = useState<'analysis' | 'dashboard'>('dashboard');
 
   // Initialize PayRox backend connection
   const { analyzeContract, isConnected } = usePayRoxBackend();
@@ -392,14 +395,41 @@ const App: React.FC = () => {
     <div className="app">
       <Header isConnected={isConnected ?? false} />
 
-      <main className="main-content">
-        <ContractInput onAnalyze={handleAnalyze} isAnalyzing={status.isAnalyzing} />
+      <nav className="tab-navigation">
+        <div className="container">
+          <div className="tab-list">
+            <button
+              className={`tab-button ${activeTab === 'dashboard' ? 'active' : ''}`}
+              onClick={() => setActiveTab('dashboard')}
+            >
+              📊 Contract Dashboard
+            </button>
+            <button
+              className={`tab-button ${activeTab === 'analysis' ? 'active' : ''}`}
+              onClick={() => setActiveTab('analysis')}
+            >
+              🔍 Contract Analysis
+            </button>
+          </div>
+        </div>
+      </nav>
 
-        {status.hasError && status.errorMessage && (
-          <ErrorDisplay message={status.errorMessage} onClear={clearError} />
+      <main className="main-content">
+        {activeTab === 'dashboard' && (
+          <ContractInterface />
         )}
 
-        {analysis && <AnalysisResults analysis={analysis} />}
+        {activeTab === 'analysis' && (
+          <>
+            <ContractInput onAnalyze={handleAnalyze} isAnalyzing={status.isAnalyzing} />
+
+            {status.hasError && status.errorMessage && (
+              <ErrorDisplay message={status.errorMessage} onClear={clearError} />
+            )}
+
+            {analysis && <AnalysisResults analysis={analysis} />}
+          </>
+        )}
       </main>
 
       <footer className="footer">

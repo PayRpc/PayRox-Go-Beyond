@@ -1,5 +1,5 @@
 // Auto-generated TypeScript definitions for PayRox contracts
-// Generated at: 2025-08-01T14:47:28.669Z
+// Generated at: 2025-08-01T15:05:14.171Z
 
 export interface ContractABI {
   contractName: string;
