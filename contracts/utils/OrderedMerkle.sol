@@ -3,136 +3,248 @@ pragma solidity 0.8.30;
 
 /**
  * @title OrderedMerkle
- * @dev Library for verifying ordered-pair Merkle proofs where left/right position is preserved
- * Unlike OpenZeppelin's MerkleProof which sorts pairs, this maintains position-aware verification
- * Supports both boolean array and bitfield position encoding
+ * @notice Position-aware Merkle proof verification.
+ *         Unlike sorted-pair proofs, this preserves left/right order.
  *
- * @notice This library provides position-aware Merkle proof verification compatible with OZ 5.4.0 standards
- * @author PayRox Team
+ *         Domain separation:
+ *           - Leaves: keccak256(0x00 || leaf)
+ *           - Inner nodes: keccak256(0x01 || left || right)
+ *
+ *         Provides both calldata (preferred) and memory overloads.
+ *
  * @custom:security-contact security@payrox.com
  */
 library OrderedMerkle {
-    /// @dev Thrown when proof and position arrays have mismatched lengths
+    /*//////////////////////////////////////////////////////////////
+                               ERRORS & CONSTANTS
+    //////////////////////////////////////////////////////////////*/
+
+    /// @dev Thrown when proof and position arrays (bool encoding) have mismatched lengths.
     error ProofLengthMismatch(uint256 proofLength, uint256 positionLength);
 
-    /// @dev Thrown when proof length exceeds safe limits
+    /// @dev Thrown when proof length exceeds the safe bound.
     error ProofTooLong(uint256 length, uint256 maxLength);
 
-    /// @dev Maximum proof length to prevent gas limit issues
+    /// @notice Maximum number of proof steps allowed (prevents gas blowups).
     uint256 private constant MAX_PROOF_LENGTH = 32;
+
+    /*//////////////////////////////////////////////////////////////
+                              INTERNAL HELPERS
+    //////////////////////////////////////////////////////////////*/
+
+    /// @dev Domain-separated leaf hash: keccak256(0x00 || leaf)
+    function _hashLeaf(bytes32 leaf) private pure returns (bytes32 out) {
+        assembly {
+            // layout: [0x00: 1 byte prefix=0x00][0x01..0x20: leaf] => 33 bytes
+            mstore(0x01, leaf)
+            mstore8(0x00, 0x00)
+            out := keccak256(0x00, 33)
+        }
+    }
+
+    /// @dev Domain-separated inner node hash: keccak256(0x01 || left || right)
+    function _hashNode(bytes32 left, bytes32 right) private pure returns (bytes32 out) {
+        assembly {
+            // layout: [0x00: 1 byte prefix=0x01][0x01..0x20: left][0x21..0x40: right] => 65 bytes
+            mstore(0x01, left)
+            mstore(0x21, right)
+            mstore8(0x00, 0x01)
+            out := keccak256(0x00, 65)
+        }
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                  PROCESS (BOOL ENCODING) — CALLDATA VERSION
+    //////////////////////////////////////////////////////////////*/
+
     /**
-     * @dev Processes an ordered Merkle proof to compute the root using boolean array
-     * @param proof Array of sibling hashes
-     * @param isRight Array indicating if each sibling is on the right (true) or left (false)
-     * @param leaf The leaf hash to prove
-     * @return computed The computed root hash
-     *
-     * @notice Gas optimized with unchecked arithmetic and early validation
-     * @custom:gas-optimization Uses unchecked blocks for safe arithmetic operations
+     * @notice Compute root from ordered proof (calldata/bool positions).
+     * @param proof   Sibling hashes (calldata)
+     * @param isRight Bit array where isRight[i]=true means sibling is on the RIGHT of current
+     * @param leaf    The leaf (already a content hash or payload hash)
      */
     function processProof(
-        bytes32[] memory proof,
-        bool[] memory isRight,
+        bytes32[] calldata proof,
+        bool[] calldata isRight,
         bytes32 leaf
     ) internal pure returns (bytes32 computed) {
-        uint256 proofLength = proof.length;
+        uint256 n = proof.length;
+        if (n != isRight.length) revert ProofLengthMismatch(n, isRight.length);
+        if (n > MAX_PROOF_LENGTH) revert ProofTooLong(n, MAX_PROOF_LENGTH);
 
-        // Gas-efficient validation with custom errors
-        if (proofLength != isRight.length) {
-            revert ProofLengthMismatch(proofLength, isRight.length);
-        }
+        computed = _hashLeaf(leaf);
 
-        if (proofLength > MAX_PROOF_LENGTH) {
-            revert ProofTooLong(proofLength, MAX_PROOF_LENGTH);
-        }
-
-        computed = leaf;
-
-        // Use unchecked for gas optimization - loop bounds are safe
         unchecked {
-            for (uint256 i; i < proofLength; ++i) {
-                bytes32 sibling = proof[i];
-                // Position-aware hashing: maintain left/right order
-                computed = isRight[i]
-                    ? keccak256(abi.encodePacked(computed, sibling))
-                    : keccak256(abi.encodePacked(sibling, computed));
+            for (uint256 i; i < n; ++i) {
+                bytes32 s = proof[i];
+                computed = isRight[i] ? _hashNode(computed, s) : _hashNode(s, computed);
             }
         }
     }
 
     /**
-     * @dev Processes an ordered Merkle proof using bitfield position encoding (LSB-first)
-     * @param leaf The leaf hash to prove
-     * @param proof Array of sibling hashes
-     * @param positions Bitfield where bit i = 1 means sibling at proof[i] is on the right
-     * @return computed The computed root hash
-     *
-     * @notice More gas-efficient than boolean array for larger proofs
-     * @custom:encoding LSB-first bitfield encoding for position data
+     * @notice Verify ordered proof (calldata/bool positions).
+     */
+    function verify(
+        bytes32[] calldata proof,
+        bool[] calldata isRight,
+        bytes32 root,
+        bytes32 leaf
+    ) internal pure returns (bool) {
+        return processProof(proof, isRight, leaf) == root;
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                  PROCESS (BITFIELD ENCODING) — CALLDATA VERSION
+    //////////////////////////////////////////////////////////////*/
+
+    /**
+     * @notice Compute root from ordered proof (calldata/bitfield positions, LSB-first).
+     * @param leaf       The leaf
+     * @param proof      Sibling hashes (calldata)
+     * @param positions  Bitfield: bit i = 1 means sibling at proof[i] is on the RIGHT
      */
     function processProof(
+        bytes32 leaf,
+        bytes32[] calldata proof,
+        uint256 positions
+    ) internal pure returns (bytes32 computed) {
+        uint256 n = proof.length;
+        if (n > MAX_PROOF_LENGTH) revert ProofTooLong(n, MAX_PROOF_LENGTH);
+
+        // Mask out unused higher bits for robustness
+        if (n < 256) {
+            unchecked {
+                uint256 mask = (uint256(1) << n) - 1;
+                positions &= mask;
+            }
+        }
+
+        computed = _hashLeaf(leaf);
+
+        unchecked {
+            for (uint256 i; i < n; ++i) {
+                bool isRight = (positions >> i) & 1 == 1;
+                bytes32 s = proof[i];
+                computed = isRight ? _hashNode(computed, s) : _hashNode(s, computed);
+            }
+        }
+    }
+
+    /**
+     * @notice Verify ordered proof (calldata/bitfield positions, LSB-first).
+     */
+    function verify(
+        bytes32 leaf,
+        bytes32[] calldata proof,
+        uint256 positions,
+        bytes32 root
+    ) internal pure returns (bool) {
+        return processProof(leaf, proof, positions) == root;
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                     OPTIONAL MEMORY OVERLOADS (ERGONOMICS)
+    //////////////////////////////////////////////////////////////*/
+
+    /**
+     * @notice Compute root from ordered proof (memory/bool positions).
+     *         Handy for internal contexts; prefer calldata overload when possible.
+     */
+    function processProofMem(
+        bytes32[] memory proof,
+        bool[] memory isRight,
+        bytes32 leaf
+    ) internal pure returns (bytes32 computed) {
+        uint256 n = proof.length;
+        if (n != isRight.length) revert ProofLengthMismatch(n, isRight.length);
+        if (n > MAX_PROOF_LENGTH) revert ProofTooLong(n, MAX_PROOF_LENGTH);
+
+        computed = _hashLeaf(leaf);
+        unchecked {
+            for (uint256 i; i < n; ++i) {
+                computed = isRight[i] ? _hashNode(computed, proof[i]) : _hashNode(proof[i], computed);
+            }
+        }
+    }
+
+    /**
+     * @notice Compute root from ordered proof (memory/bitfield positions, LSB-first).
+     */
+    function processProofMem(
         bytes32 leaf,
         bytes32[] memory proof,
         uint256 positions
     ) internal pure returns (bytes32 computed) {
-        uint256 proofLength = proof.length;
+        uint256 n = proof.length;
+        if (n > MAX_PROOF_LENGTH) revert ProofTooLong(n, MAX_PROOF_LENGTH);
 
-        // Validate proof length
-        if (proofLength > MAX_PROOF_LENGTH) {
-            revert ProofTooLong(proofLength, MAX_PROOF_LENGTH);
+        if (n < 256) {
+            unchecked {
+                uint256 mask = (uint256(1) << n) - 1;
+                positions &= mask;
+            }
         }
 
-        computed = leaf;
-
-        // Use unchecked for gas optimization - loop bounds and bit operations are safe
+        computed = _hashLeaf(leaf);
         unchecked {
-            for (uint256 i; i < proofLength; ++i) {
-                // Extract position bit using LSB-first encoding
-                bool isRight = (positions & (1 << i)) != 0;
-                computed = isRight
-                    ? keccak256(abi.encodePacked(computed, proof[i]))
-                    : keccak256(abi.encodePacked(proof[i], computed));
+            for (uint256 i; i < n; ++i) {
+                bool isRight = (positions >> i) & 1 == 1;
+                computed = isRight ? _hashNode(computed, proof[i]) : _hashNode(proof[i], computed);
             }
         }
     }
 
     /**
-     * @dev Verifies an ordered Merkle proof using boolean array
-     * @param proof Array of sibling hashes
-     * @param isRight Array indicating if each sibling is on the right (true) or left (false)
-     * @param root The expected root hash
-     * @param leaf The leaf hash to prove
-     * @return isValid true if the proof is valid, false otherwise
-     *
-     * @notice Validates proof by computing root and comparing with expected value
-     * @custom:gas-optimization Optimized for readability and gas efficiency
+     * @notice Verify (memory/bool positions).
      */
-    function verify(
+    function verifyMem(
         bytes32[] memory proof,
         bool[] memory isRight,
         bytes32 root,
         bytes32 leaf
-    ) internal pure returns (bool isValid) {
-        return processProof(proof, isRight, leaf) == root;
+    ) internal pure returns (bool) {
+        return processProofMem(proof, isRight, leaf) == root;
     }
 
     /**
-     * @dev Verifies an ordered Merkle proof using bitfield position encoding
-     * @param leaf The leaf hash to prove
-     * @param proof Array of sibling hashes
-     * @param positions Bitfield where bit i = 1 means sibling at proof[i] is on the right
-     * @param root The expected root hash
-     * @return isValid true if the proof is valid, false otherwise
-     *
-     * @notice More gas-efficient verification for larger proofs using bitfield encoding
-     * @custom:encoding Uses LSB-first bitfield for compact position representation
+     * @notice Verify (memory/bitfield positions).
      */
-    function verify(
+    function verifyMem(
         bytes32 leaf,
         bytes32[] memory proof,
         uint256 positions,
         bytes32 root
-    ) internal pure returns (bool isValid) {
-        return processProof(leaf, proof, positions) == root;
+    ) internal pure returns (bool) {
+        return processProofMem(leaf, proof, positions) == root;
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                          CONVENIENCE HELPERS
+    //////////////////////////////////////////////////////////////*/
+
+    /**
+     * @notice Produce a leaf hash from arbitrary payload with domain tag.
+     *         Use this to standardize leaf creation across your app.
+     */
+    function leafOf(bytes memory data) internal pure returns (bytes32) {
+        // keccak256(0x00 || data)
+        bytes32 out;
+        assembly {
+            // Compute keccak256 over [prefix(1) | data(len)]
+            // Write prefix at free memory, then copy `data` after it.
+            let p := mload(0x40) // free mem ptr
+            mstore8(p, 0x00)
+            let d := add(data, 0x20)
+            let len := mload(data)
+            // copy `data` to p+1
+            // memcpy loop
+            for { let o := 0 } lt(o, len) { o := add(o, 0x20) } {
+                mstore(add(add(p, 1), o), mload(add(d, o)))
+            }
+            out := keccak256(p, add(len, 1))
+            // restore free mem pointer (no allocation kept)
+        }
+        return out;
     }
 }
