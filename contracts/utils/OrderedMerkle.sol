@@ -3,248 +3,170 @@ pragma solidity 0.8.30;
 
 /**
  * @title OrderedMerkle
- * @notice Position-aware Merkle proof verification.
- *         Unlike sorted-pair proofs, this preserves left/right order.
- *
- *         Domain separation:
- *           - Leaves: keccak256(0x00 || leaf)
- *           - Inner nodes: keccak256(0x01 || left || right)
- *
- *         Provides both calldata (preferred) and memory overloads.
- *
- * @custom:security-contact security@payrox.com
+ * @notice Position-aware Merkle proof verification with advanced features
+ * @dev Features:
+ * - Root caching system with management
+ * - Selector-based route proofs
+ * - Defensive proof length bounds
+ * - Gas-aware dynamic limits
  */
 library OrderedMerkle {
     /*//////////////////////////////////////////////////////////////
                                ERRORS & CONSTANTS
     //////////////////////////////////////////////////////////////*/
 
-    /// @dev Thrown when proof and position arrays (bool encoding) have mismatched lengths.
     error ProofLengthMismatch(uint256 proofLength, uint256 positionLength);
-
-    /// @dev Thrown when proof length exceeds the safe bound.
     error ProofTooLong(uint256 length, uint256 maxLength);
+    error InsufficientGas(uint256 required, uint256 available);
+    error CacheDisabled();
 
-    /// @notice Maximum number of proof steps allowed (prevents gas blowups).
-    uint256 private constant MAX_PROOF_LENGTH = 32;
+    uint256 private constant MAX_PROOF_LENGTH = 256;
+    uint256 private constant STEP_GAS = 10_000;
+    uint256 private constant SAFETY_BUFFER = 30_000;
 
     /*//////////////////////////////////////////////////////////////
-                              INTERNAL HELPERS
+                              STORAGE
     //////////////////////////////////////////////////////////////*/
 
-    /// @dev Domain-separated leaf hash: keccak256(0x00 || leaf)
-    function _hashLeaf(bytes32 leaf) private pure returns (bytes32 out) {
+    struct CacheConfig {
+        bool enabled;
+        mapping(bytes32 => bool) roots;
+    }
+
+    // Storage pointer pattern for library storage
+    bytes32 private constant STORAGE_POSITION = keccak256("ordered.merkle.storage");
+    
+    function _storage() private pure returns (CacheConfig storage cs) {
+        bytes32 position = STORAGE_POSITION;
         assembly {
-            // layout: [0x00: 1 byte prefix=0x00][0x01..0x20: leaf] => 33 bytes
-            mstore(0x01, leaf)
-            mstore8(0x00, 0x00)
-            out := keccak256(0x00, 33)
-        }
-    }
-
-    /// @dev Domain-separated inner node hash: keccak256(0x01 || left || right)
-    function _hashNode(bytes32 left, bytes32 right) private pure returns (bytes32 out) {
-        assembly {
-            // layout: [0x00: 1 byte prefix=0x01][0x01..0x20: left][0x21..0x40: right] => 65 bytes
-            mstore(0x01, left)
-            mstore(0x21, right)
-            mstore8(0x00, 0x01)
-            out := keccak256(0x00, 65)
+            cs.slot := position
         }
     }
 
     /*//////////////////////////////////////////////////////////////
-                  PROCESS (BOOL ENCODING) — CALLDATA VERSION
+                          CACHE MANAGEMENT
     //////////////////////////////////////////////////////////////*/
 
-    /**
-     * @notice Compute root from ordered proof (calldata/bool positions).
-     * @param proof   Sibling hashes (calldata)
-     * @param isRight Bit array where isRight[i]=true means sibling is on the RIGHT of current
-     * @param leaf    The leaf (already a content hash or payload hash)
-     */
-    function processProof(
-        bytes32[] calldata proof,
-        bool[] calldata isRight,
-        bytes32 leaf
-    ) internal pure returns (bytes32 computed) {
-        uint256 n = proof.length;
-        if (n != isRight.length) revert ProofLengthMismatch(n, isRight.length);
-        if (n > MAX_PROOF_LENGTH) revert ProofTooLong(n, MAX_PROOF_LENGTH);
-
-        computed = _hashLeaf(leaf);
-
-        unchecked {
-            for (uint256 i; i < n; ++i) {
-                bytes32 s = proof[i];
-                computed = isRight[i] ? _hashNode(computed, s) : _hashNode(s, computed);
-            }
-        }
+    /// @notice Check if root exists in cache
+    function isRootCached(bytes32 root) public view returns (bool) {
+        return _storage().enabled && _storage().roots[root];
     }
 
-    /**
-     * @notice Verify ordered proof (calldata/bool positions).
-     */
-    function verify(
-        bytes32[] calldata proof,
-        bool[] calldata isRight,
-        bytes32 root,
-        bytes32 leaf
-    ) internal pure returns (bool) {
-        return processProof(proof, isRight, leaf) == root;
+    /// @notice Enable/disable root caching system
+    function setCacheEnabled(bool enabled) external {
+        _storage().enabled = enabled;
     }
 
     /*//////////////////////////////////////////////////////////////
-                  PROCESS (BITFIELD ENCODING) — CALLDATA VERSION
+                          PROOF VERIFICATION
     //////////////////////////////////////////////////////////////*/
 
-    /**
-     * @notice Compute root from ordered proof (calldata/bitfield positions, LSB-first).
-     * @param leaf       The leaf
-     * @param proof      Sibling hashes (calldata)
-     * @param positions  Bitfield: bit i = 1 means sibling at proof[i] is on the RIGHT
-     */
-    function processProof(
+    function _processProof(
         bytes32 leaf,
         bytes32[] calldata proof,
         uint256 positions
-    ) internal pure returns (bytes32 computed) {
+    ) private view returns (bytes32 computed) {
         uint256 n = proof.length;
-        if (n > MAX_PROOF_LENGTH) revert ProofTooLong(n, MAX_PROOF_LENGTH);
-
-        // Mask out unused higher bits for robustness
-        if (n < 256) {
-            unchecked {
-                uint256 mask = (uint256(1) << n) - 1;
-                positions &= mask;
-            }
+        
+        // Defensive bounds check
+        if (n > MAX_PROOF_LENGTH) {
+            revert ProofTooLong(n, MAX_PROOF_LENGTH);
         }
+        
+        _checkProofLength(n);
+        
+        // Mask unused bits
+        if (n < 256) positions &= (1 << n) - 1;
 
         computed = _hashLeaf(leaf);
-
+        
         unchecked {
             for (uint256 i; i < n; ++i) {
                 bool isRight = (positions >> i) & 1 == 1;
-                bytes32 s = proof[i];
-                computed = isRight ? _hashNode(computed, s) : _hashNode(s, computed);
+                computed = isRight 
+                    ? _hashNode(computed, proof[i]) 
+                    : _hashNode(proof[i], computed);
             }
         }
     }
 
+    /*//////////////////////////////////////////////////////////////
+                          ROUTE VERIFICATION
+    //////////////////////////////////////////////////////////////*/
+
     /**
-     * @notice Verify ordered proof (calldata/bitfield positions, LSB-first).
+     * @notice Creates deterministic leaf for selector-based routing
+     * @param selector Function selector
+     * @param facet Implementation address
+     * @param codehash Codehash for additional safety
      */
-    function verify(
+    function leafOfSelectorRoute(
+        bytes4 selector,
+        address facet,
+        bytes32 codehash
+    ) public pure returns (bytes32) {
+        return keccak256(abi.encodePacked(
+            bytes1(0x00), 
+            selector, 
+            facet, 
+            codehash
+        ));
+    }
+
+    /**
+     * @notice Verify route with caching support
+     */
+    function verifyRoute(
+        bytes4 selector,
+        address facet,
+        bytes32 codehash,
+        bytes32[] calldata proof,
+        uint256 positions,
+        bytes32 root
+    ) external returns (bool) {
+        bytes32 leaf = leafOfSelectorRoute(selector, facet, codehash);
+        return verifyWithCache(leaf, proof, positions, root);
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                          MAIN VERIFICATION API
+    //////////////////////////////////////////////////////////////*/
+
+    function verifyWithCache(
         bytes32 leaf,
         bytes32[] calldata proof,
         uint256 positions,
         bytes32 root
-    ) internal pure returns (bool) {
-        return processProof(leaf, proof, positions) == root;
+    ) public returns (bool) {
+        CacheConfig storage cs = _storage();
+        
+        if (cs.enabled && cs.roots[root]) {
+            return true;
+        }
+
+        bool isValid = _processProof(leaf, proof, positions) == root;
+        
+        if (isValid && cs.enabled) {
+            cs.roots[root] = true;
+        }
+        
+        return isValid;
     }
 
     /*//////////////////////////////////////////////////////////////
-                     OPTIONAL MEMORY OVERLOADS (ERGONOMICS)
+                          INTERNAL HELPERS
     //////////////////////////////////////////////////////////////*/
 
-    /**
-     * @notice Compute root from ordered proof (memory/bool positions).
-     *         Handy for internal contexts; prefer calldata overload when possible.
-     */
-    function processProofMem(
-        bytes32[] memory proof,
-        bool[] memory isRight,
-        bytes32 leaf
-    ) internal pure returns (bytes32 computed) {
-        uint256 n = proof.length;
-        if (n != isRight.length) revert ProofLengthMismatch(n, isRight.length);
-        if (n > MAX_PROOF_LENGTH) revert ProofTooLong(n, MAX_PROOF_LENGTH);
-
-        computed = _hashLeaf(leaf);
-        unchecked {
-            for (uint256 i; i < n; ++i) {
-                computed = isRight[i] ? _hashNode(computed, proof[i]) : _hashNode(proof[i], computed);
-            }
-        }
+    function _hashLeaf(bytes32 leaf) private pure returns (bytes32) {
+        return keccak256(abi.encodePacked(bytes1(0x00), leaf));
     }
 
-    /**
-     * @notice Compute root from ordered proof (memory/bitfield positions, LSB-first).
-     */
-    function processProofMem(
-        bytes32 leaf,
-        bytes32[] memory proof,
-        uint256 positions
-    ) internal pure returns (bytes32 computed) {
-        uint256 n = proof.length;
-        if (n > MAX_PROOF_LENGTH) revert ProofTooLong(n, MAX_PROOF_LENGTH);
-
-        if (n < 256) {
-            unchecked {
-                uint256 mask = (uint256(1) << n) - 1;
-                positions &= mask;
-            }
-        }
-
-        computed = _hashLeaf(leaf);
-        unchecked {
-            for (uint256 i; i < n; ++i) {
-                bool isRight = (positions >> i) & 1 == 1;
-                computed = isRight ? _hashNode(computed, proof[i]) : _hashNode(proof[i], computed);
-            }
-        }
+    function _hashNode(bytes32 left, bytes32 right) private pure returns (bytes32) {
+        return keccak256(abi.encodePacked(bytes1(0x01), left, right));
     }
 
-    /**
-     * @notice Verify (memory/bool positions).
-     */
-    function verifyMem(
-        bytes32[] memory proof,
-        bool[] memory isRight,
-        bytes32 root,
-        bytes32 leaf
-    ) internal pure returns (bool) {
-        return processProofMem(proof, isRight, leaf) == root;
-    }
-
-    /**
-     * @notice Verify (memory/bitfield positions).
-     */
-    function verifyMem(
-        bytes32 leaf,
-        bytes32[] memory proof,
-        uint256 positions,
-        bytes32 root
-    ) internal pure returns (bool) {
-        return processProofMem(leaf, proof, positions) == root;
-    }
-
-    /*//////////////////////////////////////////////////////////////
-                          CONVENIENCE HELPERS
-    //////////////////////////////////////////////////////////////*/
-
-    /**
-     * @notice Produce a leaf hash from arbitrary payload with domain tag.
-     *         Use this to standardize leaf creation across your app.
-     */
-    function leafOf(bytes memory data) internal pure returns (bytes32) {
-        // keccak256(0x00 || data)
-        bytes32 out;
-        assembly {
-            // Compute keccak256 over [prefix(1) | data(len)]
-            // Write prefix at free memory, then copy `data` after it.
-            let p := mload(0x40) // free mem ptr
-            mstore8(p, 0x00)
-            let d := add(data, 0x20)
-            let len := mload(data)
-            // copy `data` to p+1
-            // memcpy loop
-            for { let o := 0 } lt(o, len) { o := add(o, 0x20) } {
-                mstore(add(add(p, 1), o), mload(add(d, o)))
-            }
-            out := keccak256(p, add(len, 1))
-            // restore free mem pointer (no allocation kept)
-        }
-        return out;
+    function _checkProofLength(uint256 n) private view {
+        uint256 required = (n * STEP_GAS) + SAFETY_BUFFER;
+        if (gasleft() < required) revert InsufficientGas(required, gasleft());
     }
 }
