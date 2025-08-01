@@ -10,12 +10,21 @@ interface IManifestDispatcher is IAccessControl {
         bytes32 codehash; // expected EXTCODEHASH(facet)
     }
 
+    struct ManifestInfo {
+        bytes32 hash;
+        uint64 version;
+        uint256 timestamp;
+        uint256 selectorCount;
+    }
+
     // ──────────────────────── Events ─────────────────────────
     event RootCommitted(bytes32 indexed root, uint64 indexed epoch);
     event RootActivated(bytes32 indexed root, uint64 indexed epoch);
     event RouteAdded(bytes4 indexed selector, address indexed facet, bytes32 codehash);
-    event RouteRemoved(bytes4 indexed selector);
+    event RouteRemoved(bytes4 indexed selector, address indexed oldFacet);
+    event RouteUpdated(bytes4 indexed selector, address indexed oldFacet, address indexed newFacet);
     event ActivationDelaySet(uint64 oldDelay, uint64 newDelay);
+    event ManifestVersionUpdated(uint64 indexed oldVersion, uint64 indexed newVersion);
     event Frozen();
 
     // ───────────────────── Read-only views ────────────────────
@@ -29,6 +38,13 @@ interface IManifestDispatcher is IAccessControl {
 
     function activationDelay() external view returns (uint64);
     function frozen() external view returns (bool);
+    
+    // New enhanced views
+    function getManifestVersion() external view returns (uint64);
+    function getRoute(bytes4 selector) external view returns (address facet);
+    function getRouteCount() external view returns (uint256);
+    function verifyManifest(bytes32 manifestHash) external view returns (bool valid, bytes32 currentHash);
+    function getManifestInfo() external view returns (ManifestInfo memory info);
 
     // ───────────────── Manifest governance ────────────────────
     /**
@@ -48,6 +64,19 @@ interface IManifestDispatcher is IAccessControl {
         bytes32[][] calldata proofs,
         bool[][] calldata isRight
     ) external;
+
+    /**
+     * Batch update manifest with validation and protection against collisions
+     */
+    function updateManifest(
+        bytes32 manifestHash,
+        bytes calldata manifestData
+    ) external;
+
+    /**
+     * Route a call to the appropriate facet with return data size protection
+     */
+    function routeCall(bytes calldata data) external payable returns (bytes memory result);
 
     /**
      * Activate the committed root (enforces optional activationDelay).
