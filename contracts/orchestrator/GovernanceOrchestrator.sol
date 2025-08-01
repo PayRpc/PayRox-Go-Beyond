@@ -39,6 +39,9 @@ contract GovernanceOrchestrator is AccessControl, Pausable, ReentrancyGuard {
     /// @dev Mapping of proposal ID to voter to vote weight
     mapping(bytes32 => mapping(address => uint256)) public votes;
 
+    /// @dev Mapping of proposal ID to voter to vote support (true = for, false = against)
+    mapping(bytes32 => mapping(address => bool)) public voteSupport;
+
     /// @dev Mapping of voter addresses to their voting power
     mapping(address => uint256) public votingPower;
 
@@ -169,12 +172,17 @@ contract GovernanceOrchestrator is AccessControl, Pausable, ReentrancyGuard {
         // Remove previous vote if exists
         uint256 previousVote = votes[proposalId][msg.sender];
         if (previousVote > 0) {
-            // Subtract previous vote (assuming it was 'for' if recorded)
-            proposal.forVotes -= previousVote;
+            bool prevSupport = voteSupport[proposalId][msg.sender];
+            if (prevSupport) {
+                proposal.forVotes -= previousVote;
+            } else {
+                proposal.againstVotes -= previousVote;
+            }
         }
 
         // Record new vote
         votes[proposalId][msg.sender] = voterPower;
+        voteSupport[proposalId][msg.sender] = support;
 
         if (support) {
             proposal.forVotes += voterPower;
@@ -284,8 +292,9 @@ contract GovernanceOrchestrator is AccessControl, Pausable, ReentrancyGuard {
     ) external view returns (bool hasPassed) {
         ManifestTypes.GovernanceProposal memory proposal = proposals[proposalId];
 
+        // Check if proposal exists (zero proposalId indicates uninitialized proposal)
         if (proposal.proposalId == bytes32(0)) {
-            return false;
+            return false; // Proposal does not exist
         }
 
         return ManifestUtils.checkGovernanceQuorum(

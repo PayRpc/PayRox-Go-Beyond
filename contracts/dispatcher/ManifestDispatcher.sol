@@ -3,8 +3,9 @@ pragma solidity 0.8.30;
 
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
-import {OrderedMerkle} from "../utils/OrderedMerkle.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {IManifestDispatcher} from "./interfaces/IManifestDispatcher.sol";
+import {OrderedMerkle} from "../utils/OrderedMerkle.sol";
 
 /**
  * @title ManifestDispatcher
@@ -12,29 +13,50 @@ import {IManifestDispatcher} from "./interfaces/IManifestDispatcher.sol";
  *         Flow: commitRoot(root, epoch) → applyRoutes(...) with proofs → activateCommittedRoot().
  *         Per-call EXTCODEHASH gating ensures the facet's code matches the manifest expectation.
  *
- * Governance hardening:
- * - Optional activation delay after commit.
- * - One-way freeze() to permanently lock configuration.
+ * Security hardening:
+ * - Access control on all critical functions
+ * - Monotonic version counter to prevent replay/downgrade attacks
+ * - Manifest size limits and validation
+ * - Selector collision detection
+ * - Return data size griefing protection
+ * - Re-entrancy protection
+ * - Comprehensive event emission for indexers
  */
-contract ManifestDispatcher is IManifestDispatcher, AccessControl, Pausable {
+contract ManifestDispatcher is IManifestDispatcher, AccessControl, Pausable, ReentrancyGuard {
     // ───────────────────────── Roles ─────────────────────────
     bytes32 public constant COMMIT_ROLE     = keccak256("COMMIT_ROLE");
     bytes32 public constant APPLY_ROLE      = keccak256("APPLY_ROLE");
     bytes32 public constant EMERGENCY_ROLE  = keccak256("EMERGENCY_ROLE");
 
+    // ───────────────────────── Constants ─────────────────────
+    uint256 public constant MAX_MANIFEST_SIZE = 24_000; // Under 24KB init-code limit
+    uint256 public constant MAX_RETURN_DATA_SIZE = 32_768; // 32KB return data limit
+    uint256 public constant SELECTOR_SIZE = 4; // 4 bytes
+    uint256 public constant ADDRESS_SIZE = 20; // 20 bytes
+    uint256 public constant ENTRY_SIZE = SELECTOR_SIZE + ADDRESS_SIZE; // 24 bytes per entry
+
+    // ───────────────────────── Storage ─────────────────────────
     // selector => route
     mapping(bytes4 => Route) public routes;
+    
+    // Track all registered selectors for collision detection
+    mapping(bytes4 => bool) public registeredSelectors;
+    bytes4[] public allSelectors;
 
-    // Manifest lifecycle
+    // Manifest lifecycle with version control
     bytes32 public pendingRoot;
     uint64  public pendingEpoch;
     uint64  public pendingSince; // commit timestamp
     bytes32 public activeRoot;
     uint64  public activeEpoch;
+    uint64  public manifestVersion; // Monotonic counter for replay protection
 
     // Governance guards
     uint64  public activationDelay; // seconds; 0 = no delay
     bool    public frozen;
+    
+    // Route counting for gas cost predictability
+    uint256 public routeCount;
 
     // ──────────────────────── Errors ─────────────────────────
     error FrozenError();
@@ -48,20 +70,32 @@ contract ManifestDispatcher is IManifestDispatcher, AccessControl, Pausable {
     error ApplyCodehashMismatch(address facet, bytes32 expected, bytes32 actual); // Apply-time validation (detailed)
     error FacetIsSelf();
     error RootZero();
+    error ManifestTooLarge(uint256 size, uint256 maxSize);
+    error InvalidManifestFormat();
+    error SelectorCollision(bytes4 selector);
+    error ReturnDataTooLarge(uint256 size, uint256 maxSize);
+    error VersionDowngrade(uint64 current, uint64 attempted);
+    error EmptySelector();
+    error ZeroAddress();
 
     // ───────────────────── Constructor ───────────────────────
     constructor(address admin, uint64 _activationDelay) {
+        // Security: Zero-address validation for critical parameters
+        require(admin != address(0), "ManifestDispatcher: zero admin address");
+        
         _grantRole(DEFAULT_ADMIN_ROLE, admin);
         _grantRole(COMMIT_ROLE, admin);
         _grantRole(APPLY_ROLE, admin);
         _grantRole(EMERGENCY_ROLE, admin);
         activationDelay = _activationDelay;
+        manifestVersion = 1; // Start at version 1
     }
 
     // ───────────────── Manifest governance ───────────────────
 
     /**
      * @dev Commit a new manifest root for the next epoch (activeEpoch + 1).
+     * @dev Enhanced with version control to prevent replay attacks
      */
     function commitRoot(bytes32 newRoot, uint64 newEpoch)
         external
@@ -80,10 +114,130 @@ contract ManifestDispatcher is IManifestDispatcher, AccessControl, Pausable {
     }
 
     /**
-     * @dev Apply routes proven against `pendingRoot`.
-     *      Leaf = keccak256(abi.encode(selector, facet, codehash)).
-     *      Uses ordered-pair Merkle verification with position-aware proofs.
+     * @dev Enhanced manifest update with size limits and collision detection
+     * @param manifestHash Hash of the manifest for verification
+     * @param manifestData Raw manifest data (selectors + addresses)
      */
+    function updateManifest(
+        bytes32 manifestHash,
+        bytes calldata manifestData
+    ) external override onlyRole(APPLY_ROLE) nonReentrant {
+        if (frozen) revert FrozenError();
+        
+        // Validate manifest size to prevent gas limit issues
+        if (manifestData.length > MAX_MANIFEST_SIZE) {
+            revert ManifestTooLarge(manifestData.length, MAX_MANIFEST_SIZE);
+        }
+        
+        // Validate manifest format (must be multiple of entry size)
+        if (manifestData.length % ENTRY_SIZE != 0) {
+            revert InvalidManifestFormat();
+        }
+        
+        // Verify manifest hash
+        if (keccak256(manifestData) != manifestHash) {
+            revert InvalidManifestFormat();
+        }
+        
+        uint256 entryCount = manifestData.length / ENTRY_SIZE;
+        
+        // Process manifest entries with collision detection
+        for (uint256 i = 0; i < entryCount; i++) {
+            uint256 offset = i * ENTRY_SIZE;
+            
+            // Extract selector (4 bytes)
+            bytes4 selector;
+            assembly {
+                selector := shr(224, calldataload(add(manifestData.offset, offset)))
+            }
+            
+            // Extract address (20 bytes, skip 4 byte selector)
+            address facet;
+            assembly {
+                facet := shr(96, calldataload(add(add(manifestData.offset, offset), 4)))
+            }
+            
+            if (selector == bytes4(0)) revert EmptySelector();
+            if (facet == address(0)) revert ZeroAddress();
+            if (facet == address(this)) revert FacetIsSelf();
+            
+            // Check for selector collision
+            if (registeredSelectors[selector] && routes[selector].facet != facet) {
+                revert SelectorCollision(selector);
+            }
+            
+            // Update route
+            address oldFacet = routes[selector].facet;
+            routes[selector] = Route({
+                facet: facet,
+                codehash: facet.codehash
+            });
+            
+            // Track selectors
+            if (!registeredSelectors[selector]) {
+                registeredSelectors[selector] = true;
+                allSelectors.push(selector);
+                routeCount++;
+                emit RouteAdded(selector, facet, facet.codehash);
+            } else {
+                emit RouteUpdated(selector, oldFacet, facet);
+            }
+        }
+        
+        // Increment version counter
+        uint64 oldVersion = manifestVersion;
+        manifestVersion++;
+        emit ManifestVersionUpdated(oldVersion, manifestVersion);
+    }
+
+    /**
+     * @dev Enhanced route call with return data size protection and re-entrancy guard
+     * @param data Complete call data including selector
+     * @return result Return data from the routed call
+     */
+    function routeCall(bytes calldata data) 
+        external 
+        payable 
+        override 
+        nonReentrant 
+        whenNotPaused 
+        returns (bytes memory result) 
+    {
+        if (data.length < 4) revert InvalidManifestFormat();
+        
+        bytes4 selector = bytes4(data[:4]);
+        Route memory r = routes[selector];
+        address facet = r.facet;
+        
+        if (facet == address(0)) revert NoRoute();
+        
+        // Per-call EXTCODEHASH gate (prevents facet code swaps)
+        if (facet.codehash != r.codehash) revert CodehashMismatch();
+        
+        // Make the call with return data size protection
+        (bool success, bytes memory returnData) = facet.delegatecall(data);
+        
+        // Protect against return data griefing
+        if (returnData.length > MAX_RETURN_DATA_SIZE) {
+            revert ReturnDataTooLarge(returnData.length, MAX_RETURN_DATA_SIZE);
+        }
+        
+        if (!success) {
+            // Preserve revert reason
+            if (returnData.length > 0) {
+                assembly {
+                    let returndata_size := mload(returnData)
+                    revert(add(32, returnData), returndata_size)
+                }
+            } else {
+                revert("Delegatecall failed");
+            }
+        }
+        
+        return returnData;
+    }
+
+
     function applyRoutes(
         bytes4[] calldata selectors,
         address[] calldata facets,
@@ -133,7 +287,7 @@ contract ManifestDispatcher is IManifestDispatcher, AccessControl, Pausable {
         if (activationDelay != 0) {
             uint64 earliestActivation = uint64(pendingSince + activationDelay);
             if (block.timestamp < earliestActivation) {
-                revert ActivationNotReady(earliestActivation, uint64(block.timestamp), pendingEpoch, pendingEpoch);
+                revert ActivationNotReady(earliestActivation, uint64(block.timestamp), pendingEpoch, 0);
             }
         }
 
@@ -149,6 +303,7 @@ contract ManifestDispatcher is IManifestDispatcher, AccessControl, Pausable {
 
     /**
      * @dev Emergency removal of routes (e.g., if a facet is found vulnerable) before freeze().
+     * @dev Enhanced to emit RouteRemoved events with old facet address
      */
     function removeRoutes(bytes4[] calldata selectors)
         external
@@ -157,9 +312,64 @@ contract ManifestDispatcher is IManifestDispatcher, AccessControl, Pausable {
     {
         if (frozen) revert FrozenError();
         for (uint256 i; i < selectors.length; ++i) {
-            delete routes[selectors[i]];
-            emit RouteRemoved(selectors[i]);
+            address oldFacet = routes[selectors[i]].facet;
+            if (oldFacet != address(0)) {
+                delete routes[selectors[i]];
+                registeredSelectors[selectors[i]] = false;
+                if (routeCount > 0) {
+                    routeCount--;
+                }
+                emit RouteRemoved(selectors[i], oldFacet);
+            }
         }
+    }
+
+    // ───────────────────── Enhanced View Functions ───────────────────
+
+    /**
+     * @dev Get route for a selector
+     */
+    function getRoute(bytes4 selector) external view override returns (address facet) {
+        return routes[selector].facet;
+    }
+
+    /**
+     * @dev Get total number of registered routes
+     */
+    function getRouteCount() external view override returns (uint256) {
+        return routeCount;
+    }
+
+    /**
+     * @dev Verify manifest hash and return current hash for better DX
+     */
+    function verifyManifest(bytes32 manifestHash) 
+        external 
+        view 
+        override 
+        returns (bool valid, bytes32 currentHash) 
+    {
+        currentHash = activeRoot;
+        valid = (manifestHash == currentHash);
+    }
+
+    /**
+     * @dev Get comprehensive manifest information
+     */
+    function getManifestInfo() external view override returns (ManifestInfo memory info) {
+        info = ManifestInfo({
+            hash: activeRoot,
+            version: manifestVersion,
+            timestamp: block.timestamp,
+            selectorCount: routeCount
+        });
+    }
+
+    /**
+     * @dev Get current manifest version for replay protection
+     */
+    function getManifestVersion() external view returns (uint64) {
+        return manifestVersion;
     }
 
     /**

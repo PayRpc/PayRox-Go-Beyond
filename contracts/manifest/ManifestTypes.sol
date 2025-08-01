@@ -139,6 +139,15 @@ library ManifestTypes {
         uint256 weight
     );
 
+    struct DeploymentSummary {
+        uint256 totalFacets;
+        uint256 totalChunks;
+        uint256 totalSelectors;
+        bytes32 manifestHash;
+        bytes32 version; // Changed from string to bytes32 to match ManifestHeader
+        uint256 timestamp;
+    }
+
     // Errors
     error InvalidManifestVersion();
     error InvalidSignature();

@@ -153,4 +153,84 @@ contract Orchestrator {
 
         emit ComponentNoted(id, component, tag);
     }
+
+    /* ───────────────── Production Analytics ──────────────────── */
+
+    /// @notice Get orchestration plan details
+    function getPlan(bytes32 id) external view returns (address initiator, uint256 gasLimit, bool completed) {
+        Plan storage p = plans[id];
+        return (p.initiator, p.gasLimit, p.completed);
+    }
+
+    /// @notice Check if a plan exists and is active
+    function isPlanActive(bytes32 id) external view returns (bool) {
+        Plan storage p = plans[id];
+        return p.initiator != address(0) && !p.completed;
+    }
+
+    /// @notice Get authorization status for an address
+    function isAuthorized(address who) external view returns (bool) {
+        return authorized[who] || who == admin;
+    }
+
+    /// @notice Get factory and dispatcher addresses for integration
+    function getIntegrationAddresses() external view returns (address factoryAddr, address dispatcherAddr) {
+        return (address(factory), address(dispatcher));
+    }
+
+    /// @notice Emergency pause - admin only, pauses new orchestrations
+    mapping(bytes32 => bool) public emergencyPaused;
+    bool public globalEmergencyPause;
+
+    event EmergencyPause(bool paused, address admin);
+    event PlanEmergencyPause(bytes32 indexed id, bool paused);
+
+    function setGlobalEmergencyPause(bool paused) external onlyAdmin {
+        globalEmergencyPause = paused;
+        emit EmergencyPause(paused, msg.sender);
+    }
+
+    function setPlanEmergencyPause(bytes32 id, bool paused) external onlyAdmin {
+        emergencyPaused[id] = paused;
+        emit PlanEmergencyPause(id, paused);
+    }
+
+    modifier whenNotEmergencyPaused(bytes32 id) {
+        require(!globalEmergencyPause && !emergencyPaused[id], "Emergency paused");
+        _;
+    }
+
+    /// @notice Enhanced orchestration start with emergency pause check
+    function startOrchestrationSecure(bytes32 id, uint256 gasLimit) external onlyAuth whenNotEmergencyPaused(id) {
+        if (id == bytes32(0)) revert BadId();
+        if (gasLimit == 0)     revert BadGas();
+        if (plans[id].initiator != address(0)) revert PlanExists();
+
+        plans[id] = Plan({initiator: msg.sender, gasLimit: gasLimit, completed: false});
+        emit OrchestrationStarted(id, msg.sender, block.timestamp);
+    }
+
+    /// @notice Validate orchestration parameters before execution
+    function validateOrchestration(bytes32 id, uint256 gasLimit, address initiator) 
+        external 
+        view 
+        returns (bool isValid, string memory reason) 
+    {
+        if (id == bytes32(0)) {
+            return (false, "Invalid ID");
+        }
+        if (gasLimit == 0) {
+            return (false, "Invalid gas limit");
+        }
+        if (!authorized[initiator] && initiator != admin) {
+            return (false, "Not authorized");
+        }
+        if (plans[id].initiator != address(0)) {
+            return (false, "Plan already exists");
+        }
+        if (globalEmergencyPause || emergencyPaused[id]) {
+            return (false, "Emergency paused");
+        }
+        return (true, "Valid");
+    }
 }

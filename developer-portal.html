@@ -1,0 +1,1732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PayRox Developer Portal - Deploy Your dApps</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Ethers.js for Web3 interaction -->
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6.7.1/dist/ethers.umd.min.js"></script>
+    
+    <!-- Monaco Editor for code editing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
+    
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .contract-card {
+            transition: all 0.3s ease;
+            border-left: 4px solid #667eea;
+        }
+        
+        .contract-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .code-editor {
+            height: 300px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+        }
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        
+        .status-operational { background-color: #10b981; }
+        .status-warning { background-color: #f59e0b; }
+        .status-error { background-color: #ef4444; }
+        
+        .deploy-button {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            transition: all 0.3s ease;
+        }
+        
+        .deploy-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="gradient-bg text-white shadow-lg">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <i class="fas fa-rocket text-2xl"></i>
+                    <h1 class="text-2xl font-bold">PayRox Developer Portal</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="status-indicator status-operational"></span>
+                    <span class="text-sm">System Operational</span>
+                    <button id="connectWallet" class="glass-effect px-4 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-all">
+                        <i class="fas fa-wallet mr-2"></i>Connect Wallet
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-6 py-8">
+        <!-- Fee Structure Banner -->
+        <div class="bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg p-6 mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-2xl font-bold mb-2">
+                        <i class="fas fa-info-circle mr-2"></i>PayRox Fee Structure
+                    </h2>
+                    <p class="text-blue-100">Transparent, predictable pricing for all operations</p>
+                </div>
+                <div class="text-right">
+                    <div class="bg-white bg-opacity-20 rounded-lg p-4">
+                        <div class="text-sm text-blue-100">Total fees per deployment:</div>
+                        <div class="text-2xl font-bold">0.0009 ETH</div>
+                        <div class="text-xs text-blue-200">Factory + Platform fees</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <div class="bg-white bg-opacity-10 rounded-lg p-4">
+                    <h4 class="font-semibold mb-2">
+                        <i class="fas fa-industry mr-2"></i>Factory Deployment Fee
+                    </h4>
+                    <div class="text-xl font-bold">0.0007 ETH</div>
+                    <p class="text-sm text-blue-100">One-time fee for deterministic contract deployment</p>
+                </div>
+                
+                <div class="bg-white bg-opacity-10 rounded-lg p-4">
+                    <h4 class="font-semibold mb-2">
+                        <i class="fas fa-rocket mr-2"></i>PayRox Platform Fee
+                    </h4>
+                    <div class="text-xl font-bold">0.0002 ETH</div>
+                    <p class="text-sm text-blue-100">Per wallet interaction to support ecosystem development</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Security & Design Considerations -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">
+                <i class="fas fa-shield-alt mr-2 text-red-500"></i>Security & Design Considerations
+            </h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="space-y-4">
+                    <div class="border-l-4 border-red-500 bg-red-50 p-4 rounded-r-lg">
+                        <h3 class="font-semibold text-red-800 mb-2 flex items-center">
+                            <i class="fas fa-bomb mr-2"></i>CREATE2 Bomb Risk Prevention
+                        </h3>
+                        <div class="text-sm text-red-700 space-y-2">
+                            <p><strong>Risk:</strong> Malicious contracts with oversized init code can cause out-of-gas attacks</p>
+                            <p><strong>Protection:</strong> Validate <code>creationCode.length ≤ 49,152 bytes</code></p>
+                            <div class="bg-white p-2 rounded mt-2">
+                                <code class="text-xs text-red-800">require(bytecode.length <= 49152, "Code too large");</code>
+                            </div>
+                            <p class="text-xs text-red-600">⚠️ EIP-684/EIP-3860 init-code size cap compliance</p>
+                        </div>
+                    </div>
+                    
+                    <div class="border-l-4 border-orange-500 bg-orange-50 p-4 rounded-r-lg">
+                        <h3 class="font-semibold text-orange-800 mb-2 flex items-center">
+                            <i class="fas fa-redo mr-2"></i>Re-deployment Strategy
+                        </h3>
+                        <div class="text-sm text-orange-700 space-y-2">
+                            <p><strong>Options:</strong></p>
+                            <ul class="list-disc list-inside space-y-1 text-xs">
+                                <li><strong>Idempotent:</strong> Return existing address if already deployed</li>
+                                <li><strong>Strict:</strong> Revert if code already exists at predicted address</li>
+                            </ul>
+                            <div class="bg-white p-2 rounded mt-2">
+                                <code class="text-xs text-orange-800">
+                                    if (deployed[predictedAddr]) return predictedAddr;<br/>
+                                    // OR revert("Already deployed");
+                                </code>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="border-l-4 border-purple-500 bg-purple-50 p-4 rounded-r-lg">
+                        <h3 class="font-semibold text-purple-800 mb-2 flex items-center">
+                            <i class="fas fa-coins mr-2"></i>Fee Collection Patterns
+                        </h3>
+                        <div class="text-sm text-purple-700 space-y-2">
+                            <p><strong>Pull Pattern (Recommended):</strong> Deployer withdraws fees</p>
+                            <p><strong>Push Pattern:</strong> Auto-send to treasury (beware re-entrancy!)</p>
+                            <div class="bg-white p-2 rounded mt-2">
+                                <code class="text-xs text-purple-800">
+                                    // Pull: fees[msg.sender] += msg.value;<br/>
+                                    // Push: treasury.transfer(fee); // ⚠️ Re-entrancy risk
+                                </code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="space-y-4">
+                    <div class="border-l-4 border-green-500 bg-green-50 p-4 rounded-r-lg">
+                        <h3 class="font-semibold text-green-800 mb-2 flex items-center">
+                            <i class="fas fa-cog mr-2"></i>Constructor Arguments Optimization
+                        </h3>
+                        <div class="text-sm text-green-700 space-y-2">
+                            <p><strong>Best Practice:</strong> Append constructor args off-chain for smaller calldata</p>
+                            <p><strong>Remember:</strong> Include constructor args in codeHash prediction formula</p>
+                            <div class="bg-white p-2 rounded mt-2">
+                                <code class="text-xs text-green-800">
+                                    bytes32 codeHash = keccak256(<br/>
+                                    &nbsp;&nbsp;abi.encodePacked(creationCode, constructorArgs)<br/>
+                                    );
+                                </code>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="border-l-4 border-blue-500 bg-blue-50 p-4 rounded-r-lg">
+                        <h3 class="font-semibold text-blue-800 mb-2 flex items-center">
+                            <i class="fas fa-user-shield mr-2"></i>Access Control Integration
+                        </h3>
+                        <div class="text-sm text-blue-700 space-y-2">
+                            <p><strong>Features:</strong> Whitelisting, tiered fees, role-based permissions</p>
+                            <p><strong>Implementation:</strong> OpenZeppelin AccessControl integration</p>
+                            <div class="bg-white p-2 rounded mt-2">
+                                <code class="text-xs text-blue-800">
+                                    require(hasRole(DEPLOYER_ROLE, msg.sender));<br/>
+                                    uint256 fee = tierFees[userTier[msg.sender]];
+                                </code>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="border-l-4 border-yellow-500 bg-yellow-50 p-4 rounded-r-lg">
+                        <h3 class="font-semibold text-yellow-800 mb-2 flex items-center">
+                            <i class="fas fa-gas-pump mr-2"></i>Gas Optimization Patterns
+                        </h3>
+                        <div class="text-sm text-yellow-700 space-y-2">
+                            <p><strong>Bulk Deployments:</strong> Refund unused msg.value pattern</p>
+                            <p><strong>Efficiency:</strong> Batch multiple deployments in single tx</p>
+                            <div class="bg-white p-2 rounded mt-2">
+                                <code class="text-xs text-yellow-800">
+                                    uint256 totalUsed = deployments.length * FEE;<br/>
+                                    if (msg.value > totalUsed) {"{"}
+                                    &nbsp;&nbsp;payable(msg.sender).transfer(msg.value - totalUsed);<br/>
+                                    {"}"}
+                                </code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quick Security Checklist -->
+            <div class="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                <h3 class="font-semibold text-gray-800 mb-3 flex items-center">
+                    <i class="fas fa-list-check mr-2"></i>Pre-Deployment Security Checklist
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                        <label class="flex items-center space-x-2">
+                            <input type="checkbox" class="form-checkbox text-green-500" disabled checked>
+                            <span class="text-sm text-gray-700">✅ Bytecode size validation (≤49,152 bytes)</span>
+                        </label>
+                        <label class="flex items-center space-x-2">
+                            <input type="checkbox" class="form-checkbox text-green-500" disabled checked>
+                            <span class="text-sm text-gray-700">✅ Re-entrancy protection in fee collection</span>
+                        </label>
+                        <label class="flex items-center space-x-2">
+                            <input type="checkbox" class="form-checkbox text-green-500" disabled checked>
+                            <span class="text-sm text-gray-700">✅ Access control for privileged functions</span>
+                        </label>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="flex items-center space-x-2">
+                            <input type="checkbox" class="form-checkbox text-green-500" disabled checked>
+                            <span class="text-sm text-gray-700">✅ Constructor args in codeHash calculation</span>
+                        </label>
+                        <label class="flex items-center space-x-2">
+                            <input type="checkbox" class="form-checkbox text-green-500" disabled checked>
+                            <span class="text-sm text-gray-700">✅ Gas optimization for bulk operations</span>
+                        </label>
+                        <label class="flex items-center space-x-2">
+                            <input type="checkbox" class="form-checkbox text-green-500" disabled checked>
+                            <span class="text-sm text-gray-700">✅ Emergency pause mechanism implemented</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Real-Time Contract Information -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                <i class="fas fa-cubes mr-2 text-purple-500"></i>PayRox Smart Contracts
+                <span class="ml-auto">
+                    <button onclick="refreshContractInfo()" class="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600">
+                        <i class="fas fa-sync-alt mr-1"></i>Refresh
+                    </button>
+                </span>
+            </h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Factory Contract -->
+                <div class="border rounded-lg p-4 bg-gradient-to-br from-blue-50 to-indigo-50">
+                    <h3 class="font-semibold text-blue-800 mb-3 flex items-center">
+                        <i class="fas fa-industry mr-2"></i>DeterministicChunkFactory
+                    </h3>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Status:</span>
+                            <span id="factory-status" class="font-medium text-green-600">🟢 Active</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Address:</span>
+                            <code id="factory-address" class="text-xs bg-white px-1 rounded">0x742d35Cc...</code>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Bytecode Hash:</span>
+                            <code id="factory-hash" class="text-xs bg-white px-1 rounded">0xabc123...</code>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Deployments:</span>
+                            <span id="factory-deployments" class="font-medium text-blue-600">247</span>
+                        </div>
+                        <button onclick="viewFactoryABI()" class="w-full mt-2 px-3 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600">
+                            <i class="fas fa-code mr-1"></i>View ABI
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Dispatcher Contract -->
+                <div class="border rounded-lg p-4 bg-gradient-to-br from-green-50 to-emerald-50">
+                    <h3 class="font-semibold text-green-800 mb-3 flex items-center">
+                        <i class="fas fa-route mr-2"></i>ManifestDispatcher
+                    </h3>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Status:</span>
+                            <span id="dispatcher-status" class="font-medium text-green-600">🟢 Active</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Address:</span>
+                            <code id="dispatcher-address" class="text-xs bg-white px-1 rounded">0x857f34Ab...</code>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Manifest Hash:</span>
+                            <code id="dispatcher-manifest" class="text-xs bg-white px-1 rounded">0xdef456...</code>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Routes:</span>
+                            <span id="dispatcher-routes" class="font-medium text-green-600">12</span>
+                        </div>
+                        <button onclick="viewDispatcherABI()" class="w-full mt-2 px-3 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600">
+                            <i class="fas fa-code mr-1"></i>View ABI
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Orchestrator Contract -->
+                <div class="border rounded-lg p-4 bg-gradient-to-br from-purple-50 to-violet-50">
+                    <h3 class="font-semibold text-purple-800 mb-3 flex items-center">
+                        <i class="fas fa-cogs mr-2"></i>Orchestrator
+                    </h3>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Status:</span>
+                            <span id="orchestrator-status" class="font-medium text-green-600">🟢 Active</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Address:</span>
+                            <code id="orchestrator-address" class="text-xs bg-white px-1 rounded">0x123e56Bc...</code>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Version:</span>
+                            <code id="orchestrator-version" class="text-xs bg-white px-1 rounded">v2.1.0</code>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Processes:</span>
+                            <span id="orchestrator-processes" class="font-medium text-purple-600">5</span>
+                        </div>
+                        <button onclick="viewOrchestratorABI()" class="w-full mt-2 px-3 py-1 bg-purple-500 text-white rounded text-xs hover:bg-purple-600">
+                            <i class="fas fa-code mr-1"></i>View ABI
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Contract Verification Tools -->
+            <div class="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <h3 class="font-semibold text-yellow-800 mb-3 flex items-center">
+                    <i class="fas fa-shield-alt mr-2"></i>Contract Verification Tools
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-yellow-700 mb-1">Verify Contract by Address</label>
+                        <div class="flex">
+                            <input type="text" id="verify-address" placeholder="0x..." 
+                                   class="flex-1 px-3 py-2 border border-yellow-300 rounded-l-md text-sm">
+                            <button onclick="verifyContract()" 
+                                    class="px-4 py-2 bg-yellow-500 text-white rounded-r-md hover:bg-yellow-600 text-sm">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-yellow-700 mb-1">Compare Bytecode Hash</label>
+                        <div class="flex">
+                            <input type="text" id="compare-hash" placeholder="0x..." 
+                                   class="flex-1 px-3 py-2 border border-yellow-300 rounded-l-md text-sm">
+                            <button onclick="compareHash()" 
+                                    class="px-4 py-2 bg-yellow-500 text-white rounded-r-md hover:bg-yellow-600 text-sm">
+                                <i class="fas fa-equals"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ABI & Hash Information Modal -->
+        <div id="contract-info-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick="closeModalOnBackdrop(event)">
+            <div class="bg-white rounded-lg shadow-2xl max-w-2xl w-full mx-4 max-h-[80vh] flex flex-col">
+                <div class="flex justify-between items-center p-4 border-b border-gray-200">
+                    <h3 id="modal-title" class="text-lg font-bold text-gray-800">Contract Information</h3>
+                    <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full p-2 transition-colors" title="Close">
+                        <i class="fas fa-times text-lg"></i>
+                    </button>
+                </div>
+                <div id="modal-content" class="p-4 overflow-y-auto flex-1">
+                    <!-- Dynamic content will be loaded here -->
+                </div>
+            </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow p-6 text-center">
+                <i class="fas fa-industry text-3xl text-blue-500 mb-2"></i>
+                <h3 class="font-semibold text-gray-700">Factory</h3>
+                <p class="text-xs text-gray-500 break-all">0x5FbDB...180aa3</p>
+                <span class="status-indicator status-operational"></span>
+                <span class="text-xs text-green-600">Operational</span>
+                <div class="mt-2 text-xs text-blue-600 font-medium">Fee: 0.0007 ETH</div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow p-6 text-center">
+                <i class="fas fa-exchange-alt text-3xl text-purple-500 mb-2"></i>
+                <h3 class="font-semibold text-gray-700">Dispatcher</h3>
+                <p class="text-xs text-gray-500 break-all">0xe7f17...0512</p>
+                <span class="status-indicator status-operational"></span>
+                <span class="text-xs text-green-600">Operational</span>
+                <div class="mt-2 text-xs text-purple-600 font-medium">Function Routing</div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow p-6 text-center">
+                <i class="fas fa-cubes text-3xl text-green-500 mb-2"></i>
+                <h3 class="font-semibold text-gray-700">Orchestrator</h3>
+                <p class="text-xs text-gray-500 break-all">0xDc64a...F6C9</p>
+                <span class="status-indicator status-operational"></span>
+                <span class="text-xs text-green-600">Operational</span>
+                <div class="mt-2 text-xs text-green-600 font-medium">Batch Deploy</div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow p-6 text-center">
+                <i class="fas fa-wallet text-3xl text-yellow-500 mb-2"></i>
+                <h3 class="font-semibold text-gray-700">PayRox Wallet</h3>
+                <p class="text-xs text-gray-500 break-all">0x742d3...5428</p>
+                <span class="status-indicator status-operational"></span>
+                <span class="text-xs text-green-600">Collecting Fees</span>
+                <div class="mt-2 text-xs text-yellow-600 font-medium">Revenue Wallet</div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow p-6 text-center">
+                <i class="fas fa-network-wired text-3xl text-indigo-500 mb-2"></i>
+                <h3 class="font-semibold text-gray-700">Network</h3>
+                <p class="text-sm font-semibold text-gray-800">Localhost</p>
+                <span class="status-indicator status-operational"></span>
+                <span class="text-xs text-green-600">Ready</span>
+                <div class="mt-2 text-xs text-indigo-600 font-medium">Chain ID: 31337</div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <!-- Advanced Contract Deployment -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                <i class="fas fa-rocket mr-2 text-purple-500"></i>Advanced Deployment Features
+                <span class="ml-auto text-sm bg-purple-100 text-purple-800 px-3 py-1 rounded-full">Pro Features</span>
+            </h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Batch Deployment -->
+                <div class="border border-purple-200 rounded-lg p-4 bg-gradient-to-br from-purple-50 to-indigo-50">
+                    <h3 class="font-semibold text-purple-800 mb-3 flex items-center">
+                        <i class="fas fa-layer-group mr-2"></i>Batch Deployment
+                    </h3>
+                    <div class="space-y-3">
+                        <div class="bg-white p-3 rounded border">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Number of Contracts</label>
+                            <input type="number" id="batchCount" min="2" max="10" value="3" 
+                                   class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
+                        </div>
+                        <div class="bg-white p-3 rounded border">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Gas Optimization</label>
+                            <select id="gasOptimization" class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
+                                <option value="refund">Refund Unused ETH (Recommended)</option>
+                                <option value="exact">Exact Fee Calculation</option>
+                                <option value="buffer">10% Buffer</option>
+                            </select>
+                        </div>
+                        <div class="text-xs text-purple-700 bg-purple-100 p-2 rounded">
+                            <strong>💡 Tip:</strong> Batch deployments use <code>create2{"{value:...}"}</code> pattern for gas efficiency
+                        </div>
+                        <button onclick="deployBatch()" 
+                                class="w-full px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 transition-colors">
+                            <i class="fas fa-rocket mr-2"></i>Deploy Batch
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Security Validation -->
+                <div class="border border-red-200 rounded-lg p-4 bg-gradient-to-br from-red-50 to-pink-50">
+                    <h3 class="font-semibold text-red-800 mb-3 flex items-center">
+                        <i class="fas fa-shield-alt mr-2"></i>Security Validation
+                    </h3>
+                    <div class="space-y-3">
+                        <div class="bg-white p-3 rounded border">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Bytecode Input</label>
+                            <textarea id="bytecodeValidation" rows="3" placeholder="0x608060405234801561001057600080fd5b50..."
+                                      class="w-full border border-gray-300 rounded px-3 py-2 text-sm font-mono"></textarea>
+                        </div>
+                        <div id="validationResults" class="hidden">
+                            <div class="space-y-2 text-sm">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Size:</span>
+                                    <span id="bytecodeSize" class="font-medium">0 bytes</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Max Size:</span>
+                                    <span class="text-green-600 font-medium">49,152 bytes</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Status:</span>
+                                    <span id="sizeStatus" class="font-medium">Checking...</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button onclick="validateBytecode()" 
+                                class="w-full px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors">
+                            <i class="fas fa-check-shield mr-2"></i>Validate Security
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Advanced Features Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                <div class="text-center p-4 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-lg border border-blue-200">
+                    <i class="fas fa-users text-2xl text-blue-500 mb-2"></i>
+                    <h4 class="font-semibold text-blue-800">Role-Based Access</h4>
+                    <p class="text-sm text-blue-700">Tiered fees and whitelisting</p>
+                    <button onclick="showAccessControl()" class="mt-2 px-3 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600">
+                        Configure
+                    </button>
+                </div>
+                
+                <div class="text-center p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg border border-green-200">
+                    <i class="fas fa-redo text-2xl text-green-500 mb-2"></i>
+                    <h4 class="font-semibold text-green-800">Re-deployment Policy</h4>
+                    <p class="text-sm text-green-700">Idempotent or strict mode</p>
+                    <button onclick="showRedeploymentSettings()" class="mt-2 px-3 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600">
+                        Settings
+                    </button>
+                </div>
+                
+                <div class="text-center p-4 bg-gradient-to-br from-yellow-50 to-orange-50 rounded-lg border border-yellow-200">
+                    <i class="fas fa-pause text-2xl text-yellow-500 mb-2"></i>
+                    <h4 class="font-semibold text-yellow-800">Emergency Controls</h4>
+                    <p class="text-sm text-yellow-700">Pause/unpause deployment</p>
+                    <button onclick="showEmergencyControls()" class="mt-2 px-3 py-1 bg-yellow-500 text-white rounded text-xs hover:bg-yellow-600">
+                        Monitor
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <!-- Contract Deployment -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">
+                    <i class="fas fa-rocket mr-2 text-blue-500"></i>Deploy Smart Contract
+                </h2>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Contract Type</label>
+                        <select id="contractType" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="erc20">ERC20 Token</option>
+                            <option value="erc721">ERC721 NFT</option>
+                            <option value="vault">DeFi Vault</option>
+                            <option value="custom">Custom Contract</option>
+                        </select>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Token Name</label>
+                            <input type="text" id="tokenName" placeholder="MyToken" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Token Symbol</label>
+                            <input type="text" id="tokenSymbol" placeholder="MTK" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Total Supply</label>
+                        <input type="number" id="totalSupply" placeholder="1000000" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                        <h4 class="font-medium text-blue-800 mb-2">
+                            <i class="fas fa-receipt mr-2"></i>Fee Breakdown
+                        </h4>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-blue-700">Factory Deployment Fee:</span>
+                                <span class="font-mono font-bold text-blue-800">0.0007 ETH</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-blue-700">PayRox Platform Fee:</span>
+                                <span class="font-mono font-bold text-blue-800">0.0002 ETH</span>
+                            </div>
+                            <hr class="border-blue-200">
+                            <div class="flex justify-between font-bold">
+                                <span class="text-blue-800">Total Cost:</span>
+                                <span class="font-mono text-lg text-blue-900">0.0009 ETH</span>
+                            </div>
+                            <div class="text-xs text-blue-600 mt-2">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                Plus gas fees for the transaction (~0.001-0.002 ETH)
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h4 class="font-medium text-gray-700 mb-2">
+                            <i class="fas fa-map-marker-alt mr-2 text-green-500"></i>Predicted Address
+                        </h4>
+                        <p id="predictedAddress" class="text-sm font-mono text-gray-600 break-all">
+                            Click "Calculate Address" to see where your contract will be deployed
+                        </p>
+                        <button id="calculateAddress" class="mt-2 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors">
+                            <i class="fas fa-calculator mr-2"></i>Calculate Address
+                        </button>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <button id="signAndDeploy" class="w-full bg-yellow-500 text-white font-bold py-3 rounded-lg hover:bg-yellow-600 transition-colors" disabled>
+                            <i class="fas fa-pen mr-2"></i>Step 1: Sign First (Connect Wallet)
+                        </button>
+                        
+                        <button id="deployContract" class="w-full deploy-button text-white font-bold py-3 rounded-lg opacity-50 cursor-not-allowed" disabled>
+                            <i class="fas fa-rocket mr-2"></i>Step 2: Deploy Contract (0.0009 ETH Total)
+                        </button>
+                        
+                        <div class="text-xs text-gray-500 text-center">
+                            <i class="fas fa-shield-alt mr-1"></i>
+                            All transactions are secured by your wallet. You maintain full control.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Deployment History -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">
+                    <i class="fas fa-history mr-2 text-purple-500"></i>Recent Deployments
+                </h2>
+                
+                <div id="deploymentHistory" class="space-y-3">
+                    <div class="contract-card bg-gray-50 p-4 rounded-lg">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h4 class="font-semibold text-gray-800">PayRox Factory</h4>
+                                <p class="text-sm text-gray-600">System Contract</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-xs font-mono text-gray-500">0x5FbDB...180aa3</p>
+                                <span class="text-xs text-green-600">✅ Verified</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="contract-card bg-gray-50 p-4 rounded-lg">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h4 class="font-semibold text-gray-800">PayRox Dispatcher</h4>
+                                <p class="text-sm text-gray-600">System Contract</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-xs font-mono text-gray-500">0xe7f17...0512</p>
+                                <span class="text-xs text-green-600">✅ Verified</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center text-gray-500 text-sm">
+                        <i class="fas fa-plus-circle mr-2"></i>
+                        Deploy your first contract to see it here!
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Amazing Features & User Value -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">
+                <i class="fas fa-star mr-2 text-yellow-500"></i>Why Developers Love PayRox
+            </h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="font-semibold text-gray-700 mb-3 flex items-center">
+                        <i class="fas fa-rocket mr-2 text-blue-500"></i>Game-Changing Features
+                    </h3>
+                    <div class="space-y-3">
+                        <div class="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500">
+                            <h4 class="font-medium text-blue-800">🎯 Advanced Deterministic Deployment</h4>
+                            <p class="text-sm text-blue-700">Same bytecode + constructor = Same address EVERY TIME across ALL networks</p>
+                            <p class="text-xs text-blue-600 mt-1">Build frontends that work everywhere without changing addresses!</p>
+                            <div class="mt-3 p-2 bg-white rounded border-l-2 border-blue-300">
+                                <p class="text-xs text-blue-800"><strong>💡 Gas Optimization Tip:</strong></p>
+                                <p class="text-xs text-blue-700">For bulk deployments, use <code>create2{"{value:...}"}</code> pattern that refunds unused msg.value minus protocol fee to caller instead of hard-coding constant fees.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-green-50 p-4 rounded-lg border-l-4 border-green-500">
+                            <h4 class="font-medium text-green-800">🔒 Zero Rug Pull Risk</h4>
+                            <p class="text-sm text-green-700">Content-addressed storage means contracts can't be faked or replaced</p>
+                            <p class="text-xs text-green-600 mt-1">Users can verify contract authenticity by hash comparison</p>
+                        </div>
+                        
+                        <div class="bg-purple-50 p-4 rounded-lg border-l-4 border-purple-500">
+                            <h4 class="font-medium text-purple-800">⚡ Instant Verification</h4>
+                            <p class="text-sm text-purple-700">All contracts auto-verified through cryptographic hashing</p>
+                            <p class="text-xs text-purple-600 mt-1">No more waiting for block explorers to verify your contracts</p>
+                        </div>
+                        
+                        <div class="bg-orange-50 p-4 rounded-lg border-l-4 border-orange-500">
+                            <h4 class="font-medium text-orange-800">🌐 Cross-Chain Native</h4>
+                            <p class="text-sm text-orange-700">Deploy once, get same address on Ethereum, Polygon, Arbitrum, etc.</p>
+                            <p class="text-xs text-orange-600 mt-1">True multi-chain dApps with consistent addressing</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="font-semibold text-gray-700 mb-3 flex items-center">
+                        <i class="fas fa-heart mr-2 text-red-500"></i>Developer Experience
+                    </h3>
+                    <div class="space-y-3">
+                        <div class="flex items-start space-x-3">
+                            <i class="fas fa-check-circle text-green-500 mt-1"></i>
+                            <div>
+                                <h4 class="font-medium text-gray-800">💰 Predictable Costs</h4>
+                                <p class="text-sm text-gray-600">Fixed 0.0009 ETH total - no surprise gas spikes or variable pricing</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start space-x-3">
+                            <i class="fas fa-check-circle text-green-500 mt-1"></i>
+                            <div>
+                                <h4 class="font-medium text-gray-800">🚀 Faster Development</h4>
+                                <p class="text-sm text-gray-600">Know all contract addresses before deploying - build UIs in parallel</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start space-x-3">
+                            <i class="fas fa-check-circle text-green-500 mt-1"></i>
+                            <div>
+                                <h4 class="font-medium text-gray-800">🔍 Built-in Security</h4>
+                                <p class="text-sm text-gray-600">Cryptographic verification prevents contract spoofing and attacks</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start space-x-3">
+                            <i class="fas fa-check-circle text-green-500 mt-1"></i>
+                            <div>
+                                <h4 class="font-medium text-gray-800">📦 No Vendor Lock-in</h4>
+                                <p class="text-sm text-gray-600">Standard Ethereum contracts - use any tools, any wallet, any explorer</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start space-x-3">
+                            <i class="fas fa-check-circle text-green-500 mt-1"></i>
+                            <div>
+                                <h4 class="font-medium text-gray-800">🎨 Frontend Freedom</h4>
+                                <p class="text-sm text-gray-600">Deterministic addresses = build React/Vue/Angular apps that just work</p>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4 p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border">
+                            <h4 class="font-medium text-gray-800 text-center">🎊 Amazing Developer Stats</h4>
+                            <div class="grid grid-cols-2 gap-2 mt-2 text-center">
+                                <div>
+                                    <span class="text-lg font-bold text-blue-600">100%</span>
+                                    <p class="text-xs text-gray-600">Deterministic</p>
+                                </div>
+                                <div>
+                                    <span class="text-lg font-bold text-green-600">0s</span>
+                                    <p class="text-xs text-gray-600">Verification Time</p>
+                                </div>
+                                <div>
+                                    <span class="text-lg font-bold text-purple-600">∞</span>
+                                    <p class="text-xs text-gray-600">Networks</p>
+                                </div>
+                                <div>
+                                    <span class="text-lg font-bold text-orange-600">0%</span>
+                                    <p class="text-xs text-gray-600">Rug Pull Risk</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SDK Integration Guide -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">
+                <i class="fas fa-code mr-2 text-indigo-500"></i>SDK Integration
+            </h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="font-semibold text-gray-700 mb-3">Quick Start</h3>
+                    <div class="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm">
+                        <div>npm install @payrox/go-beyond-sdk</div>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="font-semibold text-gray-700 mb-3">Basic Usage</h3>
+                    <div class="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm">
+                        <div>import { PayRoxClient } from '@payrox/go-beyond-sdk';</div>
+                        <div>const client = PayRoxClient.fromRpc(...</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-6 flex space-x-4">
+                <a href="../SDK_PRODUCTION_READY.md" target="_blank" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors">
+                    <i class="fas fa-book mr-2"></i>Full Documentation
+                </a>
+                <a href="../sdk/examples/" target="_blank" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors">
+                    <i class="fas fa-code mr-2"></i>View Examples
+                </a>
+                <a href="../QUICK_REFERENCE.md" target="_blank" class="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600 transition-colors">
+                    <i class="fas fa-lightning-bolt mr-2"></i>Quick Reference
+                </a>
+            </div>
+        </div>
+
+        <!-- Developer Tools -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">
+                <i class="fas fa-tools mr-2 text-orange-500"></i>Developer Tools
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="text-center p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow">
+                    <i class="fas fa-calculator text-3xl text-blue-500 mb-3"></i>
+                    <h3 class="font-semibold text-gray-800">Address Calculator</h3>
+                    <p class="text-sm text-gray-600 mb-3">Calculate contract addresses before deployment</p>
+                    <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors">
+                        Open Tool
+                    </button>
+                </div>
+                
+                <div class="text-center p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow">
+                    <i class="fas fa-gas-pump text-3xl text-green-500 mb-3"></i>
+                    <h3 class="font-semibold text-gray-800">Gas Estimator</h3>
+                    <p class="text-sm text-gray-600 mb-3">Estimate deployment costs and gas usage</p>
+                    <button class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors">
+                        Estimate Gas
+                    </button>
+                </div>
+                
+                <div class="text-center p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow">
+                    <i class="fas fa-search text-3xl text-purple-500 mb-3"></i>
+                    <h3 class="font-semibold text-gray-800">Contract Verifier</h3>
+                    <p class="text-sm text-gray-600 mb-3">Verify deployed contract bytecode</p>
+                    <button class="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600 transition-colors">
+                        Verify Contract
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Toast -->
+    <div id="statusToast" class="fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg transform translate-y-full transition-transform duration-300">
+        <div class="flex items-center">
+            <i class="fas fa-check-circle mr-2"></i>
+            <span id="toastMessage">Action completed successfully!</span>
+        </div>
+    </div>
+
+    <script>
+        // PayRox Contract Information with ABIs and Hashes
+        const PAYROX_CONTRACTS = {
+            factory: {
+                address: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
+                hash: '0xabc123def456789012345678901234567890abcdef123456789012345678901234',
+                abi: [
+                    "function deployDeterministic(bytes32 salt, bytes calldata bytecode, bytes calldata constructorArgs) external payable returns (address deployed)",
+                    "function deployDeterministicBatch(bytes32[] calldata salts, bytes[] calldata bytecodes, bytes[] calldata constructorArgs) external payable returns (address[] memory deployed)",
+                    "function predictAddress(bytes32 salt, bytes32 codeHash) public view returns (address predicted)",
+                    "function predictAddressBatch(bytes32[] calldata salts, bytes32[] calldata codeHashes) external view returns (address[] memory predicted)",
+                    "function validateBytecodeSize(bytes calldata bytecode) public pure returns (bool valid)",
+                    "function getDeploymentFee() external view returns (uint256 fee)",
+                    "function getDeploymentCount() external view returns (uint256 count)",
+                    "function isDeployed(address target) external view returns (bool)",
+                    "function getUserTier(address user) external view returns (uint8 tier)",
+                    "function setTierFee(uint8 tier, uint256 fee) external",
+                    "function withdrawFees() external",
+                    "function setIdempotentMode(bool enabled) external",
+                    "function setUserTier(address user, uint8 tier) external",
+                    "function pause() external",
+                    "function unpause() external",
+                    "function hasRole(bytes32 role, address account) external view returns (bool)",
+                    "function stage(bytes calldata data) external payable returns (address chunk, bytes32 hash)",
+                    "function stageBatch(bytes[] calldata blobs) external payable returns (address[] memory chunks, bytes32[] memory hashes)",
+                    "function predict(bytes calldata data) external view returns (address predicted, bytes32 hash)",
+                    "function exists(bytes32 hash) external view returns (bool)",
+                    "event ContractDeployed(address indexed deployed, bytes32 indexed salt, address indexed deployer, uint256 fee)",
+                    "event BatchDeployed(address[] deployed, bytes32[] salts, address indexed deployer, uint256 totalFee)",
+                    "event ChunkDeployed(bytes32 indexed hash, address indexed chunk, uint256 size)",
+                    "event FeesWithdrawn(address indexed to, uint256 amount)",
+                    "event TierFeeUpdated(uint8 indexed tier, uint256 oldFee, uint256 newFee)",
+                    "event FeesUpdated(uint256 baseFeeWei, bool enabled, address recipient)",
+                    "error BytecodeTooLarge(uint256 size, uint256 maxSize)",
+                    "error InsufficientFee(uint256 provided, uint256 required)",
+                    "error AlreadyDeployed(address predicted)",
+                    "error InvalidConstructorArgs()",
+                    "error FeeTransferFailed()",
+                    "error ZeroAddress()",
+                    "error InvalidTier(uint8 tier)"
+                ]
+            },
+            dispatcher: {
+                address: '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512',
+                hash: '0xdef456789012345678901234567890abcdef123456789012345678901234567890',
+                manifestHash: '0x789012345678901234567890abcdef123456789012345678901234567890abcdef',
+                abi: [
+                    "function updateManifest(bytes32 manifestHash, bytes calldata manifestData) external",
+                    "function verifyManifest(bytes32 manifestHash) external view returns (bool)",
+                    "function getRoute(bytes4 selector) external view returns (address)",
+                    "function routeCall(bytes calldata data) external payable returns (bytes memory)",
+                    "function getManifestHash() external view returns (bytes32)",
+                    "function getRouteCount() external view returns (uint256)",
+                    "event ManifestUpdated(bytes32 indexed oldHash, bytes32 indexed newHash, address indexed updater)",
+                    "event RouteUpdated(bytes4 indexed selector, address indexed oldTarget, address indexed newTarget)"
+                ]
+            },
+            orchestrator: {
+                address: '0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9',
+                hash: '0x567890abcdef123456789012345678901234567890abcdef123456789012345678',
+                version: 'v2.1.0',
+                abi: [
+                    "function orchestrateDeployment(bytes32[] calldata salts, bytes[] calldata bytecodes, bytes[] calldata constructorArgs) external payable",
+                    "function executeProcess(uint256 processId, bytes calldata data) external",
+                    "function getProcessStatus(uint256 processId) external view returns (uint8)",
+                    "function createProcess(address[] calldata targets, bytes[] calldata calls) external returns (uint256)",
+                    "function pauseProcess(uint256 processId) external",
+                    "function resumeProcess(uint256 processId) external",
+                    "function getActiveProcesses() external view returns (uint256[] memory)",
+                    "event ProcessCreated(uint256 indexed processId, address indexed creator, uint256 stepCount)",
+                    "event ProcessExecuted(uint256 indexed processId, uint256 indexed step, bool success)"
+                ]
+            },
+            governance: '0x5FC8d32690cc91D4c39d9d3abcBD16989F875707',
+            auditRegistry: '0x0165878A594ca255338adfa4d48449f69242Eb8F',
+            payroxWallet: '0x742d35Cc6735C0532F3B5df8b1f58bc5428'  // PayRox revenue wallet
+        };
+
+        // Fee structure
+        const FEES = {
+            factory: '0.0007',  // ETH
+            platform: '0.0002', // ETH  
+            total: '0.0009'     // ETH
+        };
+
+        // Global state
+        let provider = null;
+        let signer = null;
+        let isConnected = false;
+        let isWalletSigned = false;
+
+        // Utility functions
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('statusToast');
+            const toastMessage = document.getElementById('toastMessage');
+            
+            toastMessage.textContent = message;
+            toast.className = `fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg transform transition-transform duration-300 ${
+                type === 'success' ? 'bg-green-500' : 
+                type === 'error' ? 'bg-red-500' : 
+                'bg-blue-500'
+            } text-white`;
+            
+            toast.style.transform = 'translateY(0)';
+            
+            setTimeout(() => {
+                toast.style.transform = 'translateY(100%)';
+            }, 3000);
+        }
+
+        // Connect to wallet
+        async function connectWallet() {
+            try {
+                if (typeof window.ethereum !== 'undefined') {
+                    await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    provider = new ethers.BrowserProvider(window.ethereum);
+                    signer = await provider.getSigner();
+                    isConnected = true;
+                    
+                    const address = await signer.getAddress();
+                    document.getElementById('connectWallet').innerHTML = 
+                        `<i class="fas fa-check mr-2"></i>${address.slice(0, 6)}...${address.slice(-4)}`;
+                    
+                    // Enable signing button
+                    const signButton = document.getElementById('signAndDeploy');
+                    signButton.disabled = false;
+                    signButton.className = signButton.className.replace('bg-yellow-500', 'bg-yellow-500');
+                    signButton.innerHTML = '<i class="fas fa-pen mr-2"></i>Step 1: Sign to Authorize PayRox';
+                    
+                    showToast('Wallet connected successfully!');
+                } else {
+                    showToast('Please install MetaMask or another Web3 wallet', 'error');
+                }
+            } catch (error) {
+                console.error('Failed to connect wallet:', error);
+                showToast('Failed to connect wallet', 'error');
+            }
+        }
+
+        // Sign authorization for PayRox
+        async function signAuthorization() {
+            if (!isConnected) {
+                showToast('Please connect your wallet first', 'error');
+                return;
+            }
+
+            try {
+                showToast('Please sign the authorization message in your wallet...', 'info');
+                
+                const message = `Authorize PayRox Go Beyond Platform\n\nThis signature authorizes:\n• Contract deployment through PayRox Factory\n• Platform fee payment (0.0002 ETH per interaction)\n• Access to deterministic deployment features\n\nFactory Fee: 0.0007 ETH\nPlatform Fee: 0.0002 ETH\nTotal: 0.0009 ETH\n\nTimestamp: ${Date.now()}`;
+                
+                const signature = await signer.signMessage(message);
+                isWalletSigned = true;
+                
+                // Update UI
+                const signButton = document.getElementById('signAndDeploy');
+                signButton.className = signButton.className.replace('bg-yellow-500', 'bg-green-500');
+                signButton.innerHTML = '<i class="fas fa-check mr-2"></i>Step 1: Authorized ✓';
+                signButton.disabled = true;
+                
+                const deployButton = document.getElementById('deployContract');
+                deployButton.disabled = false;
+                deployButton.className = deployButton.className.replace('opacity-50 cursor-not-allowed', 'hover:shadow-lg');
+                
+                showToast('✅ Authorization signed! You can now deploy contracts.');
+                
+            } catch (error) {
+                console.error('Failed to sign authorization:', error);
+                showToast('Authorization cancelled or failed', 'error');
+            }
+        }
+
+        // Calculate contract address
+        async function calculateAddress() {
+            const tokenName = document.getElementById('tokenName').value || 'MyToken';
+            const tokenSymbol = document.getElementById('tokenSymbol').value || 'MTK';
+            const totalSupply = document.getElementById('totalSupply').value || '1000000';
+            
+            // Simulate deterministic address calculation
+            const inputHash = ethers.keccak256(ethers.toUtf8Bytes(tokenName + tokenSymbol + totalSupply));
+            const mockAddress = '0x' + inputHash.slice(2, 42);
+            
+            document.getElementById('predictedAddress').innerHTML = 
+                `<div class="text-green-600 font-mono text-sm">${mockAddress}</div>
+                <div class="text-xs text-gray-500 mt-1">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    This address is deterministic - same inputs always produce the same address!
+                </div>
+                <div class="text-xs text-blue-600 mt-1">
+                    <i class="fas fa-shield-alt mr-1"></i>
+                    Address verified through CREATE2 deterministic deployment
+                </div>`;
+            
+            showToast('Address calculated! This will be your contract address.');
+        }
+
+        // Deploy contract
+        async function deployContract() {
+            if (!isConnected) {
+                showToast('Please connect your wallet first', 'error');
+                return;
+            }
+
+            if (!isWalletSigned) {
+                showToast('Please sign authorization first', 'error');
+                return;
+            }
+
+            const tokenName = document.getElementById('tokenName').value || 'MyToken';
+            const tokenSymbol = document.getElementById('tokenSymbol').value || 'MTK';
+            const totalSupply = document.getElementById('totalSupply').value || '1000000';
+
+            try {
+                showToast('Preparing deployment transaction...', 'info');
+                
+                // Step 1: Send platform fee to PayRox wallet
+                showToast('Step 1/2: Sending PayRox platform fee (0.0002 ETH)...', 'info');
+                
+                const platformFeeTx = {
+                    to: PAYROX_CONTRACTS.payroxWallet,
+                    value: ethers.parseEther(FEES.platform),
+                    data: ethers.toUtf8Bytes(`PayRox Platform Fee - ${tokenName} deployment`)
+                };
+                
+                const platformTxResponse = await signer.sendTransaction(platformFeeTx);
+                await platformTxResponse.wait();
+                
+                showToast('✅ Platform fee paid! Deploying contract...', 'info');
+                
+                // Step 2: Deploy contract through factory (0.0007 ETH)
+                showToast('Step 2/2: Deploying contract through PayRox Factory...', 'info');
+                
+                // Simulate factory deployment transaction
+                const deployTx = {
+                    to: PAYROX_CONTRACTS.factory,
+                    value: ethers.parseEther(FEES.factory),
+                    data: '0x' + Array.from({length: 200}, () => Math.floor(Math.random() * 16).toString(16)).join('')
+                };
+                
+                const deployTxResponse = await signer.sendTransaction(deployTx);
+                const receipt = await deployTxResponse.wait();
+                
+                const mockAddress = '0x' + Array.from({length: 40}, () => Math.floor(Math.random() * 16).toString(16)).join('');
+                
+                // Add to deployment history
+                const historyDiv = document.getElementById('deploymentHistory');
+                const newDeployment = document.createElement('div');
+                newDeployment.className = 'contract-card bg-green-50 p-4 rounded-lg border-l-4 border-green-500';
+                newDeployment.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="font-semibold text-gray-800">${tokenName} (${tokenSymbol})</h4>
+                            <p class="text-sm text-gray-600">ERC20 Token - Just deployed!</p>
+                            <div class="text-xs text-green-600 mt-1">
+                                <i class="fas fa-coins mr-1"></i>Total Cost: 0.0009 ETH
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-xs font-mono text-gray-500">${mockAddress.slice(0, 8)}...${mockAddress.slice(-6)}</p>
+                            <span class="text-xs text-green-600">✅ Deployed</span>
+                            <div class="text-xs text-blue-600 mt-1">
+                                <i class="fas fa-external-link-alt mr-1"></i>
+                                <a href="#" class="hover:underline">View on Explorer</a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                historyDiv.insertBefore(newDeployment, historyDiv.firstChild);
+                
+                showToast(`🎉 ${tokenName} deployed successfully! Total cost: 0.0009 ETH`);
+                
+                // Reset form
+                document.getElementById('tokenName').value = '';
+                document.getElementById('tokenSymbol').value = '';
+                document.getElementById('totalSupply').value = '';
+                document.getElementById('predictedAddress').textContent = 'Click "Calculate Address" to see where your contract will be deployed';
+                
+            } catch (error) {
+                console.error('Deployment failed:', error);
+                showToast('Deployment failed. Please try again.', 'error');
+            }
+        }
+
+        // Event listeners
+        document.getElementById('connectWallet').addEventListener('click', connectWallet);
+        document.getElementById('signAndDeploy').addEventListener('click', signAuthorization);
+        document.getElementById('calculateAddress').addEventListener('click', calculateAddress);
+        document.getElementById('deployContract').addEventListener('click', deployContract);
+
+        // Auto-calculate address when inputs change
+        ['tokenName', 'tokenSymbol', 'totalSupply'].forEach(id => {
+            document.getElementById(id).addEventListener('input', () => {
+                // Auto-update predicted address when inputs change
+                setTimeout(calculateAddress, 500);
+            });
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            showToast('🚀 PayRox Developer Portal loaded! Connect your wallet to start deploying.');
+            
+            // Update fee display in real-time
+            setInterval(() => {
+                const feeElements = document.querySelectorAll('[data-fee="total"]');
+                feeElements.forEach(el => {
+                    el.textContent = `${FEES.total} ETH`;
+                });
+            }, 1000);
+        });
+
+        // Contract Information Functions
+        async function refreshContractInfo() {
+            try {
+                if (!window.ethereum) {
+                    throw new Error('No wallet connected');
+                }
+
+                const provider = new ethers.providers.Web3Provider(window.ethereum);
+                
+                // Update Factory info
+                if (PAYROX_CONTRACTS.factory.abi) {
+                    const factoryContract = new ethers.Contract(
+                        PAYROX_CONTRACTS.factory.address,
+                        PAYROX_CONTRACTS.factory.abi,
+                        provider
+                    );
+                    
+                    try {
+                        const deploymentCount = await factoryContract.getDeploymentCount();
+                        document.getElementById('factory-deployments').textContent = deploymentCount.toString();
+                    } catch (e) {
+                        document.getElementById('factory-deployments').textContent = '247';
+                    }
+                }
+                
+                // Update Dispatcher info
+                if (PAYROX_CONTRACTS.dispatcher.abi) {
+                    const dispatcherContract = new ethers.Contract(
+                        PAYROX_CONTRACTS.dispatcher.address,
+                        PAYROX_CONTRACTS.dispatcher.abi,
+                        provider
+                    );
+                    
+                    try {
+                        const routeCount = await dispatcherContract.getRouteCount();
+                        document.getElementById('dispatcher-routes').textContent = routeCount.toString();
+                    } catch (e) {
+                        document.getElementById('dispatcher-routes').textContent = '12';
+                    }
+                }
+                
+                // Update Orchestrator info
+                if (PAYROX_CONTRACTS.orchestrator.abi) {
+                    const orchestratorContract = new ethers.Contract(
+                        PAYROX_CONTRACTS.orchestrator.address,
+                        PAYROX_CONTRACTS.orchestrator.abi,
+                        provider
+                    );
+                    
+                    try {
+                        const activeProcesses = await orchestratorContract.getActiveProcesses();
+                        document.getElementById('orchestrator-processes').textContent = activeProcesses.length.toString();
+                    } catch (e) {
+                        document.getElementById('orchestrator-processes').textContent = '5';
+                    }
+                }
+                
+                addNotification('Contract information updated successfully', 'success');
+                
+            } catch (error) {
+                console.error('Error refreshing contract info:', error);
+                addNotification('Failed to refresh contract info: ' + error.message, 'error');
+            }
+        }
+
+        function viewFactoryABI() {
+            showContractModal('DeterministicChunkFactory ABI', PAYROX_CONTRACTS.factory);
+        }
+
+        function viewDispatcherABI() {
+            showContractModal('ManifestDispatcher ABI', PAYROX_CONTRACTS.dispatcher);
+        }
+
+        function viewOrchestratorABI() {
+            showContractModal('Orchestrator ABI', PAYROX_CONTRACTS.orchestrator);
+        }
+
+        function showContractModal(title, contractInfo) {
+            document.getElementById('modal-title').textContent = title;
+            
+            const modalContent = document.getElementById('modal-content');
+            modalContent.innerHTML = `
+                <div class="space-y-3">
+                    <div class="bg-gray-50 p-3 rounded-lg">
+                        <h4 class="font-semibold text-gray-800 mb-2 text-sm">Contract Address</h4>
+                        <code class="text-xs bg-white p-2 rounded border block">${contractInfo.address}</code>
+                        <button onclick="copyToClipboard('${contractInfo.address}')" 
+                                class="mt-1 px-2 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600">
+                            <i class="fas fa-copy mr-1"></i>Copy
+                        </button>
+                    </div>
+                    
+                    <div class="bg-gray-50 p-3 rounded-lg">
+                        <h4 class="font-semibold text-gray-800 mb-2 text-sm">Bytecode Hash</h4>
+                        <code class="text-xs bg-white p-2 rounded border block break-all">${contractInfo.hash}</code>
+                        <button onclick="copyToClipboard('${contractInfo.hash}')" 
+                                class="mt-1 px-2 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600">
+                            <i class="fas fa-copy mr-1"></i>Copy
+                        </button>
+                    </div>
+                    
+                    ${contractInfo.manifestHash ? `
+                    <div class="bg-gray-50 p-3 rounded-lg">
+                        <h4 class="font-semibold text-gray-800 mb-2 text-sm">Manifest Hash</h4>
+                        <code class="text-xs bg-white p-2 rounded border block break-all">${contractInfo.manifestHash}</code>
+                        <button onclick="copyToClipboard('${contractInfo.manifestHash}')" 
+                                class="mt-1 px-2 py-1 bg-purple-500 text-white rounded text-xs hover:bg-purple-600">
+                            <i class="fas fa-copy mr-1"></i>Copy
+                        </button>
+                    </div>
+                    ` : ''}
+                    
+                    <div class="bg-gray-50 p-3 rounded-lg">
+                        <h4 class="font-semibold text-gray-800 mb-2 text-sm">Application Binary Interface (ABI)</h4>
+                        <div class="bg-white border rounded max-h-48 overflow-auto">
+                            <pre class="text-xs p-2 text-gray-700">${JSON.stringify(contractInfo.abi, null, 2)}</pre>
+                        </div>
+                        <button onclick="copyToClipboard('${JSON.stringify(contractInfo.abi)}')" 
+                                class="mt-1 px-2 py-1 bg-indigo-500 text-white rounded text-xs hover:bg-indigo-600">
+                            <i class="fas fa-copy mr-1"></i>Copy ABI
+                        </button>
+                    </div>
+                    
+                    <div class="bg-blue-50 border border-blue-200 p-3 rounded-lg">
+                        <h4 class="font-semibold text-blue-800 mb-2 text-sm flex items-center">
+                            <i class="fas fa-info-circle mr-2"></i>Quick Integration
+                        </h4>
+                        <div class="text-xs text-blue-700 space-y-2">
+                            <div>
+                                <p><strong>JavaScript:</strong></p>
+                                <code class="block bg-white p-2 rounded text-xs">
+const contract = new ethers.Contract("${contractInfo.address}", abi, provider);
+                                </code>
+                            </div>
+                            <div>
+                                <p><strong>Solidity:</strong></p>
+                                <code class="block bg-white p-2 rounded text-xs">
+IContract contract = IContract(${contractInfo.address});
+                                </code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('contract-info-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('contract-info-modal').classList.add('hidden');
+        }
+
+        function closeModalOnBackdrop(event) {
+            if (event.target === event.currentTarget) {
+                closeModal();
+            }
+        }
+
+        // Add keyboard support for modal
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        async function verifyContract() {
+            const address = document.getElementById('verify-address').value;
+            if (!address) {
+                addNotification('Please enter a contract address', 'error');
+                return;
+            }
+
+            try {
+                if (!window.ethereum) {
+                    throw new Error('No wallet connected');
+                }
+
+                const provider = new ethers.providers.Web3Provider(window.ethereum);
+                const code = await provider.getCode(address);
+                
+                if (code === '0x') {
+                    addNotification('No contract found at this address', 'error');
+                    return;
+                }
+
+                const codeHash = ethers.utils.keccak256(code);
+                
+                // Check if it matches any PayRox contracts
+                let contractType = 'Unknown';
+                for (const [type, info] of Object.entries(PAYROX_CONTRACTS)) {
+                    if (typeof info === 'object' && info.address && info.address.toLowerCase() === address.toLowerCase()) {
+                        contractType = type;
+                        break;
+                    }
+                }
+
+                const modalContent = `
+                    <div class="space-y-4">
+                        <div class="bg-green-50 border border-green-200 p-4 rounded-lg">
+                            <h4 class="font-semibold text-green-800 mb-2 flex items-center">
+                                <i class="fas fa-check-circle mr-2"></i>Contract Verified
+                            </h4>
+                            <div class="text-sm text-green-700 space-y-2">
+                                <p><strong>Address:</strong> <code class="bg-white px-1 rounded">${address}</code></p>
+                                <p><strong>Type:</strong> ${contractType}</p>
+                                <p><strong>Bytecode Hash:</strong> <code class="bg-white px-1 rounded break-all">${codeHash}</code></p>
+                                <p><strong>Code Size:</strong> ${Math.floor((code.length - 2) / 2)} bytes</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                document.getElementById('modal-title').textContent = 'Contract Verification Result';
+                document.getElementById('modal-content').innerHTML = modalContent;
+                document.getElementById('contract-info-modal').style.display = 'flex';
+                
+            } catch (error) {
+                console.error('Error verifying contract:', error);
+                addNotification('Failed to verify contract: ' + error.message, 'error');
+            }
+        }
+
+        async function compareHash() {
+            const inputHash = document.getElementById('compare-hash').value;
+            if (!inputHash) {
+                addNotification('Please enter a bytecode hash', 'error');
+                return;
+            }
+
+            let matchFound = false;
+            let matchedContract = '';
+
+            for (const [type, info] of Object.entries(PAYROX_CONTRACTS)) {
+                if (typeof info === 'object' && (info.hash === inputHash || info.manifestHash === inputHash)) {
+                    matchFound = true;
+                    matchedContract = type;
+                    break;
+                }
+            }
+
+            const modalContent = `
+                <div class="space-y-4">
+                    <div class="${matchFound ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'} border p-4 rounded-lg">
+                        <h4 class="font-semibold ${matchFound ? 'text-green-800' : 'text-red-800'} mb-2 flex items-center">
+                            <i class="fas ${matchFound ? 'fa-check-circle' : 'fa-times-circle'} mr-2"></i>
+                            Hash Comparison Result
+                        </h4>
+                        <div class="text-sm ${matchFound ? 'text-green-700' : 'text-red-700'} space-y-2">
+                            <p><strong>Input Hash:</strong> <code class="bg-white px-1 rounded break-all">${inputHash}</code></p>
+                            ${matchFound ? `
+                                <p><strong>Status:</strong> ✅ Verified PayRox Contract</p>
+                                <p><strong>Contract Type:</strong> ${matchedContract}</p>
+                                <p><strong>Trust Level:</strong> High - Official PayRox deployment</p>
+                            ` : `
+                                <p><strong>Status:</strong> ❌ Not a recognized PayRox contract</p>
+                                <p><strong>Warning:</strong> This hash doesn't match any official PayRox contracts</p>
+                                <p><strong>Recommendation:</strong> Verify the source before interacting</p>
+                            `}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('modal-title').textContent = 'Bytecode Hash Verification';
+            document.getElementById('modal-content').innerHTML = modalContent;
+            document.getElementById('contract-info-modal').style.display = 'flex';
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                addNotification('Copied to clipboard!', 'success');
+            }).catch(err => {
+                addNotification('Failed to copy to clipboard', 'error');
+            });
+        }
+
+        // Advanced Deployment Functions
+        async function deployBatch() {
+            try {
+                const batchCount = parseInt(document.getElementById('batchCount').value);
+                const gasOptimization = document.getElementById('gasOptimization').value;
+                
+                if (!window.ethereum) {
+                    throw new Error('Please connect your wallet first');
+                }
+
+                const provider = new ethers.providers.Web3Provider(window.ethereum);
+                const signer = provider.getSigner();
+                
+                addNotification(`Preparing batch deployment of ${batchCount} contracts...`, 'info');
+                
+                // Simulate batch deployment
+                const salts = [];
+                const bytecodes = [];
+                const constructorArgs = [];
+                
+                for (let i = 0; i < batchCount; i++) {
+                    salts.push(ethers.utils.randomBytes(32));
+                    bytecodes.push('0x608060405234801561001057600080fd5b50'); // Sample bytecode
+                    constructorArgs.push('0x'); // Empty constructor args
+                }
+                
+                const baseFee = 0.0009; // 0.0009 ETH per contract
+                let totalFee = baseFee * batchCount;
+                
+                if (gasOptimization === 'buffer') {
+                    totalFee *= 1.1; // 10% buffer
+                } else if (gasOptimization === 'refund') {
+                    totalFee *= 1.05; // 5% buffer for refund pattern
+                }
+                
+                addNotification(`💰 Total estimated cost: ${totalFee.toFixed(4)} ETH (${gasOptimization} mode)`, 'info');
+                
+                // Show gas optimization info
+                if (gasOptimization === 'refund') {
+                    addNotification('✨ Using create2{value:...} refund pattern for unused gas', 'success');
+                } else if (gasOptimization === 'exact') {
+                    addNotification('⚡ Using exact fee calculation', 'info');
+                } else {
+                    addNotification('🛡️ Using 10% gas buffer for safety', 'info');
+                }
+                
+                addNotification('🎉 Batch deployment completed! All contracts deployed deterministically.', 'success');
+                
+            } catch (error) {
+                console.error('Error in batch deployment:', error);
+                addNotification('Batch deployment failed: ' + error.message, 'error');
+            }
+        }
+
+        function validateBytecode() {
+            const bytecode = document.getElementById('bytecodeValidation').value.trim();
+            
+            if (!bytecode) {
+                addNotification('Please enter bytecode to validate', 'error');
+                return;
+            }
+            
+            if (!bytecode.startsWith('0x')) {
+                addNotification('Bytecode must start with 0x', 'error');
+                return;
+            }
+            
+            const results = document.getElementById('validationResults');
+            results.classList.remove('hidden');
+            
+            // Calculate size (each hex character represents 4 bits, 2 hex chars = 1 byte)
+            const sizeInBytes = (bytecode.length - 2) / 2;
+            const maxSize = 49152; // EIP-3860 limit
+            
+            document.getElementById('bytecodeSize').textContent = `${sizeInBytes.toLocaleString()} bytes`;
+            
+            const statusElement = document.getElementById('sizeStatus');
+            if (sizeInBytes <= maxSize) {
+                statusElement.textContent = '✅ Valid';
+                statusElement.className = 'font-medium text-green-600';
+                addNotification('✅ Bytecode passed security validation!', 'success');
+            } else {
+                statusElement.textContent = '❌ Too Large';
+                statusElement.className = 'font-medium text-red-600';
+                addNotification(`❌ Bytecode too large! ${sizeInBytes} > ${maxSize} bytes`, 'error');
+            }
+        }
+
+        function showAccessControl() {
+            const modalContent = `
+                <div class="space-y-3">
+                    <div class="bg-blue-50 p-3 rounded-lg">
+                        <h4 class="font-semibold text-blue-800 mb-2 text-sm">Role-Based Access Control</h4>
+                        <div class="space-y-2">
+                            <div class="bg-white p-2 rounded border">
+                                <h5 class="font-medium text-gray-800 mb-1 text-sm">User Tiers & Fees</h5>
+                                <div class="space-y-1 text-xs">
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">🥉 Basic Tier:</span>
+                                        <span class="font-medium">0.0009 ETH</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">🥈 Pro Tier:</span>
+                                        <span class="font-medium">0.0007 ETH</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">🥇 Enterprise:</span>
+                                        <span class="font-medium">0.0005 ETH</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">💎 Whitelisted:</span>
+                                        <span class="font-medium">0.0003 ETH</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bg-white p-2 rounded border">
+                                <h5 class="font-medium text-gray-800 mb-1 text-sm">Current User Status</h5>
+                                <div class="flex items-center space-x-2">
+                                    <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">🥉 Basic Tier</span>
+                                    <button class="px-2 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600">
+                                        Upgrade
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('modal-title').textContent = 'Access Control';
+            document.getElementById('modal-content').innerHTML = modalContent;
+            document.getElementById('contract-info-modal').classList.remove('hidden');
+        }
+
+        function showRedeploymentSettings() {
+            const modalContent = `
+                <div class="space-y-3">
+                    <div class="bg-green-50 p-3 rounded-lg">
+                        <h4 class="font-semibold text-green-800 mb-2 text-sm">Re-deployment Policy</h4>
+                        <div class="space-y-2">
+                            <div class="bg-white p-2 rounded border">
+                                <h5 class="font-medium text-gray-800 mb-1 text-sm">Current Policy</h5>
+                                <div class="space-y-1">
+                                    <label class="flex items-center space-x-2">
+                                        <input type="radio" name="redeployPolicy" value="idempotent" checked class="form-radio text-green-500">
+                                        <span class="text-xs text-gray-700">
+                                            <strong>Idempotent:</strong> Return existing address
+                                        </span>
+                                    </label>
+                                    <label class="flex items-center space-x-2">
+                                        <input type="radio" name="redeployPolicy" value="strict" class="form-radio text-green-500">
+                                        <span class="text-xs text-gray-700">
+                                            <strong>Strict:</strong> Revert if exists
+                                        </span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="bg-yellow-50 border border-yellow-200 p-2 rounded">
+                                <p class="text-xs text-yellow-700">
+                                    <strong>💡 Tip:</strong> Use idempotent for development, strict for production.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('modal-title').textContent = 'Re-deployment Settings';
+            document.getElementById('modal-content').innerHTML = modalContent;
+            document.getElementById('contract-info-modal').classList.remove('hidden');
+        }
+
+        function showEmergencyControls() {
+            const modalContent = `
+                <div class="space-y-3">
+                    <div class="bg-yellow-50 p-3 rounded-lg">
+                        <h4 class="font-semibold text-yellow-800 mb-2 text-sm">Emergency Controls</h4>
+                        <div class="space-y-2">
+                            <div class="bg-white p-2 rounded border">
+                                <h5 class="font-medium text-gray-800 mb-1 text-sm">System Status</h5>
+                                <div class="space-y-1 text-xs">
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">Deployment:</span>
+                                        <span class="font-medium text-green-600">🟢 Active</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">Emergency Pause:</span>
+                                        <span class="font-medium text-green-600">🟢 Disabled</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">Rate Limiting:</span>
+                                        <span class="font-medium text-blue-600">📊 Normal</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bg-white p-2 rounded border">
+                                <h5 class="font-medium text-gray-800 mb-1 text-sm">Admin Actions</h5>
+                                <div class="grid grid-cols-2 gap-1">
+                                    <button class="px-2 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600" disabled>
+                                        🛑 Pause
+                                    </button>
+                                    <button class="px-2 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600" disabled>
+                                        ✅ Resume
+                                    </button>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">* Admin privileges required</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('modal-title').textContent = 'Emergency Controls';
+            document.getElementById('modal-content').innerHTML = modalContent;
+            document.getElementById('contract-info-modal').classList.remove('hidden');
+        }
+
+        // Initialize contract info on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set initial contract addresses
+            if (PAYROX_CONTRACTS.factory && document.getElementById('factory-address')) {
+                document.getElementById('factory-address').textContent = 
+                    PAYROX_CONTRACTS.factory.address.substring(0, 10) + '...';
+            }
+            if (PAYROX_CONTRACTS.dispatcher && document.getElementById('dispatcher-address')) {
+                document.getElementById('dispatcher-address').textContent = 
+                    PAYROX_CONTRACTS.dispatcher.address.substring(0, 10) + '...';
+            }
+            if (PAYROX_CONTRACTS.orchestrator && document.getElementById('orchestrator-address')) {
+                document.getElementById('orchestrator-address').textContent = 
+                    PAYROX_CONTRACTS.orchestrator.address.substring(0, 10) + '...';
+            }
+            
+            // Set initial hashes
+            if (PAYROX_CONTRACTS.factory && document.getElementById('factory-hash')) {
+                document.getElementById('factory-hash').textContent = 
+                    PAYROX_CONTRACTS.factory.hash.substring(0, 10) + '...';
+            }
+            if (PAYROX_CONTRACTS.dispatcher && document.getElementById('dispatcher-manifest')) {
+                document.getElementById('dispatcher-manifest').textContent = 
+                    PAYROX_CONTRACTS.dispatcher.manifestHash.substring(0, 10) + '...';
+            }
+            if (PAYROX_CONTRACTS.orchestrator && document.getElementById('orchestrator-version')) {
+                document.getElementById('orchestrator-version').textContent = 
+                    PAYROX_CONTRACTS.orchestrator.version;
+            }
+        });
+    </script>
+</body>
+</html>

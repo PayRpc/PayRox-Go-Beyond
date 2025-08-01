@@ -8,6 +8,9 @@ import {
   FacetDefinition
 } from '../types/index';
 
+// PayRox Go Beyond protocol limits - keep in sync with constants/limits.ts
+const MAX_FUNCTIONS_PER_FACET = 20; // Updated to match constants/limits.ts
+
 // PayRox Manifest Interface
 interface PayRoxManifest {
   version: string;
@@ -237,12 +240,10 @@ export class AIRefactorWizard {
    * Group functions by logical similarity for optimal facet distribution
    */
   private groupFunctionsByLogic(functions: FunctionInfo[]): FunctionInfo[][] {
-    const MAX_FUNCTIONS_PER_FACET = 12; // Optimal for gas and maintainability
-    
     if (functions.length <= MAX_FUNCTIONS_PER_FACET) {
       return [functions];
     }
-    
+
     // Advanced grouping strategy based on function patterns
     const groups: FunctionInfo[][] = [];
     const remainingFunctions = [...functions];

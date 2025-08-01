@@ -11,7 +11,7 @@ const program = new Command();
 // Production smart contract CLI for PayRox
 class PayRoxCLI {
   private rl: readline.Interface;
-  private currentNetwork: string = 'localhost';
+  private currentNetwork: string = 'hardhat';
 
   constructor() {
     this.rl = readline.createInterface({
@@ -281,6 +281,7 @@ class PayRoxCLI {
     console.log('2. 🧮 Calculate chunk address');
     console.log('3. 📋 Generate manifest');
     console.log('4. 🔍 Verify deployment');
+    console.log('5. 📊 Check manifest hash');
     console.log('0. Back to main menu\n');
 
     const choice = await this.askQuestion('Select utility: ');
@@ -297,6 +298,9 @@ class PayRoxCLI {
         break;
       case '4':
         await this.verifyDeployment();
+        break;
+      case '5':
+        await this.checkManifestHash();
         break;
       case '0':
         await this.showMainMenu();
@@ -546,6 +550,12 @@ class PayRoxCLI {
   private async verifyDeployment() {
     console.log('\n🔍 Verify Deployment');
     await this.executeScript('verify-deployment.ts');
+  }
+
+  private async checkManifestHash() {
+    console.log('\n📊 Check Manifest Hash');
+    console.log('Reading current manifest and audit information...\n');
+    await this.executeScript('check-manifest-hash.ts');
   }
 
   private async executeHardhatTask(

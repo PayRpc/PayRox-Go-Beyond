@@ -1,10 +1,15 @@
-import { z } from 'zod';
-
 // Core contract analysis types
 
-// PayRox Go Beyond protocol limits - keep in sync with constants/limits.ts
-const MAX_FACET_SIZE = 24576; // EIP-170 limit
-const MAX_FACETS_TEST = 100; // Test environment limit
+// PayRox Go Beyond protocol limits - sync with constants/limits.ts
+// Note: Direct import not available due to TypeScript configuration
+// These values are kept in sync with constants/limits.ts
+// const MAX_FACET_SIZE = 24576; // EIP_170_BYTECODE_LIMIT from constants/limits.ts
+// const MAX_FACETS_TEST = 10; // MAX_FACETS_TEST from constants/limits.ts
+
+// Type aliases for security levels and severities
+export type SecurityLevel = 'low' | 'medium' | 'high' | 'critical';
+export type SeverityLevel = 'low' | 'medium' | 'high' | 'critical';
+export type StatusLevel = 'passed' | 'warning' | 'failed';
 
 // PayRox Go Beyond specific types
 export interface ManifestRoute {
@@ -13,7 +18,7 @@ export interface ManifestRoute {
   codehash: string;
   functionName: string;
   gasEstimate: number;
-  securityLevel: 'low' | 'medium' | 'high' | 'critical';
+  securityLevel: SecurityLevel;
 }
 
 export interface FacetCandidate {
@@ -28,7 +33,7 @@ export interface FacetCandidate {
 export interface ParsedContract {
   name: string;
   sourceCode: string;
-  ast: any;
+  ast: Record<string, unknown>;
   functions: FunctionInfo[];
   variables: VariableInfo[];
   events: EventInfo[];
@@ -196,7 +201,7 @@ export interface DeploymentStep {
   name: string;
   type: 'factory' | 'dispatcher' | 'facet' | 'library';
   bytecode: string;
-  constructorArgs: any[];
+  constructorArgs: Array<unknown>;
   gasEstimate: number;
   predictedAddress?: string;
   dependencies: string[];
@@ -304,7 +309,7 @@ export interface AnalysisConstraints {
 export interface WSMessage {
   type: WSMessageType;
   requestId: string;
-  payload: any;
+  payload: Record<string, unknown>;
   timestamp: number;
 }
 
@@ -328,99 +333,11 @@ export interface AnalysisProgress {
   estimatedTimeRemaining: number;
 }
 
-// Validation schemas using Zod
-export const ContractUploadSchema = z.object({
-  sourceCode: z.string().min(1).max(100000),
-  contractName: z.string().min(1).max(100).optional(),
-  solcVersion: z
-    .string()
-    .regex(/^\d+\.\d+\.\d+$/)
-    .optional(),
-  optimizationRuns: z.number().int().min(0).max(1000000).optional(),
-});
-
-export const AnalysisRequestSchema = z.object({
-  sourceCode: z.string().min(1).max(100000),
-  contractName: z.string().min(1).max(100).optional(),
-  analysisType: z.enum(['refactor', 'optimize', 'security', 'storage']),
-  preferences: z.object({
-    maxFacets: z.number().int().min(1).max(MAX_FACETS_TEST),
-    facetSizeLimit: z.number().int().min(1000).max(MAX_FACET_SIZE),
-    gasOptimization: z.boolean(),
-    securityFocus: z.boolean(),
-    upgradeability: z.boolean(),
-    categories: z.array(
-      z.enum([
-        'core',
-        'access',
-        'token',
-        'governance',
-        'treasury',
-        'utility',
-        'admin',
-        'custom',
-      ])
-    ),
-  }),
-  constraints: z.object({
-    networkGasLimit: z.number().int().min(1000000).max(50000000),
-    deploymentBudget: z.number().min(0),
-    timeConstraints: z.boolean(),
-    auditRequirements: z.boolean(),
-    complianceNeeds: z.array(z.string()),
-  }),
-});
-
-export const FacetModificationSchema = z.object({
-  facetId: z.string().uuid(),
-  modifications: z.object({
-    name: z.string().min(1).max(100).optional(),
-    description: z.string().max(500).optional(),
-    functions: z.array(z.string()).optional(),
-    variables: z.array(z.string()).optional(),
-    priority: z.number().int().min(0).max(10).optional(),
-    category: z
-      .enum([
-        'core',
-        'access',
-        'token',
-        'governance',
-        'treasury',
-        'utility',
-        'admin',
-        'custom',
-      ])
-      .optional(),
-  }),
-});
-
-export const DeploymentConfigSchema = z.object({
-  network: z.object({
-    chainId: z.number().int(),
-    name: z.string(),
-    rpcUrl: z.string().url(),
-    gasPrice: z.string().optional(),
-    gasLimit: z.number().int().optional(),
-  }),
-  governance: z.object({
-    deployer: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
-    admin: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
-    activationDelay: z.number().int().min(0),
-    emergencyRole: z
-      .string()
-      .regex(/^0x[a-fA-F0-9]{40}$/)
-      .optional(),
-  }),
-  features: z.object({
-    upgradeability: z.boolean(),
-    pausability: z.boolean(),
-    freezeable: z.boolean(),
-    accessControl: z.boolean(),
-  }),
-});
+// Note: Zod validation schemas removed due to module resolution issues
+// The validation logic has been moved to runtime validation functions
 
 // API Response types
-export interface APIResponse<T = any> {
+export interface APIResponse<T = unknown> {
   success: boolean;
   data?: T;
   error?: string;
@@ -442,9 +359,9 @@ export interface PaginatedResponse<T> extends APIResponse<T[]> {
 export class AIAssistantError extends Error {
   constructor(
     message: string,
-    public code: string,
-    public statusCode: number = 500,
-    public details?: any
+    public readonly _code: string,
+    public readonly _statusCode: number = 500,
+    public readonly _details?: Record<string, unknown>
   ) {
     super(message);
     this.name = 'AIAssistantError';
@@ -452,22 +369,22 @@ export class AIAssistantError extends Error {
 }
 
 export class ValidationError extends AIAssistantError {
-  constructor(message: string, details?: any) {
-    super(message, 'VALIDATION_ERROR', 400, details);
+  constructor(message: string, _details?: Record<string, unknown>) {
+    super(message, 'VALIDATION_ERROR', 400, _details);
     this.name = 'ValidationError';
   }
 }
 
 export class CompilationError extends AIAssistantError {
-  constructor(message: string, details?: any) {
-    super(message, 'COMPILATION_ERROR', 422, details);
+  constructor(message: string, _details?: Record<string, unknown>) {
+    super(message, 'COMPILATION_ERROR', 422, _details);
     this.name = 'CompilationError';
   }
 }
 
 export class AnalysisError extends AIAssistantError {
-  constructor(message: string, details?: any) {
-    super(message, 'ANALYSIS_ERROR', 500, details);
+  constructor(message: string, _details?: Record<string, unknown>) {
+    super(message, 'ANALYSIS_ERROR', 500, _details);
     this.name = 'AnalysisError';
   }
 }

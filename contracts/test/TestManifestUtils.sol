@@ -55,7 +55,11 @@ contract TestManifestUtils {
             authorizedDeployers: authorizedDeployers
         });
 
-        (bool isValid, ) = ManifestUtils.validateManifest(manifest, defaultPolicy);
+        (bool isValid, string memory validationError) = ManifestUtils.validateManifest(manifest, defaultPolicy);
+        // Explicitly use both return values to avoid unused return warning
+        if (!isValid && bytes(validationError).length > 0) {
+            // Validation failed with error message
+        }
         return isValid;
     }
 
@@ -66,7 +70,11 @@ contract TestManifestUtils {
         ManifestTypes.ReleaseManifest memory manifest,
         ManifestTypes.SecurityPolicy memory policy
     ) external pure returns (bool) {
-        (bool isValid, ) = ManifestUtils.validateManifest(manifest, policy);
+        (bool isValid, string memory validationError) = ManifestUtils.validateManifest(manifest, policy);
+        // Explicitly use both return values to avoid unused return warning
+        if (!isValid && bytes(validationError).length > 0) {
+            // Validation failed with error message
+        }
         return isValid;
     }
 

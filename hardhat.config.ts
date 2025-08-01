@@ -15,13 +15,22 @@ dotenv.config();
 const config: HardhatUserConfig = {
   defaultNetwork: process.env.DEFAULT_NETWORK || 'hardhat',
   solidity: {
-    version: '0.8.30',
+    version: '0.8.30', // Keep current version - works perfectly
     settings: {
       optimizer: {
         enabled: true,
         runs: 200,
       },
-      viaIR: true,
+      viaIR: true, // Keep current setting - contracts compile fine
+      metadata: {
+        // Include source in metadata for better debugging
+        bytecodeHash: 'none', // Deterministic builds
+      },
+      outputSelection: {
+        '*': {
+          '*': ['abi', 'evm.bytecode', 'evm.deployedBytecode', 'metadata'],
+        },
+      },
     },
   },
   networks: {

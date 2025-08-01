@@ -1,16 +1,16 @@
 {
   "ExampleFacetA": {
-    "address": "0x922D6956C99E12DFeB3224DEA977D0939758A1Fe",
-    "salt": "0x027a5f51700ada2bf3bd13e3ce487d055e0a30bbdf50773847698f4c0b544f1b",
-    "hash": "0x027a5f51700ada2bf3bd13e3ce487d055e0a30bbdf50773847698f4c0b544f1b",
+    "address": "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
+    "salt": "0xb4dfed4bba6c6e2644cf3a8ed5ac5f2b90a3e5b349d73f3e766d3fdc859f7ef1",
+    "hash": "0xb4dfed4bba6c6e2644cf3a8ed5ac5f2b90a3e5b349d73f3e766d3fdc859f7ef1",
     "size": 3517,
     "gasLimit": 500000
   },
   "ExampleFacetB": {
-    "address": "0x5081a39b8A5f0E35a8D959395a630b68B74Dd30f",
-    "salt": "0xf84333b460438bb427a4f59ef5faf1858b88e1b540d01b4a08784cb50c864949",
-    "hash": "0xf84333b460438bb427a4f59ef5faf1858b88e1b540d01b4a08784cb50c864949",
-    "size": 5370,
+    "address": "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
+    "salt": "0x7141a32a25fe503623c407386e687b56f8511ea22d8a2ed67c9725f3ac8469b8",
+    "hash": "0x7141a32a25fe503623c407386e687b56f8511ea22d8a2ed67c9725f3ac8469b8",
+    "size": 6485,
     "gasLimit": 750000
   }
 }

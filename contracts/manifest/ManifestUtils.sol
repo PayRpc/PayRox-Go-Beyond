@@ -8,6 +8,12 @@ import "./ManifestTypes.sol";
  * @dev Utility functions for manifest processing and validation
  */
 library ManifestUtils {
+    
+    // Gas estimation constants for clarity and maintainability
+    uint256 private constant BASE_MANIFEST_GAS = 100_000;      // Base gas for manifest processing
+    uint256 private constant GAS_PER_SELECTOR = 5_000;        // Gas per function selector
+    uint256 private constant GAS_PER_CHUNK = 50_000;          // Gas per chunk deployment  
+    uint256 private constant MERKLE_VERIFICATION_GAS = 30_000; // Gas for Merkle verification
 
     /**
      * @dev Calculate the hash of a manifest
@@ -316,5 +322,117 @@ library ManifestUtils {
         uint256 requiredQuorum = (totalSupply * quorumThreshold) / 100;
 
         return totalVotes >= requiredQuorum && proposal.forVotes > proposal.againstVotes;
+    }
+
+    /**
+     * @dev Production-grade manifest integrity verification
+     * @param manifest The manifest to verify
+     * @param previousManifestHash Hash of the previous manifest
+     * @param currentTimestamp Current block timestamp
+     * @return isValid Whether the manifest is valid
+     * @return errorCode Error code (0=valid, 1=invalid chain, 2=stale timestamp, 3=invalid previous hash)
+     */
+    function verifyManifestIntegrity(
+        ManifestTypes.ReleaseManifest memory manifest,
+        bytes32 previousManifestHash,
+        uint256 currentTimestamp
+    ) internal pure returns (bool isValid, uint256 errorCode) {
+        // Check chain ID consistency
+        if (manifest.header.chainId == 0) {
+            return (false, 1);
+        }
+        
+        // Check timestamp is not too far in the past (within 24 hours)
+        if (currentTimestamp > manifest.header.timestamp + 86400) {
+            return (false, 2);
+        }
+        
+        // Check previous hash linkage
+        if (manifest.header.previousHash != previousManifestHash) {
+            return (false, 3);
+        }
+        
+        return (true, 0);
+    }
+
+    /**
+     * @dev Calculate manifest deployment gas estimate
+     * @param manifest The manifest to analyze
+     * @return estimatedGas Estimated gas cost for deployment
+     */
+    function estimateDeploymentGas(
+        ManifestTypes.ReleaseManifest memory manifest
+    ) internal pure returns (uint256 estimatedGas) {
+        // Base gas for manifest processing
+        estimatedGas = BASE_MANIFEST_GAS;
+        
+        // Add gas per facet (route updates)
+        uint256 totalSelectors = 0;
+        for (uint256 i = 0; i < manifest.facets.length; i++) {
+            totalSelectors += manifest.facets[i].selectors.length;
+        }
+        estimatedGas += totalSelectors * GAS_PER_SELECTOR;
+        
+        // Add gas per chunk deployment
+        estimatedGas += manifest.chunks.length * GAS_PER_CHUNK;
+        
+        // Add gas for Merkle verification
+        estimatedGas += MERKLE_VERIFICATION_GAS;
+        
+        return estimatedGas;
+    }
+
+    /**
+     * @dev Validate manifest security properties
+     * @param manifest The manifest to validate
+     * @return isSecure Whether the manifest meets security requirements
+     * @return riskLevel Risk level (0=low, 1=medium, 2=high)
+     */
+    function validateSecurityProperties(
+        ManifestTypes.ReleaseManifest memory manifest
+    ) internal view returns (bool isSecure, uint256 riskLevel) {
+        // Check for excessive facet count (potential attack vector)
+        if (manifest.facets.length > 50) {
+            return (false, 2); // High risk
+        }
+        
+        // Check for suspicious chunk sizes
+        for (uint256 i = 0; i < manifest.chunks.length; i++) {
+            // Very large chunks could be gas bombs
+            if (manifest.chunks[i].size > 24000) { // Close to contract size limit
+                return (false, 1); // Medium risk
+            }
+        }
+        
+        // Check manifest age (stale manifests are risky)
+        if (block.timestamp > manifest.header.timestamp + 604800) { // 1 week old
+            return (false, 1); // Medium risk
+        }
+        
+        return (true, 0); // Low risk
+    }
+
+    /**
+     * @dev Generate deployment summary for monitoring
+     * @param manifest The manifest to summarize
+     * @return summary Deployment summary
+     */
+    function generateDeploymentSummary(
+        ManifestTypes.ReleaseManifest memory manifest
+    ) internal pure returns (ManifestTypes.DeploymentSummary memory summary) {
+        summary.totalFacets = manifest.facets.length;
+        summary.totalChunks = manifest.chunks.length;
+        summary.manifestHash = calculateManifestHash(manifest);
+        summary.version = manifest.header.version;
+        summary.timestamp = manifest.header.timestamp;
+        
+        // Count total selectors across all facets
+        uint256 totalSelectors = 0;
+        for (uint256 i = 0; i < manifest.facets.length; i++) {
+            totalSelectors += manifest.facets[i].selectors.length;
+        }
+        summary.totalSelectors = totalSelectors;
+        
+        return summary;
     }
 }
