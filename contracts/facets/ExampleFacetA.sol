@@ -130,7 +130,8 @@ contract ExampleFacetA {
     ) external pure returns (bool isValid) {
         if (expectedSigner == address(0)) return false;
         bytes32 digest = MessageHashUtils.toEthSignedMessageHash(hash);
-        (address recovered, ECDSA.RecoverError err, ) = ECDSA.tryRecover(digest, signature);
+        (address recovered, ECDSA.RecoverError err, bytes32 errArg) =
+            ECDSA.tryRecover(digest, signature);
         return err == ECDSA.RecoverError.NoError && recovered == expectedSigner;
     }
 
