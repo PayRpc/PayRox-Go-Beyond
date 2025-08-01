@@ -13,9 +13,11 @@ contract ExampleFacetB {
     error EmptyData();
     error DataTooLarge();
     error TooManyOperations();
+    error EmptyBatch();
     error LengthMismatch();
     error NotOperator();
     error AlreadyInitialized();
+    error ZeroAddress();
 
     /* ─────────── Gas / L2‑friendly caps & constants ─────────── */
     uint256 private constant MAX_OPERATION_TYPE = 5;     // valid types: 1..5
@@ -83,6 +85,7 @@ contract ExampleFacetB {
      * @dev Call this immediately after routing the facet; cannot be called again.
      */
     function initializeFacetB(address operator_) external {
+        if (operator_ == address(0)) revert ZeroAddress();
         Layout storage l = _layout();
         if (l.initialized) revert AlreadyInitialized();
         l.operator = operator_;
@@ -160,7 +163,7 @@ contract ExampleFacetB {
         bytes[] calldata dataArray
     ) external whenNotPaused returns (bytes32[] memory results) {
         uint256 n = operations.length;
-        if (n == 0) revert TooManyOperations(); // reuse error name for empty edge
+        if (n == 0) revert EmptyBatch();
         if (n != dataArray.length) revert LengthMismatch();
         if (n > MAX_BATCH) revert TooManyOperations();
 

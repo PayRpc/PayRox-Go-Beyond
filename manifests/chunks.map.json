@@ -7,10 +7,10 @@
     "gasLimit": 500000
   },
   "ExampleFacetB": {
-    "address": "0x9D10B7Ec543c85d9961dEA212910BEaE0E0cDeCD",
-    "salt": "0x10e195a103262e9ad538c78b289274798c8da2183d510faa723e54e8cfffb152",
-    "hash": "0x10e195a103262e9ad538c78b289274798c8da2183d510faa723e54e8cfffb152",
-    "size": 5370,
+    "address": "0x1642625317711eeC113984E0Ca76c593aEdDb01F",
+    "salt": "0x88e2d7fe8e342e5a86f77c2780796e33c7ab8772d888db99ea3bcd9e1c3355bb",
+    "hash": "0x88e2d7fe8e342e5a86f77c2780796e33c7ab8772d888db99ea3bcd9e1c3355bb",
+    "size": 5410,
     "gasLimit": 750000
   }
 }

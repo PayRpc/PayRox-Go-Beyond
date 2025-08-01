@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "timestamp": "2025-08-01T01:43:03.397Z",
+  "timestamp": "2025-08-01T01:57:14.732Z",
   "description": "Initial release of PayRox Go Beyond deployment framework",
   "network": {
     "name": "hardhat",
@@ -33,10 +33,10 @@
     {
       "name": "ExampleFacetB",
       "contract": "ExampleFacetB",
-      "address": "0x9D10B7Ec543c85d9961dEA212910BEaE0E0cDeCD",
-      "salt": "0x10e195a103262e9ad538c78b289274798c8da2183d510faa723e54e8cfffb152",
-      "bytecodeHash": "0x10e195a103262e9ad538c78b289274798c8da2183d510faa723e54e8cfffb152",
-      "bytecodeSize": 5370,
+      "address": "0x1642625317711eeC113984E0Ca76c593aEdDb01F",
+      "salt": "0x88e2d7fe8e342e5a86f77c2780796e33c7ab8772d888db99ea3bcd9e1c3355bb",
+      "bytecodeHash": "0x88e2d7fe8e342e5a86f77c2780796e33c7ab8772d888db99ea3bcd9e1c3355bb",
+      "bytecodeSize": 5410,
       "selectors": [
         "0x16c38b3c",
         "0x279412c5",
@@ -105,49 +105,49 @@
     },
     {
       "selector": "0x16c38b3c",
-      "facet": "0x9D10B7Ec543c85d9961dEA212910BEaE0E0cDeCD",
-      "codehash": "0x10e195a103262e9ad538c78b289274798c8da2183d510faa723e54e8cfffb152"
+      "facet": "0x1642625317711eeC113984E0Ca76c593aEdDb01F",
+      "codehash": "0x88e2d7fe8e342e5a86f77c2780796e33c7ab8772d888db99ea3bcd9e1c3355bb"
     },
     {
       "selector": "0x279412c5",
-      "facet": "0x9D10B7Ec543c85d9961dEA212910BEaE0E0cDeCD",
-      "codehash": "0x10e195a103262e9ad538c78b289274798c8da2183d510faa723e54e8cfffb152"
+      "facet": "0x1642625317711eeC113984E0Ca76c593aEdDb01F",
+      "codehash": "0x88e2d7fe8e342e5a86f77c2780796e33c7ab8772d888db99ea3bcd9e1c3355bb"
     },
     {
       "selector": "0x31e8c195",
-      "facet": "0x9D10B7Ec543c85d9961dEA212910BEaE0E0cDeCD",
-      "codehash": "0x10e195a103262e9ad538c78b289274798c8da2183d510faa723e54e8cfffb152"
+      "facet": "0x1642625317711eeC113984E0Ca76c593aEdDb01F",
+      "codehash": "0x88e2d7fe8e342e5a86f77c2780796e33c7ab8772d888db99ea3bcd9e1c3355bb"
     },
     {
       "selector": "0x37184e95",
-      "facet": "0x9D10B7Ec543c85d9961dEA212910BEaE0E0cDeCD",
-      "codehash": "0x10e195a103262e9ad538c78b289274798c8da2183d510faa723e54e8cfffb152"
+      "facet": "0x1642625317711eeC113984E0Ca76c593aEdDb01F",
+      "codehash": "0x88e2d7fe8e342e5a86f77c2780796e33c7ab8772d888db99ea3bcd9e1c3355bb"
     },
     {
       "selector": "0x3c7264b2",
-      "facet": "0x9D10B7Ec543c85d9961dEA212910BEaE0E0cDeCD",
-      "codehash": "0x10e195a103262e9ad538c78b289274798c8da2183d510faa723e54e8cfffb152"
+      "facet": "0x1642625317711eeC113984E0Ca76c593aEdDb01F",
+      "codehash": "0x88e2d7fe8e342e5a86f77c2780796e33c7ab8772d888db99ea3bcd9e1c3355bb"
     },
     {
       "selector": "0x5aa723df",
-      "facet": "0x9D10B7Ec543c85d9961dEA212910BEaE0E0cDeCD",
-      "codehash": "0x10e195a103262e9ad538c78b289274798c8da2183d510faa723e54e8cfffb152"
+      "facet": "0x1642625317711eeC113984E0Ca76c593aEdDb01F",
+      "codehash": "0x88e2d7fe8e342e5a86f77c2780796e33c7ab8772d888db99ea3bcd9e1c3355bb"
     },
     {
       "selector": "0x7c300fd1",
-      "facet": "0x9D10B7Ec543c85d9961dEA212910BEaE0E0cDeCD",
-      "codehash": "0x10e195a103262e9ad538c78b289274798c8da2183d510faa723e54e8cfffb152"
+      "facet": "0x1642625317711eeC113984E0Ca76c593aEdDb01F",
+      "codehash": "0x88e2d7fe8e342e5a86f77c2780796e33c7ab8772d888db99ea3bcd9e1c3355bb"
     },
     {
       "selector": "0xa20a2da6",
-      "facet": "0x9D10B7Ec543c85d9961dEA212910BEaE0E0cDeCD",
-      "codehash": "0x10e195a103262e9ad538c78b289274798c8da2183d510faa723e54e8cfffb152"
+      "facet": "0x1642625317711eeC113984E0Ca76c593aEdDb01F",
+      "codehash": "0x88e2d7fe8e342e5a86f77c2780796e33c7ab8772d888db99ea3bcd9e1c3355bb"
     },
     {
       "selector": "0xe2ab79b1",
-      "facet": "0x9D10B7Ec543c85d9961dEA212910BEaE0E0cDeCD",
-      "codehash": "0x10e195a103262e9ad538c78b289274798c8da2183d510faa723e54e8cfffb152"
+      "facet": "0x1642625317711eeC113984E0Ca76c593aEdDb01F",
+      "codehash": "0x88e2d7fe8e342e5a86f77c2780796e33c7ab8772d888db99ea3bcd9e1c3355bb"
     }
   ],
-  "merkleRoot": "0x716d560ab42c481864e7754a666937037d108aff469599c0a985088f6bcddf35"
+  "merkleRoot": "0x200bfb6b1206aaef9c2f8417a81aae2c40baa9b4d3bcb711f743a5de35a091e2"
 }

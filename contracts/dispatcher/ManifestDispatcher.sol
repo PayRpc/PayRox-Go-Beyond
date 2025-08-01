@@ -133,7 +133,7 @@ contract ManifestDispatcher is IManifestDispatcher, AccessControl, Pausable {
         if (activationDelay != 0) {
             uint64 earliestActivation = uint64(pendingSince + activationDelay);
             if (block.timestamp < earliestActivation) {
-                revert ActivationNotReady(earliestActivation, uint64(block.timestamp), pendingEpoch, pendingEpoch);
+                revert ActivationNotReady(earliestActivation, uint64(block.timestamp), pendingEpoch, 0);
             }
         }
 
