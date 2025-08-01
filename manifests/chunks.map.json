@@ -1,16 +1,16 @@
 {
   "ExampleFacetA": {
-    "address": "0xbaB8c21eee512E40054068AC04159e6d674AC305",
+    "address": "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
     "salt": "0xb4dfed4bba6c6e2644cf3a8ed5ac5f2b90a3e5b349d73f3e766d3fdc859f7ef1",
     "hash": "0xb4dfed4bba6c6e2644cf3a8ed5ac5f2b90a3e5b349d73f3e766d3fdc859f7ef1",
     "size": 3517,
     "gasLimit": 500000
   },
   "ExampleFacetB": {
-    "address": "0x1642625317711eeC113984E0Ca76c593aEdDb01F",
-    "salt": "0x88e2d7fe8e342e5a86f77c2780796e33c7ab8772d888db99ea3bcd9e1c3355bb",
-    "hash": "0x88e2d7fe8e342e5a86f77c2780796e33c7ab8772d888db99ea3bcd9e1c3355bb",
-    "size": 5410,
+    "address": "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
+    "salt": "0x7141a32a25fe503623c407386e687b56f8511ea22d8a2ed67c9725f3ac8469b8",
+    "hash": "0x7141a32a25fe503623c407386e687b56f8511ea22d8a2ed67c9725f3ac8469b8",
+    "size": 6485,
     "gasLimit": 750000
   }
 }

@@ -120,7 +120,7 @@ async function main() {
     const factory = await FactoryContract.deploy(
       deployer.address, // admin
       deployer.address, // feeRecipient
-      ethers.parseEther('0.001') // baseFeeWei (0.001 ETH)
+      ethers.parseEther('0.0007') // baseFeeWei (0.0007 ETH)
     );
     await factory.waitForDeployment();
 
