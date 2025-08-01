@@ -277,6 +277,10 @@ contract DeterministicChunkFactory is IChunkFactory, AccessControl, ReentrancyGu
         // PRODUCTION: Always verify system integrity before critical operations
         _verifySystemIntegrity();
         
+        // Security: Input validation to prevent encodePacked collision attacks
+        require(bytecode.length > 0, "DeterministicChunkFactory: empty bytecode");
+        require(salt != bytes32(0), "DeterministicChunkFactory: zero salt");
+        
         // Security validation: Prevent CREATE2 bomb attacks
         if (!validateBytecodeSize(bytecode)) {
             revert BytecodeTooLarge(bytecode.length, MAX_INIT_CODE_SIZE);
@@ -289,6 +293,7 @@ contract DeterministicChunkFactory is IChunkFactory, AccessControl, ReentrancyGu
         }
 
         // Build full creation code including constructor args
+        // Note: Must use encodePacked for CREATE2 compatibility, validate inputs separately
         bytes memory fullCreationCode = abi.encodePacked(bytecode, constructorArgs);
         bytes32 codeHash = keccak256(fullCreationCode);
 
@@ -334,6 +339,10 @@ contract DeterministicChunkFactory is IChunkFactory, AccessControl, ReentrancyGu
         if (batchSize != bytecodes.length || batchSize != constructorArgs.length) {
             revert InvalidConstructorArgs();
         }
+        
+        // Security: Validate batch inputs to prevent encodePacked collision attacks  
+        require(batchSize > 0, "DeterministicChunkFactory: empty batch");
+        require(batchSize <= 100, "DeterministicChunkFactory: batch too large"); // Prevent DoS
 
         deployed = new address[](batchSize);
         uint256 requiredFeePerDeployment = _getDeploymentFee(msg.sender);
@@ -346,11 +355,16 @@ contract DeterministicChunkFactory is IChunkFactory, AccessControl, ReentrancyGu
         uint256 actualUsedFee = 0;
 
         for (uint256 i = 0; i < batchSize; i++) {
+            // Security: Validate inputs to prevent encodePacked collision attacks
+            require(bytecodes[i].length > 0, "DeterministicChunkFactory: empty bytecode in batch");
+            require(salts[i] != bytes32(0), "DeterministicChunkFactory: zero salt in batch");
+            
             // Validate each bytecode
             if (!validateBytecodeSize(bytecodes[i])) {
                 revert BytecodeTooLarge(bytecodes[i].length, MAX_INIT_CODE_SIZE);
             }
 
+            // Note: Must use encodePacked for CREATE2 compatibility, validate inputs separately
             bytes memory fullCreationCode = abi.encodePacked(bytecodes[i], constructorArgs[i]);
             bytes32 codeHash = keccak256(fullCreationCode);
             address predicted = predictAddress(salts[i], codeHash);

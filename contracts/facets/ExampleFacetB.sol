@@ -168,7 +168,7 @@ contract ExampleFacetB {
         if (n > MAX_BATCH) revert TooManyOperations();
 
         results = new bytes32[](n);
-        uint256 successCount;
+        uint256 successCount = 0; // Initialize to prevent uninitialized variable warning
 
         Layout storage l = _layout();
 
@@ -345,7 +345,7 @@ contract ExampleFacetB {
             mostRecentOp = rb.buf[lastIdx];
             
             // Count unique operation types
-            bool[6] memory seen; // 0-5, but we only use 1-5
+            bool[6] memory seen = [false, false, false, false, false, false]; // Initialize array
             for (uint256 i = 0; i < totalUserOps; i++) {
                 uint256 idx = (MAX_USER_OPS + rb.head - 1 - i) % MAX_USER_OPS;
                 uint256 opType = rb.buf[idx];

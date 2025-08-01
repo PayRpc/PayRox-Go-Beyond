@@ -292,8 +292,9 @@ contract GovernanceOrchestrator is AccessControl, Pausable, ReentrancyGuard {
     ) external view returns (bool hasPassed) {
         ManifestTypes.GovernanceProposal memory proposal = proposals[proposalId];
 
+        // Check if proposal exists (zero proposalId indicates uninitialized proposal)
         if (proposal.proposalId == bytes32(0)) {
-            return false;
+            return false; // Proposal does not exist
         }
 
         return ManifestUtils.checkGovernanceQuorum(
