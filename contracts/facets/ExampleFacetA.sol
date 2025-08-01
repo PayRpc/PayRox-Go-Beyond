@@ -27,6 +27,8 @@ contract ExampleFacetA {
     event DataStored(bytes32 indexed key, bytes32 indexed dataHash, uint256 size, address indexed setter);
     // Retain the readable message event for parity with your prior API.
     event FacetAExecuted(address indexed caller, uint256 indexed value, string message);
+    // Gas-efficient event for high-volume execution tracking
+    event FacetAExecutedHash(address indexed caller, bytes32 indexed msgHash);
 
     /* ─────────────── Diamond‑safe storage (fixed slot) ──────────────── */
     // Unique slot for this facet’s state.
@@ -46,7 +48,7 @@ contract ExampleFacetA {
 
     /* ───────────────────────────── API ──────────────────────────────── */
 
-    /// Execute an action and emit a human‑readable message.
+    /// Execute an action and emit both readable and hash events for flexibility.
     function executeA(string calldata message) external returns (bool success) {
         if (bytes(message).length == 0) revert EmptyMessage();
 
@@ -57,24 +59,29 @@ contract ExampleFacetA {
         }
         l.lastCaller_ = msg.sender;
 
+        // Emit both events: readable for compatibility, hash for gas efficiency
         emit FacetAExecuted(msg.sender, 0, message);
+        emit FacetAExecutedHash(msg.sender, keccak256(bytes(message)));
         return true;
     }
 
-    /// Store bounded bytes under a key; emits a hashed event for gas savings.
+    /// Store bounded bytes under a caller-namespaced key; emits a hashed event for gas savings.
     function storeData(bytes32 key, bytes calldata data_) external {
         if (key == bytes32(0)) revert InvalidKey();
         if (data_.length == 0) revert EmptyData();
         if (data_.length > MAX_DATA_BYTES) revert DataTooLarge();
 
         Layout storage l = _layout();
-        l.data[key] = data_;
-        emit DataStored(key, keccak256(data_), data_.length, msg.sender);
+        // Namespace keys per caller to prevent global collisions
+        bytes32 namespacedKey = keccak256(abi.encodePacked(msg.sender, key));
+        l.data[namespacedKey] = data_;
+        emit DataStored(namespacedKey, keccak256(data_), data_.length, msg.sender);
     }
 
-    /// Read stored data.
+    /// Read stored data from caller-namespaced key.
     function getData(bytes32 key) external view returns (bytes memory data) {
-        return _layout().data[key];
+        bytes32 namespacedKey = keccak256(abi.encodePacked(msg.sender, key));
+        return _layout().data[namespacedKey];
     }
 
     /// Per‑user execution count.
@@ -97,7 +104,9 @@ contract ExampleFacetA {
                     l.userCounts[msg.sender] += 1;
                     l.totalExecutions_ += 1;
                 }
+                // Emit both events for each message
                 emit FacetAExecuted(msg.sender, 0, messages[i]);
+                emit FacetAExecutedHash(msg.sender, keccak256(bytes(messages[i])));
                 results[i] = true;
             } else {
                 results[i] = false;
@@ -113,16 +122,16 @@ contract ExampleFacetA {
         return keccak256(input);
     }
 
-    /// Personal‑sign verification (EIP‑191 style). For production intents, prefer an EIP‑712 facet.
+    /// Enhanced signature verification supporting EIP-2098 compact sigs and malleability-safe
     function verifySignature(
         bytes32 hash,
         bytes calldata signature,
         address expectedSigner
     ) external pure returns (bool isValid) {
-        if (signature.length != 65 || expectedSigner == address(0)) return false;
-        bytes32 ethSigned = MessageHashUtils.toEthSignedMessageHash(hash);
-        address recovered = ECDSA.recover(ethSigned, signature);
-        return recovered == expectedSigner;
+        if (expectedSigner == address(0)) return false;
+        bytes32 digest = MessageHashUtils.toEthSignedMessageHash(hash);
+        (address recovered, ECDSA.RecoverError err, ) = ECDSA.tryRecover(digest, signature);
+        return err == ECDSA.RecoverError.NoError && recovered == expectedSigner;
     }
 
     /// Backwards‑compatible getters to preserve selectors.
