@@ -8,6 +8,7 @@ import { AIService } from './services/AIService';
 import { ContractRefactorWizard } from './services/ContractRefactorWizard';
 import { DeploymentAssistant } from './services/DeploymentAssistant';
 import { FacetSimulator } from './services/FacetSimulator';
+import { payRoxBackend } from './services/PayRoxContractBackend';
 import { StorageLayoutChecker } from './services/StorageLayoutChecker';
 
 // Load environment variables
@@ -485,6 +486,95 @@ app.use(
   }
 );
 
+/**
+ * Get deployed contracts information
+ */
+app.get('/api/contracts', async (req, res) => {
+  try {
+    const contracts = payRoxBackend.getContracts();
+    const networkInfo = payRoxBackend.getNetworkInfo();
+
+    res.json({
+      success: true,
+      data: {
+        contracts,
+        network: networkInfo,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to load contract information',
+    });
+  }
+});
+
+/**
+ * Contract health check
+ */
+app.get('/api/contracts/health', async (req, res) => {
+  try {
+    const healthStatus = await payRoxBackend.healthCheck();
+
+    res.json({
+      success: true,
+      data: healthStatus,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Contract health check failed',
+    });
+  }
+});
+
+/**
+ * Get deployment information
+ */
+app.get('/api/deployment/info', async (req, res) => {
+  try {
+    const deploymentInfo = await payRoxBackend.getDeploymentInfo();
+
+    res.json({
+      success: true,
+      data: deploymentInfo,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get deployment information',
+    });
+  }
+});
+
+/**
+ * Analyze contract by address
+ */
+app.post('/api/contracts/analyze', async (req, res) => {
+  try {
+    const { address } = req.body;
+
+    if (!address) {
+      return res.status(400).json({
+        success: false,
+        error: 'Contract address is required',
+      });
+    }
+
+    const analysis = await payRoxBackend.analyzeContract(address);
+
+    res.json({
+      success: true,
+      data: analysis,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Contract analysis failed',
+    });
+  }
+});
+
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({
@@ -499,6 +589,7 @@ app.listen(PORT, () => {
   console.log(`📡 Server running on port ${PORT}`);
   console.log(`🌐 API available at http://localhost:${PORT}`);
   console.log(`🔍 Health check: http://localhost:${PORT}/health`);
+  console.log(`📋 Contracts API: http://localhost:${PORT}/api/contracts`);
   console.log('⚡ Ready to assist with contract modularization!');
 });
 

@@ -3,6 +3,22 @@ import { ContractAnalysisRequest, usePayRoxBackend } from './services/PayRoxBack
 import './styles/components.css';
 import './styles/globals.css';
 
+// Contract configuration (simplified for frontend)
+const CONTRACTS_CONFIG = {
+  core: {
+    factory: { address: '0x99bbA657f2BbC93c02D617f8bA121cB8Fc104Acf', name: 'DeterministicChunkFactory' },
+    dispatcher: { address: '0x998abeb3E57409262aE5b751f60747921B33613E', name: 'ManifestDispatcher' },
+  },
+  orchestrators: {
+    main: { address: '0x36C02dA8a0983159322a80FFE9F24b1acfF8B570', name: 'Orchestrator' },
+    governance: { address: '0x809d550fca64d94Bd9F66E60752A544199cfAC3D', name: 'GovernanceOrchestrator' },
+    auditRegistry: { address: '0x4c5859f0F772848b2D91F1D83E2Fe57935348029', name: 'AuditRegistry' },
+  },
+  facets: {
+    ping: { address: '0x1291Be112d480055DaFd8a610b7d1e203891C274', name: 'PingFacet' },
+  },
+};
+
 // Types
 interface ContractAnalysis {
   name: string;

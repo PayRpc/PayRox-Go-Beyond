@@ -1,0 +1,86 @@
+{
+  "version": "1.0.0",
+  "timestamp": "2025-08-01T14:40:18.251Z",
+  "description": "PayRox Go Beyond Deployed Contracts Configuration",
+  "network": {
+    "name": "localhost",
+    "chainId": "31337",
+    "rpcUrl": "http://localhost:8545"
+  },
+  "contracts": {
+    "core": {
+      "factory": {
+        "name": "DeterministicChunkFactory",
+        "address": "0x99bbA657f2BbC93c02D617f8bA121cB8Fc104Acf",
+        "abi": "./artifacts/contracts/factory/DeterministicChunkFactory.sol/DeterministicChunkFactory.json",
+        "deploymentFile": "./deployments/localhost/factory.json"
+      },
+      "dispatcher": {
+        "name": "ManifestDispatcher",
+        "address": "0x998abeb3E57409262aE5b751f60747921B33613E",
+        "abi": "./artifacts/contracts/dispatcher/ManifestDispatcher.sol/ManifestDispatcher.json",
+        "deploymentFile": "./deployments/localhost/dispatcher.json"
+      }
+    },
+    "orchestrators": {
+      "main": {
+        "name": "Orchestrator",
+        "address": "0x36C02dA8a0983159322a80FFE9F24b1acfF8B570",
+        "abi": "./artifacts/contracts/orchestrator/Orchestrator.sol/Orchestrator.json",
+        "deploymentFile": "./deployments/localhost/orchestrator.json"
+      },
+      "governance": {
+        "name": "GovernanceOrchestrator",
+        "address": "0x809d550fca64d94Bd9F66E60752A544199cfAC3D",
+        "abi": "./artifacts/contracts/orchestrator/GovernanceOrchestrator.sol/GovernanceOrchestrator.json",
+        "deploymentFile": "./deployments/localhost/governance-orchestrator.json"
+      },
+      "auditRegistry": {
+        "name": "AuditRegistry",
+        "address": "0x4c5859f0F772848b2D91F1D83E2Fe57935348029",
+        "abi": "./artifacts/contracts/orchestrator/AuditRegistry.sol/AuditRegistry.json",
+        "deploymentFile": "./deployments/localhost/audit-registry.json"
+      }
+    },
+    "facets": {
+      "ping": {
+        "name": "PingFacet",
+        "address": "0x1291Be112d480055DaFd8a610b7d1e203891C274",
+        "abi": "./artifacts/contracts/facets/PingFacet.sol/PingFacet.json",
+        "deploymentFile": "./deployments/localhost/ping-facet.json"
+      },
+      "exampleA": {
+        "name": "ExampleFacetA",
+        "address": null,
+        "abi": "./artifacts/contracts/facets/ExampleFacetA.sol/ExampleFacetA.json",
+        "deploymentFile": "./deployments/localhost/facet-a.json"
+      },
+      "exampleB": {
+        "name": "ExampleFacetB",
+        "address": null,
+        "abi": "./artifacts/contracts/facets/ExampleFacetB.sol/ExampleFacetB.json",
+        "deploymentFile": "./deployments/localhost/facet-b.json"
+      }
+    }
+  },
+  "deployer": {
+    "address": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    "isAdmin": true
+  },
+  "security": {
+    "bootstrapManifestHash": "0xf99865c0139d6470264e332b1ebe6baac600a7e37b7bbf40e8f3b4c2bee3ab37",
+    "expectedFactoryBytecodeHash": "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
+  },
+  "fees": {
+    "baseFeeWei": "1000000000000000",
+    "baseFeeEth": "0.001",
+    "feeRecipient": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+  },
+  "features": {
+    "deterministic": true,
+    "manifestBased": true,
+    "facetSystem": true,
+    "governance": true,
+    "auditRegistry": true
+  }
+}
