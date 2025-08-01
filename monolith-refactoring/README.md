@@ -22,29 +22,45 @@ Monolith Refactoring Project.
    - Implementation specifications
 
 3. **[MONOLITH_FEE_ANALYSIS.md](./MONOLITH_FEE_ANALYSIS.md)**
+
    - Comprehensive economic model and pricing strategy
    - Fee structure analysis with real-world examples
    - Market analysis and competitive positioning
    - ROI calculations and business projections
 
+4. **[EXISTING_TASK_ANALYSIS.md](./EXISTING_TASK_ANALYSIS.md)**
+
+   - Analysis of existing PayRox tasks and scripts
+   - Infrastructure readiness assessment (80% complete)
+   - Gap analysis and development priorities
+   - Implementation strategy using existing components
+
+5. **[ABI_AUDIT_REPORT.md](./ABI_AUDIT_REPORT.md)**
+   - Comprehensive ABI version audit and management
+   - Address discrepancy resolution (corrected addresses)
+   - Fee structure analysis (current vs planned)
+   - ABI compatibility matrix for monolith refactoring
+
 ## 🎯 Project Status
 
 - **Current Phase**: Foundation & Analysis (Phase 1)
-- **Fee Structure**: ✅ Updated to reflect actual deployed system (0.0009 ETH total)
+- **ABI Status**: ✅ Audited and addresses corrected (v1.0.1)
+- **Fee Structure**: Current 0.001 ETH deployed | Planned 0.0009 ETH optimized
 - **Infrastructure**: ✅ Production-ready contracts deployed
-- **Documentation**: ✅ Complete strategic analysis
+- **Documentation**: ✅ Complete strategic analysis with corrected data
 
 ## 🔧 Quick Reference
 
-### Key Contract Addresses (Localhost)
+### Key Contract Addresses (Localhost - CORRECTED)
 
-- **DeterministicChunkFactory**: `0x99bbA657f2BbC93c02D617f8bA121cB8Fc104Acf`
-- **ManifestDispatcher**: `0x998abeb3E57409262aE5b751f60747921B33613E`
+- **DeterministicChunkFactory**: `0x82e01223d51Eb87e16A03E24687EDF0F294da6f1`
+- **ManifestDispatcher**: `0x5f3f1dBD7B74C6B46e8c44f98792A1dAf8d69154`
 - **Main Orchestrator**: `0x36C02dA8a0983159322a80FFE9F24b1acfF8B570`
 
 ### Current Fee Structure
 
-- **Base Fee**: 0.0009 ETH total (0.0007 ETH factory + 0.0002 ETH platform)
+- **Current Deployed**: 0.001 ETH per facet deployment
+- **Planned Optimized**: 0.0009 ETH (0.0007 ETH factory + 0.0002 ETH platform)
 - **Tiered Discounts**: Up to 60% for enterprise users
 - **Batch Discounts**: Up to 35% for multiple facets
 

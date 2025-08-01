@@ -15,14 +15,15 @@ PayRox's deterministic deployment, manifest routing, and cryptographic verificat
 
 #### ✅ **Core Contracts (Production Ready)**
 
-- **DeterministicChunkFactory**: `0x99bbA657f2BbC93c02D617f8bA121cB8Fc104Acf`
+- **DeterministicChunkFactory**: `0x82e01223d51Eb87e16A03E24687EDF0F294da6f1`
 
   - CREATE2 deterministic deployment
-  - Tiered fee structure (Base: 0.0009 ETH total - 0.0007 ETH factory + 0.0002 ETH platform)
+  - Current fee structure: 0.001 ETH (deployed) | Planned: 0.0009 ETH (0.0007 factory + 0.0002
+    platform)
   - EIP-170 compliance enforcement
   - Content-addressed chunk storage
 
-- **ManifestDispatcher**: `0x998abeb3E57409262aE5b751f60747921B33613E`
+- **ManifestDispatcher**: `0x5f3f1dBD7B74C6B46e8c44f98792A1dAf8d69154`
 
   - Non-upgradeable routing with Merkle proof verification
   - EXTCODEHASH runtime validation
@@ -59,7 +60,8 @@ PayRox's deterministic deployment, manifest routing, and cryptographic verificat
 
 2. **Fee Structure Optimization**
 
-   - Current base fee: 0.0009 ETH per deployment (0.0007 ETH factory + 0.0002 ETH platform)
+   - Current deployed fee: 0.001 ETH per deployment
+   - Planned optimized fee: 0.0009 ETH (0.0007 ETH factory + 0.0002 ETH platform)
    - Need dynamic fee calculation based on contract complexity
    - Batch deployment pricing models
 
@@ -146,7 +148,8 @@ interface MonolithAnalysis {
 
 ```typescript
 interface DynamicFeeStructure {
-  baseFee: BigInt; // 0.0009 ETH base (0.0007 factory + 0.0002 platform)
+  currentDeployedFee: BigInt; // 0.001 ETH current
+  plannedBaseFee: BigInt; // 0.0009 ETH planned (0.0007 factory + 0.0002 platform)
   complexityMultiplier: number; // 1.0 - 3.0 based on functions
   batchDiscount: number; // Up to 40% for multiple facets
   networkMultiplier: number; // Gas price adjustment
@@ -229,7 +232,9 @@ interface DynamicFeeStructure {
 
 ### **Current Fee Model Analysis**
 
-- **Base Fee**: 0.0009 ETH per facet deployment (0.0007 ETH factory + 0.0002 ETH platform)
+- **Current Deployed Fee**: 0.001 ETH per facet deployment
+- **Planned Optimized Fee**: 0.0009 ETH per facet deployment (0.0007 ETH factory + 0.0002 ETH
+  platform)
 - **Fee Structure**: Tiered system with up to 60% discounts
 - **Revenue Model**: Factory-based fee collection with platform revenue stream
 
@@ -239,8 +244,9 @@ interface DynamicFeeStructure {
 
 ```typescript
 interface EnhancedFeeModel {
-  // Base complexity assessment
-  baseFee: 0.0009; // ETH (0.0007 factory + 0.0002 platform)
+  // Current deployed vs planned structure
+  currentDeployedFee: 0.001; // ETH (currently deployed)
+  plannedBaseFee: 0.0009; // ETH (0.0007 factory + 0.0002 platform - for mainnet)
 
   // Complexity multipliers
   lowComplexity: 1.0; // Simple contracts (< 10 functions)
@@ -268,11 +274,11 @@ interface EnhancedFeeModel {
 
 Based on complexity distribution analysis:
 
-- **Simple Contracts (60%)**: 0.0009 ETH average
-- **Medium Contracts (30%)**: 0.00135 ETH average
-- **Complex Contracts (10%)**: 0.0018 ETH average
+- **Simple Contracts (60%)**: 0.001 ETH average (current) / 0.0009 ETH (planned)
+- **Medium Contracts (30%)**: 0.0015 ETH average (current) / 0.00135 ETH (planned)
+- **Complex Contracts (10%)**: 0.002 ETH average (current) / 0.0018 ETH (planned)
 
-**Estimated Monthly Revenue**: 45-180 ETH (based on 1000-5000 refactoring operations)
+**Estimated Monthly Revenue**: 50-200 ETH (based on 1000-5000 refactoring operations)
 
 ## 🔧 **Technical Implementation Plan**
 
@@ -462,7 +468,7 @@ enum DeploymentStage {
 
 #### **Revenue Streams**
 
-1. **Transaction Fees**: 0.0009-0.0018 ETH per facet
+1. **Transaction Fees**: 0.001-0.002 ETH per facet (current) / 0.0009-0.0018 ETH (planned)
 2. **Subscription Revenue**: $100-500/month per user
 3. **Custom Development**: $10,000-50,000 per enterprise integration
 4. **Audit Services**: $5,000-25,000 per security audit

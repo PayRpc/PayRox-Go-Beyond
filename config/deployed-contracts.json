@@ -1,7 +1,7 @@
 {
-  "version": "1.0.0",
-  "timestamp": "2025-08-01T14:40:18.251Z",
-  "description": "PayRox Go Beyond Deployed Contracts Configuration",
+  "version": "1.0.1",
+  "timestamp": "2025-08-01T15:30:00.000Z",
+  "description": "PayRox Go Beyond Deployed Contracts - CORRECTED ADDRESSES",
   "network": {
     "name": "localhost",
     "chainId": "31337",
@@ -11,13 +11,15 @@
     "core": {
       "factory": {
         "name": "DeterministicChunkFactory",
-        "address": "0x99bbA657f2BbC93c02D617f8bA121cB8Fc104Acf",
+        "address": "0x82e01223d51Eb87e16A03E24687EDF0F294da6f1",
         "abi": "./artifacts/contracts/factory/DeterministicChunkFactory.sol/DeterministicChunkFactory.json",
-        "deploymentFile": "./deployments/localhost/factory.json"
+        "deploymentFile": "./deployments/localhost/factory.json",
+        "currentFee": "0.001 ETH",
+        "plannedFee": "0.0009 ETH"
       },
       "dispatcher": {
         "name": "ManifestDispatcher",
-        "address": "0x998abeb3E57409262aE5b751f60747921B33613E",
+        "address": "0x5f3f1dBD7B74C6B46e8c44f98792A1dAf8d69154",
         "abi": "./artifacts/contracts/dispatcher/ManifestDispatcher.sol/ManifestDispatcher.json",
         "deploymentFile": "./deployments/localhost/dispatcher.json"
       }
