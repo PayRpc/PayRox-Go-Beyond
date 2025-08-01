@@ -5,6 +5,7 @@ import {AccessControl}   from "@openzeppelin/contracts/access/AccessControl.sol"
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {Pausable}        from "@openzeppelin/contracts/utils/Pausable.sol";
 import {IChunkFactory}   from "./interfaces/IChunkFactory.sol";
+import {IManifestDispatcher} from "../dispatcher/interfaces/IManifestDispatcher.sol";
 
 /// @title DeterministicChunkFactory (PayRox)
 /// @notice Content‑addressed chunk storage (SSTORE2‑style) for large *data* blobs.
@@ -52,6 +53,11 @@ contract DeterministicChunkFactory is IChunkFactory, AccessControl, ReentrancyGu
     
     // Fee accumulation for pull pattern
     mapping(address => uint256) public accumulatedFees;
+    
+    // Security: Constructor-injected manifest and bytecode verification
+    bytes32 public immutable EXPECTED_MANIFEST_HASH;
+    bytes32 public immutable EXPECTED_FACTORY_BYTECODE_HASH;
+    address public immutable MANIFEST_DISPATCHER;
 
     /*──────────────────────────────────────────────────────────────────────────
                                      Events
@@ -67,11 +73,21 @@ contract DeterministicChunkFactory is IChunkFactory, AccessControl, ReentrancyGu
     error DeployFailed();
     error SizeMismatch();
     error ZeroRecipient();
+    error ManifestHashMismatch(bytes32 expected, bytes32 actual);
+    error BytecodeHashMismatch(bytes32 expected, bytes32 actual);
+    error ManifestVerificationFailed();
 
     /*──────────────────────────────────────────────────────────────────────────
                                    Constructor
     ──────────────────────────────────────────────────────────────────────────*/
-    constructor(address admin, address _feeRecipient, uint256 _baseFeeWei) {
+    constructor(
+        address admin, 
+        address _feeRecipient, 
+        uint256 _baseFeeWei,
+        bytes32 _expectedManifestHash,
+        bytes32 _expectedFactoryBytecodeHash,
+        address _manifestDispatcher
+    ) {
         _grantRole(DEFAULT_ADMIN_ROLE, admin);
         _grantRole(OPERATOR_ROLE, admin);
         _grantRole(FEE_ROLE,      admin);
@@ -89,6 +105,15 @@ contract DeterministicChunkFactory is IChunkFactory, AccessControl, ReentrancyGu
         tierFees[1] = (_baseFeeWei * 80) / 100;      // 0.00072 ETH
         tierFees[2] = (_baseFeeWei * 60) / 100;      // 0.00054 ETH
         tierFees[3] = (_baseFeeWei * 40) / 100;      // 0.00036 ETH
+        
+        // Security: Store constructor-injected hashes as immutable
+        EXPECTED_MANIFEST_HASH = _expectedManifestHash;
+        EXPECTED_FACTORY_BYTECODE_HASH = _expectedFactoryBytecodeHash;
+        MANIFEST_DISPATCHER = _manifestDispatcher;
+        
+        // PRODUCTION: Immediate integrity verification - NO EXCEPTIONS
+        // This ensures deployment fails if wrong hashes are provided
+        _verifySystemIntegrity();
     }
 
     /*──────────────────────────────────────────────────────────────────────────
@@ -141,6 +166,9 @@ contract DeterministicChunkFactory is IChunkFactory, AccessControl, ReentrancyGu
         whenNotPaused
         returns (address chunk, bytes32 hash)
     {
+        // PRODUCTION: Always verify system integrity before critical operations
+        _verifySystemIntegrity();
+        
         // Fees (optional)
         if (feesEnabled) {
             if (msg.value < baseFeeWei) revert FeeRequired();
@@ -241,6 +269,9 @@ contract DeterministicChunkFactory is IChunkFactory, AccessControl, ReentrancyGu
         bytes calldata bytecode,
         bytes calldata constructorArgs
     ) external payable nonReentrant whenNotPaused returns (address deployed) {
+        // PRODUCTION: Always verify system integrity before critical operations
+        _verifySystemIntegrity();
+        
         // Security validation: Prevent CREATE2 bomb attacks
         if (!validateBytecodeSize(bytecode)) {
             revert BytecodeTooLarge(bytecode.length, MAX_INIT_CODE_SIZE);
@@ -435,6 +466,62 @@ contract DeterministicChunkFactory is IChunkFactory, AccessControl, ReentrancyGu
         if (user == address(0)) revert ZeroAddress();
         if (tier > 3) revert InvalidTier(tier);
         userTier[user] = tier;
+    }
+
+    /*──────────────────────────────────────────────────────────────────────────
+                            Hash Verification (Constructor-Injection)
+    ──────────────────────────────────────────────────────────────────────────*/
+
+    /// @notice Verify system integrity by checking all constructor-injected hashes
+    /// @dev This is the "bullet-proof" anti-forgot-hash mechanism using constructor injection
+    function verifySystemIntegrity() external view returns (bool) {
+        return _verifySystemIntegrity();
+    }
+
+    /// @notice Get the expected manifest hash (immutable, set at deployment)
+    function getExpectedManifestHash() external view returns (bytes32) {
+        return EXPECTED_MANIFEST_HASH;
+    }
+
+    /// @notice Get the expected factory bytecode hash (immutable, set at deployment)
+    function getExpectedFactoryBytecodeHash() external view returns (bytes32) {
+        return EXPECTED_FACTORY_BYTECODE_HASH;
+    }
+
+    /// @notice Get the manifest dispatcher address (immutable, set at deployment)
+    function getManifestDispatcher() external view returns (address) {
+        return MANIFEST_DISPATCHER;
+    }
+
+    /// @notice Comprehensive system integrity check
+    /// @dev This prevents the "oops, I forgot the hash" vulnerability
+    /// @dev PRODUCTION VERSION - No test accommodations
+    function _verifySystemIntegrity() internal view returns (bool) {
+        // PRODUCTION: All hashes must be real - no placeholders allowed
+        if (EXPECTED_MANIFEST_HASH == bytes32(0)) {
+            revert ManifestHashMismatch(EXPECTED_MANIFEST_HASH, bytes32(0));
+        }
+        if (EXPECTED_FACTORY_BYTECODE_HASH == bytes32(0)) {
+            revert BytecodeHashMismatch(EXPECTED_FACTORY_BYTECODE_HASH, bytes32(0));
+        }
+
+        // 1. Verify manifest hash matches what's in the dispatcher
+        try IManifestDispatcher(MANIFEST_DISPATCHER).verifyManifest(EXPECTED_MANIFEST_HASH) 
+            returns (bool valid, bytes32 currentHash) {
+            if (!valid) {
+                revert ManifestHashMismatch(EXPECTED_MANIFEST_HASH, currentHash);
+            }
+        } catch {
+            revert ManifestVerificationFailed();
+        }
+
+        // 2. PRODUCTION: Strict bytecode hash verification
+        bytes32 actualFactoryHash = address(this).codehash;
+        if (actualFactoryHash != EXPECTED_FACTORY_BYTECODE_HASH) {
+            revert BytecodeHashMismatch(EXPECTED_FACTORY_BYTECODE_HASH, actualFactoryHash);
+        }
+
+        return true;
     }
 
     /// @dev Get deployment fee based on user tier
