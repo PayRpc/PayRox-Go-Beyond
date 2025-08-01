@@ -88,6 +88,11 @@ contract DeterministicChunkFactory is IChunkFactory, AccessControl, ReentrancyGu
         bytes32 _expectedFactoryBytecodeHash,
         address _manifestDispatcher
     ) {
+        // Security: Zero-address validation for critical parameters
+        require(admin != address(0), "DeterministicChunkFactory: zero admin address");
+        require(_manifestDispatcher != address(0), "DeterministicChunkFactory: zero dispatcher address");
+        // Note: _feeRecipient can be zero (disables fees), so no validation needed
+        
         _grantRole(DEFAULT_ADMIN_ROLE, admin);
         _grantRole(OPERATOR_ROLE, admin);
         _grantRole(FEE_ROLE,      admin);
