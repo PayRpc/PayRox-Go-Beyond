@@ -1,7 +1,7 @@
 {
-  "version": "1.0.1",
-  "timestamp": "2025-08-01T15:30:00.000Z",
-  "description": "PayRox Go Beyond Deployed Contracts - CORRECTED ADDRESSES",
+  "version": "1.0.3",
+  "timestamp": "2025-08-01T17:15:00.000Z",
+  "description": "PayRox Go Beyond Deployed Contracts - FEE CORRECTED TO 0.0007 ETH v1.0.3",
   "network": {
     "name": "localhost",
     "chainId": "31337",
@@ -11,7 +11,7 @@
     "core": {
       "factory": {
         "name": "DeterministicChunkFactory",
-        "address": "0x82e01223d51Eb87e16A03E24687EDF0F294da6f1",
+        "address": "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
         "abi": "./artifacts/contracts/factory/DeterministicChunkFactory.sol/DeterministicChunkFactory.json",
         "deploymentFile": "./deployments/localhost/factory.json",
         "currentFee": "0.0007 ETH",
@@ -19,7 +19,7 @@
       },
       "dispatcher": {
         "name": "ManifestDispatcher",
-        "address": "0x5f3f1dBD7B74C6B46e8c44f98792A1dAf8d69154",
+        "address": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
         "abi": "./artifacts/contracts/dispatcher/ManifestDispatcher.sol/ManifestDispatcher.json",
         "deploymentFile": "./deployments/localhost/dispatcher.json"
       }
@@ -27,19 +27,19 @@
     "orchestrators": {
       "main": {
         "name": "Orchestrator",
-        "address": "0x36C02dA8a0983159322a80FFE9F24b1acfF8B570",
+        "address": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
         "abi": "./artifacts/contracts/orchestrator/Orchestrator.sol/Orchestrator.json",
         "deploymentFile": "./deployments/localhost/orchestrator.json"
       },
       "governance": {
         "name": "GovernanceOrchestrator",
-        "address": "0x809d550fca64d94Bd9F66E60752A544199cfAC3D",
+        "address": "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
         "abi": "./artifacts/contracts/orchestrator/GovernanceOrchestrator.sol/GovernanceOrchestrator.json",
         "deploymentFile": "./deployments/localhost/governance-orchestrator.json"
       },
       "auditRegistry": {
         "name": "AuditRegistry",
-        "address": "0x4c5859f0F772848b2D91F1D83E2Fe57935348029",
+        "address": "0x0165878A594ca255338adfa4d48449f69242Eb8F",
         "abi": "./artifacts/contracts/orchestrator/AuditRegistry.sol/AuditRegistry.json",
         "deploymentFile": "./deployments/localhost/audit-registry.json"
       }
@@ -47,7 +47,7 @@
     "facets": {
       "ping": {
         "name": "PingFacet",
-        "address": "0x1291Be112d480055DaFd8a610b7d1e203891C274",
+        "address": "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853",
         "abi": "./artifacts/contracts/facets/PingFacet.sol/PingFacet.json",
         "deploymentFile": "./deployments/localhost/ping-facet.json"
       },

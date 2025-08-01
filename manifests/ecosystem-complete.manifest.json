@@ -1,24 +1,24 @@
 {
   "version": "1.0.0",
-  "timestamp": "2025-08-01T14:40:18.251Z",
+  "timestamp": "2025-08-01T16:54:36.537Z",
   "description": "Complete PayRox Go Beyond Ecosystem - Ready for Developers",
   "network": {
     "name": "localhost",
     "chainId": "31337"
   },
   "core": {
-    "factory": "0x99bbA657f2BbC93c02D617f8bA121cB8Fc104Acf",
-    "dispatcher": "0x998abeb3E57409262aE5b751f60747921B33613E"
+    "factory": "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
+    "dispatcher": "0x5FbDB2315678afecb367f032d93F642f64180aa3"
   },
   "orchestrators": {
-    "main": "0x36C02dA8a0983159322a80FFE9F24b1acfF8B570",
-    "governance": "0x809d550fca64d94Bd9F66E60752A544199cfAC3D",
-    "auditRegistry": "0x4c5859f0F772848b2D91F1D83E2Fe57935348029"
+    "main": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+    "governance": "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
+    "auditRegistry": "0x0165878A594ca255338adfa4d48449f69242Eb8F"
   },
   "facets": {
     "exampleA": "deployed",
     "exampleB": "deployed",
-    "ping": "0x1291Be112d480055DaFd8a610b7d1e203891C274"
+    "ping": "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853"
   },
   "sdk": {
     "ready": true,
