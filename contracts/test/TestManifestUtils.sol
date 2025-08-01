@@ -79,6 +79,15 @@ contract TestManifestUtils {
     }
 
     /**
+     * @dev Test wrapper for collectUniqueSelectors
+     */
+    function testCollectUniqueSelectors(
+        ManifestTypes.FacetInfo[] memory facets
+    ) external pure returns (bytes4[] memory) {
+        return ManifestUtils.collectUniqueSelectors(facets);
+    }
+
+    /**
      * @dev Test wrapper for areManifestsCompatible
      */
     function testAreManifestsCompatible(

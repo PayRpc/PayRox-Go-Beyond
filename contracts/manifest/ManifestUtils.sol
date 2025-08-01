@@ -45,7 +45,7 @@ library ManifestUtils {
     ) internal pure returns (bool isValid) {
         bytes32 hash = calculateManifestHash(manifest);
         bytes32 digest = MessageHashUtils.toEthSignedMessageHash(hash);
-        (address recoveredSigner, ECDSA.RecoverError err,) = ECDSA.tryRecover(digest, manifest.signature);
+        (address recoveredSigner, ECDSA.RecoverError err, ) = ECDSA.tryRecover(digest, manifest.signature);
         return err == ECDSA.RecoverError.NoError && recoveredSigner == expectedSigner;
     }
 
@@ -123,6 +123,7 @@ library ManifestUtils {
 
     /**
      * @dev Generate Merkle root for chunks
+     * @dev Uses keccak256(left||right) convention - must match OrderedMerkle verifier
      * @param chunks Array of chunk mappings
      * @return merkleRoot The calculated Merkle root
      */
@@ -196,6 +197,53 @@ library ManifestUtils {
         for (uint256 i = 0; i < facets.length; i++) {
             for (uint256 j = 0; j < facets[i].selectors.length; j++) {
                 allSelectors[index] = facets[i].selectors[j];
+                index++;
+            }
+        }
+    }
+
+    /**
+     * @dev Collect unique selectors from facets (removes duplicates)
+     * @param facets Array of facet info
+     * @return uniqueSelectors Unique selectors from all facets
+     */
+    function collectUniqueSelectors(
+        ManifestTypes.FacetInfo[] memory facets
+    ) internal pure returns (bytes4[] memory uniqueSelectors) {
+        bytes4[] memory allSelectors = collectSelectors(facets);
+
+        if (allSelectors.length == 0) {
+            return new bytes4[](0);
+        }
+
+        // Count unique selectors
+        uint256 uniqueCount = 0;
+        for (uint256 i = 0; i < allSelectors.length; i++) {
+            bool isUnique = true;
+            for (uint256 j = 0; j < i; j++) {
+                if (allSelectors[i] == allSelectors[j]) {
+                    isUnique = false;
+                    break;
+                }
+            }
+            if (isUnique) {
+                uniqueCount++;
+            }
+        }
+
+        // Collect unique selectors
+        uniqueSelectors = new bytes4[](uniqueCount);
+        uint256 index = 0;
+        for (uint256 i = 0; i < allSelectors.length; i++) {
+            bool isUnique = true;
+            for (uint256 j = 0; j < i; j++) {
+                if (allSelectors[i] == allSelectors[j]) {
+                    isUnique = false;
+                    break;
+                }
+            }
+            if (isUnique) {
+                uniqueSelectors[index] = allSelectors[i];
                 index++;
             }
         }
@@ -391,24 +439,24 @@ library ManifestUtils {
     ) internal view returns (bool isSecure, uint256 riskLevel) {
         // Check for excessive facet count (potential attack vector)
         if (manifest.facets.length > 50) {
-            return (false, 2); // High risk
+            return (false, 2); // High risk - outright reject
         }
 
         // Check for suspicious chunk sizes using correct EIP-170 runtime limit
         for (uint256 i = 0; i < manifest.chunks.length; i++) {
             // EIP-170 runtime bytecode limit is 24,576 bytes
             if (manifest.chunks[i].size > 24576) { // Exact EIP-170 limit
-                return (false, 2); // High risk - exceeds runtime limit
+                return (false, 2); // High risk - exceeds runtime limit, reject
             }
-            // Flag chunks close to the limit as medium risk
+            // Flag chunks close to the limit as medium risk but still secure
             if (manifest.chunks[i].size > 20000) { // 82% of limit
-                return (false, 1); // Medium risk
+                return (true, 1); // Medium risk - secure but flagged for review
             }
         }
 
-        // Check manifest age (stale manifests are risky)
+        // Check manifest age (stale manifests are risky but not rejected)
         if (block.timestamp > manifest.header.timestamp + 604800) { // 1 week old
-            return (false, 1); // Medium risk
+            return (true, 1); // Medium risk - secure but flagged for staleness
         }
 
         return (true, 0); // Low risk
