@@ -80,6 +80,9 @@ contract ManifestDispatcher is IManifestDispatcher, AccessControl, Pausable, Ree
 
     // ───────────────────── Constructor ───────────────────────
     constructor(address admin, uint64 _activationDelay) {
+        // Security: Zero-address validation for critical parameters
+        require(admin != address(0), "ManifestDispatcher: zero admin address");
+        
         _grantRole(DEFAULT_ADMIN_ROLE, admin);
         _grantRole(COMMIT_ROLE, admin);
         _grantRole(APPLY_ROLE, admin);

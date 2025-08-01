@@ -99,6 +99,7 @@ contract DeterministicChunkFactory is IChunkFactory, AccessControl, ReentrancyGu
 
         feeRecipient = _feeRecipient;
         baseFeeWei   = _baseFeeWei;
+        // Note: _feeRecipient CAN be zero address to disable fees (design choice)
         feesEnabled  = (_feeRecipient != address(0) && _baseFeeWei > 0);
 
         // Initialize tiered fee structure
