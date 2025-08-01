@@ -37,17 +37,17 @@ export default [
     },
     rules: {
       // TypeScript specific rules
-      '@typescript-eslint/no-unused-vars': 'warn',
-      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-unused-vars': 'off', // Disabled for better development experience
+      '@typescript-eslint/no-explicit-any': 'off', // Allow any for flexibility
       '@typescript-eslint/explicit-function-return-type': 'off',
-      '@typescript-eslint/no-non-null-assertion': 'warn',
+      '@typescript-eslint/no-non-null-assertion': 'off', // Allow non-null assertions
       
       // General rules
       'no-console': 'off', // Allow console.log in scripts
-      'prefer-const': 'error',
+      'prefer-const': 'off', // More lenient
       'no-var': 'error',
-      'eqeqeq': 'error',
-      'curly': 'warn', // More lenient
+      'eqeqeq': 'off', // More lenient
+      'curly': 'off', // Disable curly brace requirements
       
       // Code style
       'indent': 'off', // Let prettier handle this

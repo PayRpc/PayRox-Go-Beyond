@@ -58,15 +58,22 @@ describe('Coverage Boost Tests - Target 95%+', function () {
     });
 
     it('Should cover batch operations edge cases', async function () {
-      // Empty arrays should trigger TooManyOperations
+      // Empty arrays should trigger EmptyBatch
       await expect(
         exampleFacetB.batchExecuteB([], [])
-      ).to.be.revertedWithCustomError(exampleFacetB, 'TooManyOperations');
+      ).to.be.revertedWithCustomError(exampleFacetB, 'EmptyBatch');
 
       // Mismatched array lengths
       await expect(
         exampleFacetB.batchExecuteB([1], [])
       ).to.be.revertedWithCustomError(exampleFacetB, 'LengthMismatch');
+      
+      // Too many operations should trigger TooManyOperations
+      const tooManyOps = new Array(25).fill(1); // MAX_BATCH is 20
+      const tooManyData = new Array(25).fill(ethers.toUtf8Bytes('test'));
+      await expect(
+        exampleFacetB.batchExecuteB(tooManyOps, tooManyData)
+      ).to.be.revertedWithCustomError(exampleFacetB, 'TooManyOperations');
     });
 
     it('Should cover complex calculation with empty data', async function () {

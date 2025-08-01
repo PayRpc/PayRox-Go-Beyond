@@ -290,6 +290,137 @@ contract ExampleFacetB {
         return (l.currentValue, l.operationCounter, l.lastExecutor, l.paused);
     }
 
+    /**
+     * @dev Advanced analytics for production monitoring.
+     * @return value Current state value
+     * @return totalOps Total operations executed
+     * @return lastExecutor Last executor address
+     * @return isPaused Current pause state
+     * @return isInitialized Initialization status
+     * @return operatorAddr Current operator address
+     */
+    function getAdvancedAnalytics()
+        external
+        view
+        returns (
+            uint256 value,
+            uint256 totalOps,
+            address lastExecutor,
+            bool isPaused,
+            bool isInitialized,
+            address operatorAddr
+        )
+    {
+        Layout storage l = _layout();
+        return (
+            l.currentValue,
+            l.operationCounter,
+            l.lastExecutor,
+            l.paused,
+            l.initialized,
+            l.operator
+        );
+    }
+
+    /**
+     * @dev Get operation statistics for a user.
+     * @param user Address to analyze
+     * @return totalUserOps Number of operations by user
+     * @return mostRecentOp Most recent operation type (0 if none)
+     * @return uniqueOpTypes Number of unique operation types used
+     */
+    function getUserStatistics(address user)
+        external
+        view
+        returns (uint256 totalUserOps, uint256 mostRecentOp, uint256 uniqueOpTypes)
+    {
+        Layout storage l = _layout();
+        UserOpsRB storage rb = l.userOps[user];
+        
+        totalUserOps = rb.size;
+        
+        if (totalUserOps > 0) {
+            // Get most recent operation
+            uint256 lastIdx = (MAX_USER_OPS + rb.head - 1) % MAX_USER_OPS;
+            mostRecentOp = rb.buf[lastIdx];
+            
+            // Count unique operation types
+            bool[6] memory seen; // 0-5, but we only use 1-5
+            for (uint256 i = 0; i < totalUserOps; i++) {
+                uint256 idx = (MAX_USER_OPS + rb.head - 1 - i) % MAX_USER_OPS;
+                uint256 opType = rb.buf[idx];
+                if (opType <= MAX_OPERATION_TYPE && !seen[opType]) {
+                    seen[opType] = true;
+                    uniqueOpTypes++;
+                }
+            }
+        }
+    }
+
+    /**
+     * @dev Validate operation parameters without executing.
+     * @param operationType Operation type to validate
+     * @param data Operation data to validate
+     * @return isValid Whether parameters are valid
+     * @return reason Reason code (0=valid, 1=invalid type, 2=empty data, 3=data too large)
+     */
+    function validateOperation(uint256 operationType, bytes calldata data)
+        external
+        pure
+        returns (bool isValid, uint256 reason)
+    {
+        if (operationType == 0 || operationType > MAX_OPERATION_TYPE) {
+            return (false, 1); // Invalid operation type
+        }
+        if (data.length == 0) {
+            return (false, 2); // Empty data
+        }
+        if (data.length > MAX_DATA_BYTES) {
+            return (false, 3); // Data too large
+        }
+        return (true, 0); // Valid
+    }
+
+    /**
+     * @dev Simulate operation without state changes for preview.
+     * @param operationType Operation type to simulate
+     * @param data Operation data
+     * @return newValue What the new state value would be
+     * @return gasEstimate Estimated gas cost
+     */
+    function simulateOperation(uint256 operationType, bytes calldata data)
+        external
+        view
+        returns (uint256 newValue, uint256 gasEstimate)
+    {
+        Layout storage l = _layout();
+        uint256 currentValue = l.currentValue;
+        
+        // Calculate what the new value would be
+        if (operationType == 1) {
+            uint256 inc = abi.decode(data, (uint256));
+            newValue = currentValue + inc;
+            gasEstimate = 25000; // Base estimate for increment
+        } else if (operationType == 2) {
+            uint256 dec = abi.decode(data, (uint256));
+            newValue = dec > currentValue ? 0 : currentValue - dec;
+            gasEstimate = 26000; // Base estimate for decrement
+        } else if (operationType == 3) {
+            uint256 mulPct = abi.decode(data, (uint256));
+            newValue = (currentValue * mulPct) / 100;
+            gasEstimate = 28000; // Base estimate for multiply
+        } else if (operationType == 4) {
+            newValue = 0;
+            gasEstimate = 23000; // Base estimate for reset
+        } else if (operationType == 5) {
+            (uint256 a, uint256 b, uint256 c) = abi.decode(data, (uint256, uint256, uint256));
+            newValue = ((a + b) * c) / 2;
+            gasEstimate = 32000; // Base estimate for complex calculation
+        } else {
+            revert InvalidOperationType();
+        }
+    }
+
     /* ───────────────────────────── Internals ───────────────────────────── */
 
     function _applyOperation(uint256 operationType, bytes calldata data, Layout storage l) private {
@@ -321,9 +452,9 @@ contract ExampleFacetB {
         returns (string memory name, string memory version, bytes4[] memory selectors)
     {
         name = "ExampleFacetB";
-        version = "1.1.0";
+        version = "1.2.0"; // Updated version for enhanced features
 
-        selectors = new bytes4[](9);
+        selectors = new bytes4[](13); // Increased from 9 to 13
         selectors[0] = this.initializeFacetB.selector;
         selectors[1] = this.setPaused.selector;
         selectors[2] = this.executeB.selector;
@@ -333,5 +464,10 @@ contract ExampleFacetB {
         selectors[6] = this.complexCalculation.selector;
         selectors[7] = this.getStateSummary.selector;
         selectors[8] = this.getFacetInfoB.selector;
+        // New production-grade functions
+        selectors[9] = this.getAdvancedAnalytics.selector;
+        selectors[10] = this.getUserStatistics.selector;
+        selectors[11] = this.validateOperation.selector;
+        selectors[12] = this.simulateOperation.selector;
     }
 }
