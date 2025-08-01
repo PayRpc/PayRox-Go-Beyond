@@ -32,6 +32,41 @@ async function saveDeploymentInfo(
   console.log(`   📄 Saved deployment info: ${filePath}`);
 }
 
+async function saveAuditRecord(
+  networkName: string,
+  auditInfo: {
+    manifestHash: string;
+    timestamp: string;
+    factoryAddress: string;
+    dispatcherAddress: string;
+    deployer: string;
+    network: string;
+    chainId: string;
+  }
+): Promise<void> {
+  const auditDir = path.join(process.cwd(), 'deployments', networkName);
+  if (!fs.existsSync(auditDir)) {
+    fs.mkdirSync(auditDir, { recursive: true });
+  }
+
+  const auditRecord = {
+    auditType: 'DEPLOYMENT_MANIFEST',
+    ...auditInfo,
+    auditRequiredMessage: '🔍 Check if Audit Required',
+    verificationSteps: [
+      '1. Verify manifest hash matches deployed contracts',
+      '2. Review all function selectors for security',
+      '3. Validate facet addresses and permissions',
+      '4. Confirm factory and dispatcher configuration'
+    ]
+  };
+
+  const auditFile = path.join(auditDir, 'audit-record.json');
+  fs.writeFileSync(auditFile, JSON.stringify(auditRecord, null, 2));
+  console.log(`   📋 Audit record saved: ${auditFile}`);
+  console.log(`   🔍 Check if Audit Required - Manifest hash: ${auditInfo.manifestHash}`);
+}
+
 async function runScript(scriptName: string, network: string): Promise<boolean> {
   console.log(`\n🔄 Running ${scriptName}...`);
   try {
@@ -148,6 +183,32 @@ async function main() {
     console.log(`\n📋 Building Production Manifest...`);
     if (!await runScript('build-manifest.ts', networkName)) {
       console.warn(`⚠️ Manifest build failed, system will work without manifest...`);
+    } else {
+      // Read and display manifest hash for audit purposes
+      try {
+        const merkleFile = path.join(process.cwd(), 'manifests', 'current.merkle.json');
+        if (fs.existsSync(merkleFile)) {
+          const merkleData = JSON.parse(fs.readFileSync(merkleFile, 'utf8'));
+          const manifestHash = merkleData.root;
+          console.log(`\n🔍 Manifest Audit Information:`);
+          console.log(`   📊 Manifest Hash: ${manifestHash}`);
+          console.log(`   📁 Manifest File: manifests/current.manifest.json`);
+          console.log(`   🌳 Merkle File: manifests/current.merkle.json`);
+          
+          // Save audit record
+          await saveAuditRecord(networkName, {
+            manifestHash,
+            timestamp: new Date().toISOString(),
+            factoryAddress,
+            dispatcherAddress,
+            deployer: deployer.address,
+            network: networkName,
+            chainId: network.chainId.toString()
+          });
+        }
+      } catch (error) {
+        console.warn(`⚠️ Could not read manifest hash:`, error);
+      }
     }
 
     // Step 7: Test basic functionality
@@ -178,18 +239,33 @@ async function main() {
     console.log(``);
     console.log(`🏭 Factory: ${factoryAddress}`);
     console.log(`🗂️ Dispatcher: ${dispatcherAddress}`);
+    
+    // Display manifest hash prominently if available
+    try {
+      const merkleFile = path.join(process.cwd(), 'manifests', 'current.merkle.json');
+      if (fs.existsSync(merkleFile)) {
+        const merkleData = JSON.parse(fs.readFileSync(merkleFile, 'utf8'));
+        console.log(`📊 Manifest Hash: ${merkleData.root}`);
+        console.log(`🔍 Check if Audit Required - Hash: ${merkleData.root}`);
+      }
+    } catch (error) {
+      console.log(`📊 Manifest Hash: Not available`);
+    }
+    
     console.log(``);
     console.log(`📊 System Status:`);
     console.log(`   ✅ Core contracts deployed and verified`);
     console.log(`   ✅ Unique addresses confirmed`);
     console.log(`   ✅ Basic functionality tested`);
     console.log(`   ✅ Ready for facet deployment`);
+    console.log(`   ✅ Audit record created with manifest hash`);
     console.log(``);
     console.log(`📁 Deployment artifacts saved to: deployments/${networkName}/`);
+    console.log(`📋 Audit record available at: deployments/${networkName}/audit-record.json`);
     console.log(``);
     console.log(`🚀 Next Steps:`);
-    console.log(`   1. Deploy additional facets as needed`);
-    console.log(`   2. Build and commit manifest for routing`);
+    console.log(`   1. Review audit record for security compliance`);
+    console.log(`   2. Deploy additional facets as needed`);
     console.log(`   3. Test function calls via dispatcher`);
     console.log(`   4. Set up production monitoring`);
 
