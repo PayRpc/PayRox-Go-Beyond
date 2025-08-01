@@ -22,7 +22,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'npm'
+          cache: npm
 
       - name: Verify Node.js version
         run: |
@@ -70,7 +70,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20.x
-          cache: 'npm'
+          cache: npm
 
       - name: Install dependencies
         run: npm ci
@@ -99,7 +99,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [test, security]
     if: false # Disabled until secrets are configured
-    # environment: testnet # Commented out until secrets are properly configured
+    # environment: testnet # Uncomment when secrets are ready
 
     steps:
       - uses: actions/checkout@v4
@@ -108,7 +108,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20.x
-          cache: 'npm'
+          cache: npm
 
       - name: Install dependencies
         run: npm ci
@@ -116,19 +116,18 @@ jobs:
       - name: Deploy to testnet
         run: npm run deploy:testnet
         env:
-          # Secrets commented out until properly configured
           # TESTNET_RPC_URL: ${{ secrets.TESTNET_RPC_URL }}
           # DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
           # ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
-          TESTNET_RPC_URL: 'http://localhost:8545' # Placeholder for disabled job
-          DEPLOYER_PRIVATE_KEY: '0x0000000000000000000000000000000000000000000000000000000000000000' # Placeholder
-          ETHERSCAN_API_KEY: 'placeholder' # Placeholder
+          TESTNET_RPC_URL: 'http://localhost:8545'                                # Placeholder
+          DEPLOYER_PRIVATE_KEY: '0x0000000000000000000000000000000000000000000000000000000000000000'
+          ETHERSCAN_API_KEY: 'placeholder'
 
   deploy-mainnet:
     runs-on: ubuntu-latest
     needs: [test, security]
     if: false # Disabled until secrets are configured
-    # environment: mainnet # Commented out until secrets are properly configured
+    # environment: mainnet # Uncomment when secrets are ready
 
     steps:
       - uses: actions/checkout@v4
@@ -137,7 +136,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20.x
-          cache: 'npm'
+          cache: npm
 
       - name: Install dependencies
         run: npm ci
@@ -145,16 +144,15 @@ jobs:
       - name: Deploy to mainnet
         run: npm run deploy:mainnet
         env:
-          # Secrets commented out until properly configured
           # MAINNET_RPC_URL: ${{ secrets.MAINNET_RPC_URL }}
           # DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
           # ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
-          MAINNET_RPC_URL: 'https://eth-mainnet.placeholder.com' # Placeholder for disabled job
-          DEPLOYER_PRIVATE_KEY: '0x0000000000000000000000000000000000000000000000000000000000000000' # Placeholder
-          ETHERSCAN_API_KEY: 'placeholder' # Placeholder
+          MAINNET_RPC_URL: 'https://eth-mainnet.placeholder.com'                  # Placeholder
+          DEPLOYER_PRIVATE_KEY: '0x0000000000000000000000000000000000000000000000000000000000000000'
+          ETHERSCAN_API_KEY: 'placeholder'
 
       - name: Verify contracts
         run: npm run verify
         env:
           # ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
-          ETHERSCAN_API_KEY: 'placeholder' # Placeholder for disabled job
+          ETHERSCAN_API_KEY: 'placeholder'                                        # Placeholder
