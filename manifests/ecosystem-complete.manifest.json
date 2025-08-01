@@ -1,0 +1,40 @@
+{
+  "version": "1.0.0",
+  "timestamp": "2025-08-01T14:40:18.251Z",
+  "description": "Complete PayRox Go Beyond Ecosystem - Ready for Developers",
+  "network": {
+    "name": "localhost",
+    "chainId": "31337"
+  },
+  "core": {
+    "factory": "0x99bbA657f2BbC93c02D617f8bA121cB8Fc104Acf",
+    "dispatcher": "0x998abeb3E57409262aE5b751f60747921B33613E"
+  },
+  "orchestrators": {
+    "main": "0x36C02dA8a0983159322a80FFE9F24b1acfF8B570",
+    "governance": "0x809d550fca64d94Bd9F66E60752A544199cfAC3D",
+    "auditRegistry": "0x4c5859f0F772848b2D91F1D83E2Fe57935348029"
+  },
+  "facets": {
+    "exampleA": "deployed",
+    "exampleB": "deployed",
+    "ping": "0x1291Be112d480055DaFd8a610b7d1e203891C274"
+  },
+  "sdk": {
+    "ready": true,
+    "npmPackage": "@payrox/go-beyond-sdk",
+    "contractABIs": "Available in artifacts/",
+    "typechain": "Available in typechain-types/"
+  },
+  "developer": {
+    "readyForIntegration": true,
+    "supports": [
+      "dApps",
+      "plugins",
+      "extensions",
+      "custom facets"
+    ],
+    "documentation": "Available in docs/",
+    "examples": "Available in sdk/examples/"
+  }
+}
