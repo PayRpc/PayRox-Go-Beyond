@@ -10,21 +10,35 @@ honest assessment of what the system actually achieves versus common industry ch
 
 ## 🎯 Core Problems Solved
 
-### 1. **Contract Size Limitation Problem**
+### 1. **Contract Size Limitation Problem (>20KB Contracts)**
 
-**Problem**: Ethereum's 24KB contract size limit (EIP-170) forces developers to split large
-contracts or sacrifice functionality.
+**Problem**: Ethereum's 24KB contract size limit (EIP-170) forces developers of large contracts to
+choose between complex workarounds or reduced functionality. Most sophisticated protocols (DeFi,
+gaming, enterprise) exceed this limit and must use proxy patterns, diamond patterns, or contract
+splitting.
 
-**PayRox Solution**:
+**Traditional Solutions & Their Problems:**
+
+- **Proxy Patterns**: Storage collision risks, single point of failure, complex upgrade procedures
+- **Diamond Pattern (EIP-2535)**: Shared storage conflicts, 24KB total limit across all facets,
+  tight coupling
+- **Manual Contract Splitting**: Loss of cohesion, complex inter-contract communication, development
+  overhead
+
+**PayRox Solution for >20KB Contracts**:
 
 - **Content-Addressed Chunking**: Large contract logic is split into deterministic chunks stored via
   CREATE2
+- **Isolated Storage**: Each facet has independent storage, eliminating diamond pattern storage
+  conflicts
 - **Dynamic Function Routing**: `ManifestDispatcher` routes function calls to appropriate chunks
   based on Merkle-proof manifests
+- **Unlimited Scale**: Each chunk can be up to 24KB, with theoretically unlimited chunks
 - **Seamless Integration**: Developers interact with a single contract interface while logic
-  executes across multiple chunks
+  executes across multiple isolated chunks
 
-**Real Impact**: Enables contracts that would otherwise be impossible to deploy on Ethereum.
+**Real Impact**: Enables large, complex contracts (DeFi protocols, gaming platforms, enterprise
+applications) that would otherwise require risky proxy patterns or limiting diamond architectures.
 
 ### 2. **Deployment Reproducibility Problem**
 
@@ -215,18 +229,26 @@ modularization
 
 ## 🏢 Target Use Cases
 
-### **Ideal For:**
+### **Ideal For (>20KB Contract Focus):**
 
-1. **Large DeFi Protocols**: Complex AMMs, lending protocols, derivatives platforms
-2. **Enterprise Applications**: Supply chain, identity management, complex business logic
-3. **Gaming Platforms**: Complex game mechanics requiring large contract logic
-4. **DAO Infrastructure**: Governance systems requiring modularity and upgradeability
+1. **Large DeFi Protocols**: Complex AMMs (Uniswap V4-level), lending protocols (Aave/Compound
+   scale), derivatives platforms requiring modular architecture
+2. **Enterprise Blockchain Applications**: Supply chain systems, identity management, complex
+   business logic exceeding 24KB limits
+3. **Gaming Platforms**: Complex on-chain game mechanics, NFT platforms with extensive functionality
+4. **DAO Infrastructure**: Governance systems with complex proposal/voting/execution logic requiring
+   modularity and safe upgradeability
+5. **Multi-Protocol Integrations**: Contracts interfacing with multiple DeFi protocols, requiring
+   extensive connector logic
 
 ### **Not Ideal For:**
 
-1. **Simple Contracts**: Basic tokens, simple escrows (overkill)
-2. **Gas-Sensitive Applications**: Where every wei of gas matters
-3. **Rapid Prototyping**: Initial development phases requiring quick iteration
+1. **Simple Contracts (<20KB)**: Basic tokens, simple escrows, voting contracts (overkill with 33K
+   gas overhead)
+2. **Gas-Critical Applications**: MEV bots, arbitrage contracts where 33K gas overhead significantly
+   impacts profitability
+3. **Rapid Prototyping**: Initial development phases requiring quick iteration without deployment
+   infrastructure
 
 ## 📊 Performance Characteristics
 
@@ -256,29 +278,36 @@ modularization
 
 ### **vs. OpenZeppelin Upgradeable Contracts**
 
-**PayRox Advantages**:
+**PayRox Advantages for >20KB Contracts**:
 
-- Granular function-level upgrades
-- No storage collision risks
-- Better audit trails
+- **No Storage Collision Risks**: Isolated facet storage vs. shared proxy storage
+- **Granular Function-Level Upgrades**: Update individual functions vs. entire contract upgrades
+- **Better Audit Trails**: Cryptographic manifest verification vs. admin-controlled upgrades
+- **Unlimited Scale**: Multiple 24KB facets vs. single 24KB contract limit
+- **Independent Development**: Teams can work on separate facets without coordination
 
 **PayRox Disadvantages**:
 
-- Higher complexity
-- Gas overhead for routing
+- **Higher Initial Complexity**: Manifest system vs. straightforward proxy
+- **Gas Overhead**: 33K gas per call vs. proxy's ~2K gas overhead
+- **Framework Learning Curve**: New patterns vs. established OpenZeppelin patterns
 
 ### **vs. Diamond Pattern (EIP-2535)**
 
-**PayRox Advantages**:
+**PayRox Advantages for >20KB Contracts**:
 
-- Content-addressed storage
-- Built-in manifest verification
-- Deterministic deployment
+- **Isolated Storage**: Each facet has independent storage vs. shared diamond storage
+- **Unlimited Facet Size**: Each facet can be 24KB vs. 24KB total limit across all diamond facets
+- **Content-Addressed Storage**: Immutable chunk addressing vs. mutable facet replacement
+- **Cryptographic Route Verification**: Merkle proof validation vs. manual route management
+- **Independent Facet Development**: No storage layout coordination vs. shared storage requirements
+- **Runtime Code Integrity**: EXTCODEHASH validation vs. trust-based facet calls
 
 **PayRox Disadvantages**:
 
-- Less ecosystem adoption
-- Proprietary patterns
+- **Less Ecosystem Adoption**: Newer pattern vs. established EIP-2535 standard
+- **Proprietary Framework**: PayRox-specific vs. standardized diamond interfaces
+- **Higher Gas Overhead**: 33K gas per call vs. diamond's direct delegation
 
 ### **vs. Modular Contract Architectures**
 
@@ -323,12 +352,12 @@ applications.
 - **Intelligent Automation**: AI-powered contract analysis and deployment optimization
 - **Template Engine**: Pre-built scaffolding for common dApp patterns
 
-**Best suited for**: Teams building complex, long-lived blockchain applications that need
-modularity, upgradeability, and deterministic deployment - now with enterprise-grade developer
-experience.
+**Best suited for**: Teams building complex, large-scale blockchain applications (>20KB) that need
+modular architecture, safe upgradeability, and deterministic deployment - specifically those that
+would otherwise require proxy patterns or diamond architectures but want to avoid their limitations.
 
-**Not recommended for**: Simple applications, gas-sensitive use cases, or teams seeking quick
-deployment solutions.
+**Not recommended for**: Simple contracts under 20KB, gas-critical applications where 33K overhead
+matters, or teams seeking quick deployment solutions without architectural benefits.
 
 **Bottom Line**: PayRox delivers on its core promises around deterministic deployment, modular
 architecture, and upgrade management. The cross-chain universal addressing claim was oversold, but
