@@ -418,7 +418,7 @@ task('payrox:release:bundle', 'Generate production-ready release bundle')
       network: hre.network.name,
       chainId: Number(
         manifest.header?.chainId ||
-        (await ethers.provider.getNetwork().then(n => n.chainId))
+          (await ethers.provider.getNetwork().then(n => n.chainId))
       ),
     };
 
@@ -482,13 +482,21 @@ task('payrox:release:bundle', 'Generate production-ready release bundle')
 // Helper function to resolve function signatures
 function getFunctionSignature(selector: string): string {
   const signatures: Record<string, string> = {
+    // ExampleFacetA functions (verified against contract interface)
+    '0x7ab7b94b': 'getFacetInfo()',
+    '0xb5211ec4': 'executeA(string)',
+    '0x03e8837c': 'getUserCount(address)',
+    '0x9730174d': 'storeData(bytes32,bytes)', // Fixed: correct selector
+    '0x54f6127f': 'getData(bytes32)', // Fixed: correct selector, returns caller-namespaced data
+    '0xbdb475b8': 'batchExecute(string[])',
+    '0x24d824cb': 'calculateHash(bytes)',
+    '0x31cd4199': 'verifySignature(bytes32,bytes,address)',
+    '0x642f7d5e': 'totalExecutions()',
+    '0x2113522a': 'lastCaller()',
+
+    // Other facet functions
     '0x5c36b186': 'ping()',
     '0x3c7264b2': 'getFacetInfoB()',
-    '0x7ab7b94b': 'getFacetInfo()',
-    '0xb5211ec4': 'executeA(uint256)',
-    '0x03e8837c': 'getUserCount()',
-    '0xa0c1ca34': 'storeData(bytes32,uint256)',
-    '0x8bdb2afa': 'getData(bytes32)',
     '0x02329a29': 'stop()',
     '0x47e7ef24': 'deposit(address,uint256)',
     '0xf3fef3a3': 'withdraw(address,uint256)',
