@@ -360,3 +360,39 @@ task(
       throw error;
     }
   });
+
+/** ----------------------------------------------------------------------------
+ *  payrox:orchestrator:start
+ *  - Start a new orchestration plan
+ * ---------------------------------------------------------------------------*/
+task(
+  'payrox:orchestrator:start',
+  'Start a new orchestration plan'
+)
+  .addParam('orchestrator', 'Orchestrator contract address', undefined, types.string)
+  .addParam('id', 'Orchestration ID (bytes32)', undefined, types.string)
+  .addParam('gasLimit', 'Gas limit for orchestration', undefined, types.string)
+  .setAction(async (args, hre) => {
+    try {
+      logInfo(`Starting orchestration: ${args.id}`);
+      
+      const { ethers } = hre;
+      const [signer] = await ethers.getSigners();
+      
+      const orchestrator = await ethers.getContractAt(
+        'Orchestrator',
+        args.orchestrator,
+        signer
+      );
+      
+      const tx = await orchestrator.startOrchestration(args.id, args.gasLimit);
+      console.log(`⛓️  orchestration started: ${tx.hash}`);
+      
+      const receipt = await tx.wait();
+      logSuccess(`Orchestration started in block ${receipt?.blockNumber}`);
+      
+    } catch (error) {
+      logError(error, 'Orchestrator start');
+      throw error;
+    }
+  });

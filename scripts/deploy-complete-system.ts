@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import { ethers } from 'hardhat';
 import * as path from 'path';
+import { deployOrchestrators } from './deploy-orchestrators';
 
 interface DeploymentInfo {
   contractName: string;
@@ -177,6 +178,12 @@ async function main() {
     console.log(`\n💎 Deploying ExampleFacetB...`);
     if (!await runScript('deploy-facet-b-direct.ts', networkName)) {
       console.warn(`⚠️ FacetB deployment failed, continuing with core system...`);
+    }
+
+    // Step 5.5: Deploy Orchestrator Contracts
+    console.log(`\n🎯 Deploying Orchestrator Contracts...`);
+    if (!await runScript('deploy-orchestrators.ts', networkName)) {
+      console.warn(`⚠️ Orchestrator deployment failed, continuing without orchestration...`);
     }
 
     // Step 6: Build Production Manifest
