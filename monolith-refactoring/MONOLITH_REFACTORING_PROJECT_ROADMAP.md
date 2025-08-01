@@ -18,8 +18,7 @@ PayRox's deterministic deployment, manifest routing, and cryptographic verificat
 - **DeterministicChunkFactory**: `0x82e01223d51Eb87e16A03E24687EDF0F294da6f1`
 
   - CREATE2 deterministic deployment
-  - Current fee structure: 0.001 ETH (deployed) | Planned: 0.0009 ETH (0.0007 factory + 0.0002
-    platform)
+  - Current fee structure: 0.0009 ETH total (0.0007 ETH factory + 0.0002 ETH platform) platform)
   - EIP-170 compliance enforcement
   - Content-addressed chunk storage
 
@@ -61,7 +60,7 @@ PayRox's deterministic deployment, manifest routing, and cryptographic verificat
 2. **Fee Structure Optimization**
 
    - Current deployed fee: 0.001 ETH per deployment
-   - Planned optimized fee: 0.0009 ETH (0.0007 ETH factory + 0.0002 ETH platform)
+   - Current optimized fee: 0.0009 ETH (0.0007 ETH factory + 0.0002 ETH platform)
    - Need dynamic fee calculation based on contract complexity
    - Batch deployment pricing models
 
@@ -149,7 +148,7 @@ interface MonolithAnalysis {
 ```typescript
 interface DynamicFeeStructure {
   currentDeployedFee: BigInt; // 0.001 ETH current
-  plannedBaseFee: BigInt; // 0.0009 ETH planned (0.0007 factory + 0.0002 platform)
+  currentBaseFee: BigInt; // 0.0009 ETH current (0.0007 factory + 0.0002 platform)
   complexityMultiplier: number; // 1.0 - 3.0 based on functions
   batchDiscount: number; // Up to 40% for multiple facets
   networkMultiplier: number; // Gas price adjustment
@@ -233,7 +232,7 @@ interface DynamicFeeStructure {
 ### **Current Fee Model Analysis**
 
 - **Current Deployed Fee**: 0.001 ETH per facet deployment
-- **Planned Optimized Fee**: 0.0009 ETH per facet deployment (0.0007 ETH factory + 0.0002 ETH
+- **Current Optimized Fee**: 0.0009 ETH per facet deployment (0.0007 ETH factory + 0.0002 ETH
   platform)
 - **Fee Structure**: Tiered system with up to 60% discounts
 - **Revenue Model**: Factory-based fee collection with platform revenue stream
@@ -274,7 +273,7 @@ interface EnhancedFeeModel {
 
 Based on complexity distribution analysis:
 
-- **Simple Contracts (60%)**: 0.001 ETH average (current) / 0.0009 ETH (planned)
+- **Simple Contracts (60%)**: 0.0009 ETH average (current optimized)
 - **Medium Contracts (30%)**: 0.0015 ETH average (current) / 0.00135 ETH (planned)
 - **Complex Contracts (10%)**: 0.002 ETH average (current) / 0.0018 ETH (planned)
 

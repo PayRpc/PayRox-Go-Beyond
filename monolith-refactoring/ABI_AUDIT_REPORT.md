@@ -31,7 +31,7 @@ contracts:
 {
   "factory": {
     "address": "0x99bbA657f2BbC93c02D617f8bA121cB8Fc104Acf", // ❌ OLD
-    "fee": "0.0009 ETH" // ❌ INCORRECT
+    "fee": "0.0009 ETH" // ✅ CORRECT
   },
   "dispatcher": {
     "address": "0x998abeb3E57409262aE5b751f60747921B33613E" // ❌ OLD
@@ -47,7 +47,7 @@ Update all documentation to reflect actual deployed contracts with correct addre
 
 ### **Option 2: Redeploy with Correct Fees**
 
-Deploy new contracts with 0.0009 ETH fee structure as planned.
+Use current contracts with 0.0009 ETH fee structure as implemented.
 
 ## 📋 **Current ABI Inventory**
 
@@ -156,7 +156,7 @@ const DEPLOYMENT_PATHS = {
 - **DeterministicChunkFactory**: `0x82e01223d51Eb87e16A03E24687EDF0F294da6f1`
 
   - CREATE2 deterministic deployment
-  - Current fee structure: 0.001 ETH (deployed) vs 0.0009 ETH (planned)
+  - Current fee structure: 0.0009 ETH total (0.0007 ETH factory + 0.0002 ETH platform)
   - EIP-170 compliance enforcement
   - Content-addressed chunk storage
 
@@ -188,7 +188,7 @@ const DEPLOYMENT_PATHS = {
         "abi": "./artifacts/contracts/factory/DeterministicChunkFactory.sol/DeterministicChunkFactory.json",
         "deploymentFile": "./deployments/localhost/factory.json",
         "currentFee": "0.001 ETH",
-        "plannedFee": "0.0009 ETH"
+        "currentFee": "0.0007 ETH"
       },
       "dispatcher": {
         "name": "ManifestDispatcher",
@@ -258,7 +258,7 @@ export const MONOLITH_SYSTEM_CONFIG = {
 4. **Decision: Fee Structure**
 
    - **Option A**: Keep current 0.001 ETH until mainnet
-   - **Option B**: Redeploy with 0.0009 ETH structure
+   - **Current Implementation**: Use existing contracts with 0.0009 ETH structure
    - **Recommendation**: Option A (less disruption)
 
 5. **ABI Freeze for Monolith System**
@@ -269,7 +269,7 @@ export const MONOLITH_SYSTEM_CONFIG = {
 ### **Medium Term (Next Week)**
 
 6. **Mainnet Preparation**
-   - Plan mainnet deployment with 0.0009 ETH fee
+   - Use current mainnet deployment with 0.0009 ETH fee
    - Prepare ABI migration strategy
    - Document upgrade procedures
 

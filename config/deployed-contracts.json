@@ -14,8 +14,8 @@
         "address": "0x82e01223d51Eb87e16A03E24687EDF0F294da6f1",
         "abi": "./artifacts/contracts/factory/DeterministicChunkFactory.sol/DeterministicChunkFactory.json",
         "deploymentFile": "./deployments/localhost/factory.json",
-        "currentFee": "0.001 ETH",
-        "plannedFee": "0.0009 ETH"
+        "currentFee": "0.0007 ETH",
+        "plannedFee": "0.0007 ETH"
       },
       "dispatcher": {
         "name": "ManifestDispatcher",
@@ -74,8 +74,12 @@
     "expectedFactoryBytecodeHash": "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
   },
   "fees": {
-    "baseFeeWei": "1000000000000000",
-    "baseFeeEth": "0.001",
+    "baseFeeWei": "700000000000000",
+    "baseFeeEth": "0.0007",
+    "platformFeeWei": "200000000000000",
+    "platformFeeEth": "0.0002",
+    "totalFeeWei": "900000000000000",
+    "totalFeeEth": "0.0009",
     "feeRecipient": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
   },
   "features": {

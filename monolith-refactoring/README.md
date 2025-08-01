@@ -45,7 +45,7 @@ Monolith Refactoring Project.
 
 - **Current Phase**: Foundation & Analysis (Phase 1)
 - **ABI Status**: ✅ Audited and addresses corrected (v1.0.1)
-- **Fee Structure**: Current 0.001 ETH deployed | Planned 0.0009 ETH optimized
+- **Fee Structure**: Optimized 0.0009 ETH total (0.0007 ETH factory + 0.0002 ETH platform)
 - **Infrastructure**: ✅ Production-ready contracts deployed
 - **Documentation**: ✅ Complete strategic analysis with corrected data
 
@@ -60,7 +60,7 @@ Monolith Refactoring Project.
 ### Current Fee Structure
 
 - **Current Deployed**: 0.001 ETH per facet deployment
-- **Planned Optimized**: 0.0009 ETH (0.0007 ETH factory + 0.0002 ETH platform)
+- **Current Optimized**: 0.0009 ETH (0.0007 ETH factory + 0.0002 ETH platform)
 - **Tiered Discounts**: Up to 60% for enterprise users
 - **Batch Discounts**: Up to 35% for multiple facets
 
