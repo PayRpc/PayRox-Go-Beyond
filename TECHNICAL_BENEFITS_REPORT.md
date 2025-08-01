@@ -89,7 +89,8 @@ redeployment.
 ### **Deployment Infrastructure**
 
 - Complete CREATE2-based deterministic factory
-- Multi-network deployment coordination (Ethereum, Polygon, testnets)
+- Multi-network deployment coordination (Ethereum, Polygon, Arbitrum, Optimism, Base, Avalanche,
+  Fantom, BSC + testnets)
 - Comprehensive fee management (0.0009 ETH per facet)
 - Gas-optimized batch operations
 - Security validations against CREATE2 bomb attacks
@@ -122,7 +123,8 @@ redeployment.
 - **Plugin System**: Extensible dApp plugin architecture (`@payrox/dapp-plugins`)
 - **Template Engine**: Pre-built dApp scaffolding and generation tools
 - **Browser Integration**: MetaMask and Web3 wallet support
-- **Multi-Network Support**: Seamless mainnet, testnet, and localhost deployment
+- **Multi-Network Support**: Seamless deployment across 18+ EVM networks including mainnets,
+  testnets, and localhost
 
 ### **Operational Verification System**
 
@@ -179,7 +181,8 @@ tools:
 
 - Full TypeScript support with IntelliSense
 - Browser and Node.js compatibility
-- Multi-network deployment (`mainnet`, `polygon`, `sepolia`, `localhost`)
+- Multi-network deployment (`ethereum`, `polygon`, `arbitrum`, `optimism`, `base`, `avalanche`,
+  `fantom`, `bsc`, testnets, `localhost`)
 - Gas optimization and fee estimation
 - Real-time event monitoring
 - Deterministic address prediction
@@ -431,12 +434,35 @@ npx hardhat oneclick-release
 npm run deploy:ecosystem
 ```
 
+**Cross-Chain Deployment Commands:**
+
+```bash
+# Universal salt generation for consistent addresses
+npx hardhat crosschain:generate-salt --content "0x..." --deployer "0x..."
+
+# Multi-network deployment with address verification
+npx hardhat crosschain:deploy --networks "ethereum,polygon,arbitrum,optimism" --verify
+
+# Address prediction across networks
+npx hardhat crosschain:predict-addresses --networks "ethereum,polygon" --salt "0x..."
+
+# Cross-chain health monitoring
+npx hardhat crosschain:health-check --networks "ethereum,polygon,arbitrum,optimism,base"
+
+# Manifest synchronization across networks
+npx hardhat crosschain:sync-manifest --networks "ethereum,polygon" --manifest "./manifest.json"
+```
+
 **Network-Specific Deployments:**
 
 ```bash
 npm run deploy:mainnet     # Ethereum mainnet deployment
 npm run deploy:testnet     # Testnet deployment
 npm run deploy:localhost   # Local development deployment
+
+# Cross-chain specific deployments
+npm run deploy:l2s         # Deploy to all Layer 2 networks
+npm run deploy:testnets    # Deploy to all testnet environments
 ```
 
 ### **PayRox Hardhat Tasks**

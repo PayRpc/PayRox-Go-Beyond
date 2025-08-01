@@ -1,6 +1,7 @@
 # PayRox Go Beyond SDK
 
-Production-ready TypeScript SDK for building deterministic dApps with content-addressed deployment on the PayRox ecosystem.
+Production-ready TypeScript SDK for building deterministic dApps with content-addressed deployment
+on the PayRox ecosystem. Now with full cross-chain deployment capabilities across 18+ EVM networks.
 
 ## 🚀 Quick Start
 
@@ -20,8 +21,8 @@ import { PayRoxClient, createClient } from '@payrox/go-beyond-sdk';
 // Connect to PayRox network
 const client = createClient(
   'http://localhost:8545', // RPC URL
-  'your-private-key',      // Optional private key
-  'localhost'              // Network name
+  'your-private-key', // Optional private key
+  'localhost' // Network name
 );
 
 // Deploy a contract
@@ -35,9 +36,35 @@ console.log('Deployed to:', result.address);
 console.log('Transaction:', result.transactionHash);
 ```
 
+### Cross-Chain Usage
+
+```typescript
+import { CrossChainClient, createCrossChainClient } from '@payrox/go-beyond-sdk';
+
+// Initialize cross-chain client
+const crossChainClient = createCrossChainClient({
+  networks: ['ethereum', 'polygon', 'arbitrum', 'optimism'],
+  privateKey: 'your-private-key',
+});
+
+// Deploy across multiple networks with consistent addresses
+const deploymentResults = await crossChainClient.deployContract({
+  bytecode: contractBytecode,
+  constructorArgs: constructorArgs,
+  contractType: 'token',
+  verifyConsistency: true,
+});
+
+deploymentResults.forEach(result => {
+  console.log(`${result.network}: ${result.address}`);
+});
+```
+
 ## 📋 Features
 
 - ✅ **Deterministic Deployment** - CREATE2-based deterministic contract addresses
+- ✅ **Cross-Chain Support** - Deploy to 18+ EVM networks with address consistency
+- ✅ **Network Management** - Automated network configuration and validation
 - ✅ **Content Addressing** - Deploy contracts as addressable chunks
 - ✅ **Manifest System** - Organize and version your deployments
 - ✅ **Multi-Network Support** - Works on mainnet, testnets, and localhost
@@ -84,11 +111,11 @@ Deploy a contract using deterministic deployment.
 ```typescript
 const result = await client.deployContract(
   '0x608060405234801561001057600080fd5b50...', // Contract bytecode
-  ['param1', 'param2'],                           // Constructor arguments
-  'token',                                        // Contract type
+  ['param1', 'param2'], // Constructor arguments
+  'token', // Contract type
   {
     gasLimit: 5000000,
-    maxFeePerGas: '20000000000'
+    maxFeePerGas: '20000000000',
   }
 );
 
@@ -106,10 +133,7 @@ const result = await client.deployContract(
 Calculate the deterministic address without deploying.
 
 ```typescript
-const address = await client.calculateAddress(
-  contractBytecode,
-  constructorArgs
-);
+const address = await client.calculateAddress(contractBytecode, constructorArgs);
 console.log('Will deploy to:', address);
 ```
 
@@ -181,7 +205,7 @@ const orchestrator = client.orchestrator;
 // Deploy multiple contracts in one transaction
 const result = await orchestrator.deployBatch([
   { bytecode: contract1Bytecode, constructorArgs: ['arg1'] },
-  { bytecode: contract2Bytecode, constructorArgs: ['arg2'] }
+  { bytecode: contract2Bytecode, constructorArgs: ['arg2'] },
 ]);
 
 console.log('Deployed addresses:', result.addresses);
@@ -197,14 +221,14 @@ const manifest = await client.manifest.build([
     name: 'Token',
     bytecode: tokenBytecode,
     constructorArgs: ['TokenName', 'TKN'],
-    contractType: 'token'
+    contractType: 'token',
   },
   {
     name: 'Vault',
     bytecode: vaultBytecode,
     constructorArgs: [tokenAddress],
-    contractType: 'defi'
-  }
+    contractType: 'defi',
+  },
 ]);
 
 console.log('Manifest root:', manifest.merkleRoot);
@@ -248,11 +272,7 @@ console.log('Estimated gas:', gasEstimate.toString());
 
 // Calculate total cost
 import { Utils } from '@payrox/go-beyond-sdk';
-const cost = Utils.calculateDeploymentCost(
-  deploymentFee,
-  gasUsed,
-  gasPrice
-);
+const cost = Utils.calculateDeploymentCost(deploymentFee, gasUsed, gasPrice);
 console.log('Total cost:', cost.total, 'ETH');
 ```
 
@@ -266,13 +286,13 @@ The SDK supports categorizing contracts for better organization:
 import { CONTRACT_TYPES } from '@payrox/go-beyond-sdk';
 
 // Available types:
-CONTRACT_TYPES.FACET      // "facet"
-CONTRACT_TYPES.LIBRARY    // "library"
-CONTRACT_TYPES.UTILITY    // "utility"
-CONTRACT_TYPES.TOKEN      // "token"
-CONTRACT_TYPES.DEFI       // "defi"
-CONTRACT_TYPES.NFT        // "nft"
-CONTRACT_TYPES.GOVERNANCE // "governance"
+CONTRACT_TYPES.FACET; // "facet"
+CONTRACT_TYPES.LIBRARY; // "library"
+CONTRACT_TYPES.UTILITY; // "utility"
+CONTRACT_TYPES.TOKEN; // "token"
+CONTRACT_TYPES.DEFI; // "defi"
+CONTRACT_TYPES.NFT; // "nft"
+CONTRACT_TYPES.GOVERNANCE; // "governance"
 ```
 
 ### Utilities
@@ -342,16 +362,16 @@ console.log('Vault deployed to:', vaultResult.address);
 const batchResult = await client.orchestrator.deployBatch([
   {
     bytecode: tokenBytecode,
-    constructorArgs: ['Token1', 'TK1']
+    constructorArgs: ['Token1', 'TK1'],
   },
   {
     bytecode: tokenBytecode,
-    constructorArgs: ['Token2', 'TK2']
+    constructorArgs: ['Token2', 'TK2'],
   },
   {
     bytecode: vaultBytecode,
-    constructorArgs: [] // Will be updated after tokens deploy
-  }
+    constructorArgs: [], // Will be updated after tokens deploy
+  },
 ]);
 
 console.log('All contracts deployed:', batchResult.addresses);
@@ -397,10 +417,7 @@ console.log(result.address === address1); // true
 
 ```typescript
 // Verify deployment integrity
-const verified = await client.verifyDeployment(
-  deployedAddress,
-  expectedBytecode
-);
+const verified = await client.verifyDeployment(deployedAddress, expectedBytecode);
 
 if (verified) {
   console.log('Deployment verified successfully');
@@ -445,24 +462,24 @@ console.log('Network ready:', status.available);
 The SDK is built with TypeScript and provides full type safety:
 
 ```typescript
-import type { 
-  NetworkConfig, 
-  ManifestContract, 
-  DeploymentResult 
-} from '@payrox/go-beyond-sdk';
+import type { NetworkConfig, ManifestContract, DeploymentResult } from '@payrox/go-beyond-sdk';
 
 const config: NetworkConfig = {
   name: 'localhost',
   chainId: 31337,
-  contracts: { /* ... */ },
-  fees: { /* ... */ }
+  contracts: {
+    /* ... */
+  },
+  fees: {
+    /* ... */
+  },
 };
 
 const contract: ManifestContract = {
   name: 'MyContract',
   bytecode: '0x...',
   constructorArgs: ['arg1', 'arg2'],
-  contractType: 'utility'
+  contractType: 'utility',
 };
 ```
 

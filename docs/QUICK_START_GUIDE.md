@@ -1,9 +1,40 @@
-# Quick Start Guide: Choose Your Industry
+# Quick Start Guide: Choose Your Implementation Path
 
 ## 🎯 Business Opportunity Assessment
 
-Use this guide to quickly identify the best industry vertical for your PayRox Go Beyond
-implementation.
+Use this guide to quickly identify the best industry vertical and deployment strategy for your
+PayRox Go Beyond implementation.
+
+## 🌐 Cross-Chain Deployment Quick Start
+
+### Prerequisites
+
+```bash
+git clone https://github.com/PayRpc/PayRox-Go-Beyond.git
+cd PayRox-Go-Beyond
+npm install
+cp .env.example .env
+# Set PRIVATE_KEY and RPC URLs in .env
+```
+
+### Multi-Network Deployment
+
+```bash
+# 1. Generate universal salt for consistent addresses
+npx hardhat crosschain:generate-salt \
+  --content "0x608060405234801561001057600080fd5b50..." \
+  --deployer "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+
+# 2. Check network health
+npx hardhat crosschain:health-check \
+  --networks "ethereum,polygon,arbitrum,optimism,base"
+
+# 3. Deploy across networks
+npx hardhat crosschain:deploy \
+  --networks "ethereum,polygon,arbitrum,optimism,base" \
+  --contracts "./crosschain-contracts.json" \
+  --verify
+```
 
 ## Industry Comparison Matrix
 
@@ -245,13 +276,13 @@ npx hardhat payrox:compliance:full --regulations HIPAA,FDA
 - Budget: $**\_\_**
 - Timeline: **\_\_** months
 - Team size: **\_\_** developers
-- Industry expertise: ****\_\_\_\_****
+- Industry expertise: \***\*\_\_\_\_\*\***
 
 ### 2. Select Your Industry
 
 Based on the matrix above, choose:
 
-- **Primary industry**: ****\_\_\_\_****
+- **Primary industry**: \***\*\_\_\_\_\*\***
 - **Target market size**: $**\_\_**
 - **Expected time to market**: **\_\_** months
 

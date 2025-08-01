@@ -395,7 +395,34 @@ management:
 - **Chunk Prediction**: Predicts deployment addresses using deterministic CREATE2
 - **Chunk Staging**: Production-ready chunk deployment with gas optimization
 
-### 🏗️ **Production Features**
+### � **Cross-Chain Testing** (`test-crosschain.ts`)
+
+- **Universal Salt Generation**: Validates deterministic salt creation for consistent addresses
+- **Multi-Network Address Prediction**: Tests CREATE2 address consistency across networks
+- **Network Health Monitoring**: Validates RPC connectivity and chain state
+- **Cross-Chain Orchestrator**: Tests initialization and configuration across networks
+- **Manifest Synchronization**: Validates manifest consistency across deployments
+
+**Cross-Chain Test Commands**:
+
+```bash
+# Run cross-chain validation tests
+node test-crosschain.ts
+
+# Test specific cross-chain components
+npx hardhat crosschain:health-check --networks "ethereum,polygon,arbitrum"
+npx hardhat crosschain:generate-salt --content "0x..." --deployer "0x..."
+npx hardhat crosschain:predict-addresses --networks "ethereum,polygon" --salt "0x..."
+```
+
+**Supported Networks for Testing**:
+
+- **Mainnets**: ethereum, polygon, arbitrum, optimism, base, avalanche, fantom, bsc
+- **Testnets**: sepolia, holesky, polygon-mumbai, polygon-amoy, arbitrum-sepolia, optimism-sepolia,
+  base-sepolia, avalanche-fuji, fantom-testnet, bsc-testnet
+- **Development**: localhost, hardhat
+
+### �🏗️ **Production Features**
 
 - **Multi-Format Support**: Handles various manifest formats (`root` vs `merkleRoot`)
 - **Graceful Degradation**: Works with incomplete manifests, provides informational feedback
