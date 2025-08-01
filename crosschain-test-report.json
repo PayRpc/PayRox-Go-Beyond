@@ -1,0 +1,124 @@
+{
+  "TestSuite": "PayRox Go Beyond Cross-Chain Test",
+  "Tests": [
+    {
+      "Passed": true,
+      "Details": "Connected",
+      "Name": "Network Health: sepolia"
+    },
+    {
+      "Passed": true,
+      "Details": "Connected",
+      "Name": "Network Health: base-sepolia"
+    },
+    {
+      "Passed": true,
+      "Details": "Connected",
+      "Name": "Network Health: arbitrum-sepolia"
+    },
+    {
+      "Passed": true,
+      "Details": "Connected",
+      "Name": "Network Health: optimism-sepolia"
+    },
+    {
+      "Passed": true,
+      "Details": "Connected",
+      "Name": "Network Health: fuji"
+    },
+    {
+      "Passed": false,
+      "Details": "[dotenv@17.2.1] injecting env (0) from .env -- tip: ≡ƒ¢á∩╕Å  run anywhere with `dotenvx run -- yourcommand`\n",
+      "Name": "Salt Generation: sepolia"
+    },
+    {
+      "Passed": false,
+      "Details": "[dotenv@17.2.1] injecting env (0) from .env -- tip: ≡ƒ¢á∩╕Å  run anywhere with `dotenvx run -- yourcommand`\n",
+      "Name": "Salt Generation: base-sepolia"
+    },
+    {
+      "Passed": false,
+      "Details": "[dotenv@17.2.1] injecting env (0) from .env -- tip: ≡ƒôí auto-backup env with Radar: https://dotenvx.com/radar\n",
+      "Name": "Salt Generation: arbitrum-sepolia"
+    },
+    {
+      "Passed": false,
+      "Details": "[dotenv@17.2.1] injecting env (0) from .env -- tip: ≡ƒôí observe env with Radar: https://dotenvx.com/radar\n",
+      "Name": "Salt Generation: optimism-sepolia"
+    },
+    {
+      "Passed": false,
+      "Details": "[dotenv@17.2.1] injecting env (0) from .env -- tip: ΓÜÖ∩╕Å  specify custom .env file path with { path: '/custom/path/.env' }\n",
+      "Name": "Salt Generation: fuji"
+    },
+    {
+      "Passed": false,
+      "Details": "0 salts, 0 unique",
+      "Name": "Salt Uniqueness"
+    },
+    {
+      "Passed": false,
+      "Details": "[dotenv@17.2.1] injecting env (0) from .env -- tip: ≡ƒöÉ prevent building .env in docker: https://dotenvx.com/prebuild\n",
+      "Name": "Address Prediction: sepolia"
+    },
+    {
+      "Passed": false,
+      "Details": "[dotenv@17.2.1] injecting env (0) from .env -- tip: ΓÜÖ∩╕Å  write to custom object with { processEnv: myObject }\n",
+      "Name": "Address Prediction: base-sepolia"
+    },
+    {
+      "Passed": false,
+      "Details": "[dotenv@17.2.1] injecting env (0) from .env -- tip: ≡ƒ¢á∩╕Å  run anywhere with `dotenvx run -- yourcommand`\n",
+      "Name": "Address Prediction: arbitrum-sepolia"
+    },
+    {
+      "Passed": false,
+      "Details": "[dotenv@17.2.1] injecting env (0) from .env -- tip: ≡ƒôí auto-backup env with Radar: https://dotenvx.com/radar\n",
+      "Name": "Address Prediction: optimism-sepolia"
+    },
+    {
+      "Passed": false,
+      "Details": "[dotenv@17.2.1] injecting env (0) from .env -- tip: ≡ƒöÉ prevent committing .env to code: https://dotenvx.com/precommit\n",
+      "Name": "Address Prediction: fuji"
+    },
+    {
+      "Passed": false,
+      "Details": "0 networks, 0 unique addresses",
+      "Name": "Address Consistency"
+    },
+    {
+      "Passed": true,
+      "Details": "Contracts compiled",
+      "Name": "Contract Compilation"
+    },
+    {
+      "Passed": false,
+      "Details": "Manifest failed",
+      "Name": "Manifest Generation"
+    },
+    {
+      "Passed": false,
+      "Details": "Some networks failed",
+      "Name": "Multi-Network Health"
+    }
+  ],
+  "SuccessRate": "30%",
+  "Timestamp": "2025-08-01T18:39:00Z",
+  "Networks": [
+    "sepolia",
+    "base-sepolia",
+    "arbitrum-sepolia",
+    "optimism-sepolia",
+    "fuji"
+  ],
+  "Version": "1.0.0",
+  "Summary": {
+    "Failed": 14,
+    "Passed": 6,
+    "Total": 20
+  },
+  "Conclusions": [
+    "⚠️ 14 tests failed - Review required",
+    "🔧 Check network configurations and RPC endpoints"
+  ]
+}
