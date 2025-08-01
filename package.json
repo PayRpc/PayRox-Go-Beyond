@@ -19,6 +19,8 @@
     "contracts:update": "npm run compile && npm run contracts:bundle",
     "web:test": "node scripts/test-web-integration.js",
     "web:setup": "npm run contracts:bundle && npm run web:test",
+    "verify:mapping": "node scripts/verify-complete-mapping.js",
+    "verify:complete": "npm run verify:mapping && npm run web:test",
     "release": "hardhat oneclick-release",
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
