@@ -4,6 +4,7 @@ import 'hardhat-contract-sizer';
 import { HardhatUserConfig } from 'hardhat/config';
 import 'solidity-coverage';
 // Import tasks
+import './tasks/crosschain-simple';
 import './tasks/payrox';
 import './tasks/payrox-ops';
 import './tasks/payrox-release';

@@ -28,6 +28,8 @@ export interface NetworkConfig {
   hasDeployments: boolean;
   rpcUrl?: string;
   blockExplorer?: string;
+  factoryAddress?: string;
+  dispatcherAddress?: string;
 }
 
 export interface NetworkDetectionResult {
