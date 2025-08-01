@@ -273,6 +273,10 @@ modularization
 - **CREATE2 Bomb Protection**: Built-in validation prevents oversized deployments (24KB limit)
 - **Batch DoS Prevention**: Hard limit of 100 deployments per transaction
 - **Input Validation**: Protection against encodePacked collision attacks in batch operations
+- **Constructor Hash Injection**: Bulletproof protection against "forgot hash" vulnerabilities with
+  immutable verification
+- **Runtime Integrity Checks**: Continuous validation of system components on every critical
+  operation
 
 ## 🔄 Comparison with Alternatives
 
