@@ -31,16 +31,6 @@ contract TestManifestUtils {
     }
 
     /**
-     * @dev Test wrapper for recoverSigner
-     */
-    function testRecoverSigner(
-        bytes32 hash,
-        bytes memory signature
-    ) external pure returns (address) {
-        return ManifestUtils.recoverSigner(hash, signature);
-    }
-
-    /**
      * @dev Test wrapper for validateManifest
      */
     function testValidateManifest(
@@ -50,6 +40,7 @@ contract TestManifestUtils {
         ManifestTypes.SecurityPolicy memory defaultPolicy = ManifestTypes.SecurityPolicy({
             maxFacetSize: 24576,
             maxFacetCount: 100,
+            maxChunkSize: 24576,    // Added: separate chunk size limit
             requireMultisig: false,
             requireAudit: false,
             authorizedDeployers: authorizedDeployers
@@ -79,12 +70,12 @@ contract TestManifestUtils {
     }
 
     /**
-     * @dev Test wrapper for extractSelectors
+     * @dev Test wrapper for collectSelectors
      */
-    function testExtractSelectors(
+    function testCollectSelectors(
         ManifestTypes.FacetInfo[] memory facets
     ) external pure returns (bytes4[] memory) {
-        return ManifestUtils.extractSelectors(facets);
+        return ManifestUtils.collectSelectors(facets);
     }
 
     /**

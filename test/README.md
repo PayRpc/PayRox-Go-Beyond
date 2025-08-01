@@ -382,10 +382,12 @@ management:
 
 ### 🔒 **Ordered Merkle Validation** (`src/payrox/orderedMerkle.ts`)
 
-- **Route Validation**: Cryptographic verification of route proofs against Merkle roots
+- **Route Validation**: Cryptographic verification of route proofs using enhanced selector-based
+  routing
 - **Manifest Hash Computation**: Integrity verification for complete manifest data
-- **Proof Processing**: Efficient ordered Merkle proof validation with position masking
-- **OpenZeppelin Compatibility**: Full compatibility with OpenZeppelin MerkleProof library
+- **Proof Processing**: Efficient ordered Merkle proof validation with bitfield position encoding
+- **Legacy Compatibility**: Full backward compatibility with boolean array positioning
+- **Enhanced Security**: Selector-based route proofs with codehash validation
 
 ### ⚙️ **Hardhat Task Integration** (`tasks/payrox.ts`)
 
