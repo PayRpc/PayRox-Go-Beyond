@@ -59,6 +59,7 @@ library ManifestTypes {
     struct SecurityPolicy {
         uint256 maxFacetSize;
         uint256 maxFacetCount;
+        uint256 maxChunkSize;    // Added: separate chunk size limit
         bool requireMultisig;
         bool requireAudit;
         address[] authorizedDeployers;
