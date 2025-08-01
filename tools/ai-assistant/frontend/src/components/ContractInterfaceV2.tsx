@@ -328,7 +328,7 @@ const ContractInterface: React.FC = () => {
 
   return (
     <div className="contract-interface">
-      <div className="interface-header">
+      <div className="card">
         <div className="header-info">
           <h2>🔧 Smart Contract Interface</h2>
           <div className="network-info">
@@ -346,8 +346,8 @@ const ContractInterface: React.FC = () => {
       </div>
 
       <div className="interface-content">
-        <div className="contract-selector-panel">
-          <div className="selector-section">
+        <div className="card">
+          <div className="form-group">
             <label>📋 Select Contract</label>
             <select
               value={selectedContract}
@@ -369,7 +369,7 @@ const ContractInterface: React.FC = () => {
           </div>
 
           {selectedContractData && (
-            <div className="selector-section">
+            <div className="form-group">
               <label>⚡ Select Function</label>
               <select
                 value={selectedFunction}
@@ -386,8 +386,10 @@ const ContractInterface: React.FC = () => {
               </select>
             </div>
           )}
+        </div>
 
-          {selectedFunctionData && selectedFunctionData.inputs.length > 0 && (
+        {selectedFunctionData && selectedFunctionData.inputs.length > 0 && (
+          <div className="card">
             <div className="function-inputs">
               <label>📝 Function Parameters</label>
               {selectedFunctionData.inputs.map((input, index) => (
@@ -404,9 +406,11 @@ const ContractInterface: React.FC = () => {
                 </div>
               ))}
             </div>
-          )}
+          </div>
+        )}
 
-          {selectedFunction && (
+        {selectedFunction && (
+          <div className="card">
             <div className="function-actions">
               <button
                 onClick={executeFunction}
@@ -430,10 +434,11 @@ const ContractInterface: React.FC = () => {
                 </button>
               )}
             </div>
-          )}
-        </div>
+          </div>
+        )}
+      </div>
 
-        <div className="results-panel">
+      <div className="card">
           <h3>📊 Function Call History</h3>
           {functionCalls.length === 0 ? (
             <div className="empty-state">
