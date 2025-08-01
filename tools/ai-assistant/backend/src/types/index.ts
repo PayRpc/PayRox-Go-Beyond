@@ -4,7 +4,7 @@ import { z } from 'zod';
 
 // PayRox Go Beyond protocol limits - keep in sync with constants/limits.ts
 const MAX_FACET_SIZE = 24576; // EIP-170 limit
-const MAX_FACETS_TEST = 100; // Test environment limit
+const MAX_FACETS_TEST = 10; // Updated to match constants/limits.ts
 
 // PayRox Go Beyond specific types
 export interface ManifestRoute {
