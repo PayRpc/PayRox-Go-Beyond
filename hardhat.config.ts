@@ -22,6 +22,7 @@ const config: HardhatUserConfig = {
         runs: 200,
       },
       viaIR: true, // Keep current setting - contracts compile fine
+      evmVersion: 'cancun', // Support OpenZeppelin v5.x contracts
       metadata: {
         // Include source in metadata for better debugging
         bytecodeHash: 'none', // Deterministic builds

@@ -39,17 +39,21 @@
       "bytecodeSize": 6485,
       "selectors": [
         "0x0af73309",
+        "0x0e7d1d93",
         "0x16c38b3c",
         "0x279412c5",
+        "0x289b3c0d",
         "0x31e8c195",
         "0x37184e95",
         "0x3c7264b2",
         "0x5aa723df",
         "0x7c300fd1",
-        "0xa20a2da6",
         "0xa83583e9",
         "0xa8ced948",
+        "0xc15a59e2",
+        "0xc66b4f23",
         "0xe2ab79b1",
+        "0xe9e831d7",
         "0xea83977f"
       ],
       "priority": 2,
@@ -148,7 +152,7 @@
       "codehash": "0x7141a32a25fe503623c407386e687b56f8511ea22d8a2ed67c9725f3ac8469b8"
     },
     {
-      "selector": "0xa20a2da6",
+      "selector": "0xe9e831d7",
       "facet": "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
       "codehash": "0x7141a32a25fe503623c407386e687b56f8511ea22d8a2ed67c9725f3ac8469b8"
     },
@@ -164,6 +168,11 @@
     },
     {
       "selector": "0xe2ab79b1",
+      "facet": "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
+      "codehash": "0x7141a32a25fe503623c407386e687b56f8511ea22d8a2ed67c9725f3ac8469b8"
+    },
+    {
+      "selector": "0x289b3c0d",
       "facet": "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
       "codehash": "0x7141a32a25fe503623c407386e687b56f8511ea22d8a2ed67c9725f3ac8469b8"
     },

@@ -2,7 +2,16 @@
   "version": "1.0.0",
   "timestamp": "2025-07-31T05:40:57.673Z",
   "description": "Initial release of PayRox Go Beyond deployment framework",
-  "network": {
+      {
+      "selector": "0xe2ab79b1",
+      "facet": "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82",
+      "codehash": "0xf84333b460438bb427a4f59ef5faf1858b88e1b540d01b4a08784cb50c864949"
+    },
+    {
+      "selector": "0x289b3c0d",
+      "facet": "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82",
+      "codehash": "0xf84333b460438bb427a4f59ef5faf1858b88e1b540d01b4a08784cb50c864949"
+    },ork": {
     "name": "localhost",
     "chainId": "31337"
   },
@@ -38,15 +47,23 @@
       "bytecodeHash": "0xf84333b460438bb427a4f59ef5faf1858b88e1b540d01b4a08784cb50c864949",
       "bytecodeSize": 5370,
       "selectors": [
+        "0x0af73309",
+        "0x0e7d1d93",
         "0x16c38b3c",
         "0x279412c5",
+        "0x289b3c0d",
         "0x31e8c195",
         "0x37184e95",
         "0x3c7264b2",
         "0x5aa723df",
         "0x7c300fd1",
-        "0xa20a2da6",
-        "0xe2ab79b1"
+        "0xa83583e9",
+        "0xa8ced948",
+        "0xc15a59e2",
+        "0xc66b4f23",
+        "0xe2ab79b1",
+        "0xe9e831d7",
+        "0xea83977f"
       ],
       "priority": 2,
       "gasLimit": 750000
@@ -139,7 +156,7 @@
       "codehash": "0xf84333b460438bb427a4f59ef5faf1858b88e1b540d01b4a08784cb50c864949"
     },
     {
-      "selector": "0xa20a2da6",
+      "selector": "0xe9e831d7",
       "facet": "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82",
       "codehash": "0xf84333b460438bb427a4f59ef5faf1858b88e1b540d01b4a08784cb50c864949"
     },

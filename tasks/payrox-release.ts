@@ -496,7 +496,27 @@ function getFunctionSignature(selector: string): string {
 
     // Other facet functions
     '0x5c36b186': 'ping()',
+
+    // ExampleFacetB functions (verified against contract interface)
+    '0xe9e831d7': 'initializeFacetB(address,address,uint256,bytes)',
+    '0x16c38b3c': 'setPaused(bool)',
+    '0xc15a59e2': 'rotateGovernance(address,uint256,bytes)',
+    '0x0e7d1d93': 'rotateOperator(address,uint256,bytes)',
+    '0x37184e95': 'executeB(uint256,bytes)',
+    '0x5aa723df': 'batchExecuteB(uint256[],bytes[])',
+    '0x279412c5': 'getOperation(bytes32)',
+    '0xe2ab79b1': 'getUserOperations(address)',
+    '0x31e8c195': 'complexCalculation(uint256[])',
+    '0x7c300fd1': 'getStateSummary()',
     '0x3c7264b2': 'getFacetInfoB()',
+    '0xa8ced948': 'getAdvancedAnalytics()',
+    '0xa83583e9': 'getUserStatistics(address)',
+    '0xea83977f': 'validateOperation(uint256,bytes)',
+    '0x0af73309': 'simulateOperation(uint256,bytes)',
+    '0xc66b4f23': 'getInitNonce()',
+    '0x289b3c0d': 'getGovernance()',
+
+    // Generic functions
     '0x02329a29': 'stop()',
     '0x47e7ef24': 'deposit(address,uint256)',
     '0xf3fef3a3': 'withdraw(address,uint256)',
@@ -505,7 +525,6 @@ function getFunctionSignature(selector: string): string {
     '0xa22cb465': 'setApprovalForAll(address,bool)',
     '0x8da5cb5b': 'owner()',
     '0x9b19251a': 'getPaused()',
-    '0x16c38b3c': 'setPaused(bool)',
     '0xd85d3d27': 'getTotalUsers()',
     '0xba414fa6': 'getOwner()',
     '0x8456cb59': 'pause()',
