@@ -8,6 +8,12 @@ import "./ManifestTypes.sol";
  * @dev Utility functions for manifest processing and validation
  */
 library ManifestUtils {
+    
+    // Gas estimation constants for clarity and maintainability
+    uint256 private constant BASE_MANIFEST_GAS = 100_000;      // Base gas for manifest processing
+    uint256 private constant GAS_PER_SELECTOR = 5_000;        // Gas per function selector
+    uint256 private constant GAS_PER_CHUNK = 50_000;          // Gas per chunk deployment  
+    uint256 private constant MERKLE_VERIFICATION_GAS = 30_000; // Gas for Merkle verification
 
     /**
      * @dev Calculate the hash of a manifest
@@ -358,20 +364,20 @@ library ManifestUtils {
         ManifestTypes.ReleaseManifest memory manifest
     ) internal pure returns (uint256 estimatedGas) {
         // Base gas for manifest processing
-        estimatedGas = 100000;
+        estimatedGas = BASE_MANIFEST_GAS;
         
         // Add gas per facet (route updates)
         uint256 totalSelectors = 0;
         for (uint256 i = 0; i < manifest.facets.length; i++) {
             totalSelectors += manifest.facets[i].selectors.length;
         }
-        estimatedGas += totalSelectors * 5000; // ~5k gas per selector
+        estimatedGas += totalSelectors * GAS_PER_SELECTOR;
         
         // Add gas per chunk deployment
-        estimatedGas += manifest.chunks.length * 50000; // ~50k gas per chunk
+        estimatedGas += manifest.chunks.length * GAS_PER_CHUNK;
         
         // Add gas for Merkle verification
-        estimatedGas += 30000;
+        estimatedGas += MERKLE_VERIFICATION_GAS;
         
         return estimatedGas;
     }
