@@ -89,7 +89,7 @@ redeployment.
 
 - ✅ Complete CREATE2-based deterministic factory
 - ✅ Multi-network deployment coordination (Ethereum, Polygon, testnets)
-- ✅ Comprehensive fee management (0.0007 ETH + 0.0002 ETH platform fee)
+- ✅ Comprehensive fee management (0.0009 ETH per facet)
 - ✅ Gas-optimized batch operations
 - ✅ Security validations against CREATE2 bomb attacks
 
@@ -121,8 +121,19 @@ redeployment.
 - ✅ **Plugin System**: Extensible dApp plugin architecture (`@payrox/dapp-plugins`)
 - ✅ **Template Engine**: Pre-built dApp scaffolding and generation tools
 - ✅ **Browser Integration**: MetaMask and Web3 wallet support
-- ✅ **Multi-Network Support**: Seamless mainnet, testnet, and localhost deployment## 🛠️ Complexity
-  Solutions & Developer Tools
+- ✅ **Multi-Network Support**: Seamless mainnet, testnet, and localhost deployment
+
+### **Operational Verification System**
+
+- ✅ **Manifest Self-Check**: Automated verification of Merkle proofs and manifest integrity
+- ✅ **Pre-deployment Prediction**: Exact address prediction before staging chunks
+- ✅ **EXTCODEHASH Verification**: Off-chain validation of deployed contract integrity
+- ✅ **Automated Staging**: File-based or direct hex data deployment with fee validation
+- ✅ **Orchestrated Deployments**: Multi-step coordination with gas limit management
+- ✅ **Content Integrity Checks**: Continuous validation of chunk data against expected hashes
+- ✅ **Deployment Rollback Detection**: Automatic detection of failed or incomplete deployments
+
+## 🛠️ Complexity Solutions & Developer Tools
 
 PayRox addresses the complexity challenge through comprehensive automation and developer experience
 tools:
@@ -158,6 +169,8 @@ tools:
 - Visual contract architecture diagrams
 - Automated test generation
 - Security audit integration
+- **Built-in Verification Tasks**: `payrox:manifest:selfcheck`, `payrox:chunk:predict`, and
+  orchestrated deployment validation for production confidence
 
 ### **5. Production-Ready SDK & Plugin System**
 
@@ -258,6 +271,29 @@ modularization
 - **Execution**: 10-15% overhead for function routing
 - **Upgrades**: Significantly cheaper than proxy pattern redeployments
 
+### **Cost Reduction Opportunities**
+
+**Built-in Discounts Available:**
+
+- **Tiered Discounts**: Up to 60% fee reduction for enterprise users
+- **Batch Discounts**: Up to 35% discount for multiple facets (2-5 facets: 15%, 6-10 facets: 25%,
+  11+ facets: 35%)
+- **Volume Discounts**: Monthly subscription tiers reduce per-deployment fees significantly
+
+**Current Fee Structure**: 0.0009 ETH per facet (0.0007 ETH factory + 0.0002 ETH platform fee)
+
+**Most Cost-Effective on Layer 2 Networks:**
+
+PayRox provides maximum value on L2 networks where gas costs are dramatically lower:
+
+- **Polygon**: ~100x cheaper gas costs make the 33K gas overhead negligible
+- **Arbitrum**: ~10-20x gas reduction significantly improves cost efficiency
+- **Base/Optimism**: Lower L2 gas costs offset function routing overhead
+
+**L2 Advantage**: The 33K gas overhead per function call that makes PayRox expensive on Ethereum
+mainnet becomes minimal on L2s, making the modular architecture benefits accessible at much lower
+operational costs.
+
 ### **Scalability**
 
 - **Chunk Capacity**: Theoretically unlimited (2^256 tracking limit)
@@ -340,6 +376,8 @@ modularization
 - Gas-optimized assembly for critical paths
 - Security-first development with multiple audit layers
 - Extensive test coverage with edge case validation
+- **Production-Grade Verification**: Automated manifest validation, EXTCODEHASH verification, and
+  deployment integrity checks integrated throughout the development lifecycle
 
 ## 🎯 Honest Conclusion
 
@@ -374,6 +412,298 @@ enterprise-grade deployment protection that prevents critical vulnerabilities at
 high-value contract deployments, this fail-safe architecture delivers operational confidence that
 traditional deployment methods cannot match.
 
+## 🚀 **Executable Commands & Actions**
+
+### **Core Deployment Commands**
+
+**One-Click Production Deployment:**
+
+```bash
+# Windows PowerShell
+.\deploy-complete-system.ps1
+
+# Unix/Linux Bash
+./deploy-complete-system.sh
+
+# Hardhat One-Click Release
+npx hardhat oneclick-release
+
+# NPM Ecosystem Deployment
+npm run deploy:ecosystem
+```
+
+**Network-Specific Deployments:**
+
+```bash
+npm run deploy:mainnet     # Ethereum mainnet deployment
+npm run deploy:testnet     # Testnet deployment
+npm run deploy:localhost   # Local development deployment
+```
+
+### **PayRox Hardhat Tasks**
+
+**Operational Verification Tasks:**
+
+```bash
+# Manifest Self-Check: Automated Merkle proof validation
+npx hardhat payrox:manifest:selfcheck --manifest=./manifests/production.json
+
+# Chunk Address Prediction: Exact address calculation before deployment
+npx hardhat payrox:chunk:predict --data=0x608060405234801561001057600080fd5b50...
+
+# Chunk Staging: Automated deployment with fee validation
+npx hardhat payrox:chunk:stage --file=./chunks/facet-a.hex --address=0x...
+
+# Orchestrator Start: Multi-step deployment coordination
+npx hardhat payrox:orchestrator:start --id=deploy-001 --gasLimit=5000000
+```
+
+**Factory Operations:**
+
+```bash
+# Deploy new chunks via factory
+npx hardhat factory:deployChunk --data=0x... --salt=0x...
+
+# Get predicted chunk address
+npx hardhat factory:getChunkAddress --data=0x...
+
+# Stage multiple chunks in batch
+npx hardhat factory:stageBatch --chunks='["0x...","0x..."]' --gasLimit=8000000
+```
+
+**Dispatcher Management:**
+
+```bash
+# Apply function routes from manifest
+npx hardhat dispatcher:applyRoutes --routes='[{"selector":"0x12345678","facet":"0x..."}]'
+
+# Commit new manifest root
+npx hardhat dispatcher:commitRoot --root=0x... --activationDelay=3600
+
+# Activate committed manifest
+npx hardhat dispatcher:activateCommittedRoot
+
+# Get current active manifest root
+npx hardhat dispatcher:getCurrentRoot
+
+# Check committed but inactive root
+npx hardhat dispatcher:getCommittedRoot
+```
+
+**Orchestrator Coordination:**
+
+```bash
+# Start orchestrated deployment
+npx hardhat orchestrator:start --id=batch-001 --gasLimit=5000000
+
+# Execute batch staging through orchestrator
+npx hardhat orchestrator:stageBatch --id=batch-001 --chunks='["0x..."]'
+
+# Update manifest through orchestrator
+npx hardhat orchestrator:manifestUpdate --id=batch-001 --root=0x...
+
+# Complete orchestration process
+npx hardhat orchestrator:complete --id=batch-001 --success=true
+
+# Set authorization for orchestrator operations
+npx hardhat orchestrator:setAuthorized --who=0x... --ok=true
+```
+
+### **CLI Interactive Interface**
+
+**Start Interactive CLI:**
+
+```bash
+# Navigate to CLI directory
+cd cli && npm run start
+
+# Or run directly
+node cli/dist/index.js
+```
+
+**CLI Menu Options:**
+
+- **Factory Operations**: Deploy chunks, batch operations, address prediction
+- **Dispatcher Management**: Route application, manifest commits, activation
+- **Orchestrator Controls**: Coordinated deployments, batch staging
+- **Utilities**: Contract compilation, system deployment, verification
+- **Governance**: Proposal creation, voting, execution
+- **Audit Registry**: Event logging, audit trail management
+
+### **Development & Testing Commands**
+
+**Contract Compilation & Testing:**
+
+```bash
+# Compile all contracts
+npm run compile
+
+# Run comprehensive test suite
+npm test
+
+# Generate coverage report
+npm run coverage
+
+# Lint and fix code
+npm run lint:fix
+```
+
+**Pre-Deployment Validation:**
+
+```bash
+# Full pre-deployment checks
+node scripts/pre-deploy.ts --network=mainnet --verbose
+
+# Test deployment readiness
+npx hardhat run scripts/test-deployment-readiness.ts
+
+# Quick deployment verification
+npx hardhat run scripts/quick-deployment-check.ts
+```
+
+**Security & Verification:**
+
+```bash
+# Verify complete system
+npm run verify:complete
+
+# Run security validation
+npm run verify:mapping
+
+# Generate SBOM (Software Bill of Materials)
+node scripts/pre-deploy.ts --network=mainnet --output=./reports
+```
+
+### **Release & Bundle Generation**
+
+**Production Release Commands:**
+
+```bash
+# Generate release bundle
+npx hardhat payrox-release \
+  --manifest=./manifests/production.json \
+  --dispatcher=0x5FbDB... \
+  --output=./releases \
+  --verify \
+  --sign
+
+# Create complete release
+npm run release
+
+# Bundle contracts for distribution
+npm run contracts:bundle
+```
+
+### **SDK & Plugin Commands**
+
+**SDK Usage (TypeScript/JavaScript):**
+
+```javascript
+import { PayRoxSDK } from '@payrox/go-beyond-sdk';
+
+const sdk = new PayRoxSDK({
+  network: 'mainnet',
+  factoryAddress: '0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9',
+});
+
+// Deploy facet
+await sdk.deployFacet(bytecode, constructorArgs);
+
+// Predict address
+const address = await sdk.predictChunkAddress(bytecode);
+```
+
+**Plugin System:**
+
+```bash
+# List available templates
+npx @payrox/dapp-plugins list
+
+# Create new dApp from template
+npx @payrox/dapp-plugins create my-defi-vault --template=defi-vault
+
+# Deploy plugin-generated contract
+npx @payrox/dapp-plugins deploy --project=my-defi-vault --network=mainnet
+```
+
+### **AI-Powered Tools**
+
+**FacetForge Contract Analysis:**
+
+```bash
+# Analyze contract for optimal chunking
+cd tools/facetforge && npm run analyze -- --contract=./contracts/MyLargeContract.sol
+
+# Generate manifest from analysis
+npm run generate-manifest -- --input=./analysis-output.json
+```
+
+**Web Interfaces:**
+
+```bash
+# Launch developer portal
+node launch-portal.js
+
+# Start AI assistant frontend
+cd tools/ai-assistant/frontend && npm run dev
+```
+
+### **Network & Environment Commands**
+
+**Multi-Network Operations:**
+
+```bash
+# Deploy to Polygon
+npx hardhat run scripts/deploy-complete-system.ts --network polygon
+
+# Deploy to Arbitrum
+npx hardhat run scripts/deploy-complete-system.ts --network arbitrum
+
+# Deploy to Base
+npx hardhat run scripts/deploy-complete-system.ts --network base
+```
+
+**Environment Management:**
+
+```bash
+# Start local Hardhat network
+npx hardhat node
+
+# Deploy to local network
+npm run deploy:localhost
+
+# Run integration tests
+npm run web:test
+```
+
+### **Monitoring & Maintenance**
+
+**System Health Checks:**
+
+```bash
+# Check deployment status
+npx hardhat run scripts/quick-deployment-check.ts --network mainnet
+
+# Validate system integrity
+npx hardhat payrox:manifest:selfcheck
+
+# Monitor deployment addresses
+npx hardhat run scripts/verify-complete-mapping.js
+```
+
+**Governance Operations:**
+
+```bash
+# Create governance proposal
+npx hardhat governance:createProposal --description="Upgrade factory" --target=0x...
+
+# Cast vote on proposal
+npx hardhat governance:castVote --proposalId=1 --support=true
+
+# Execute approved proposal
+npx hardhat governance:executeProposal --proposalId=1
+```
+
 ---
 
 ## Deployment Status (v1.0.3)
@@ -381,7 +711,7 @@ traditional deployment methods cannot match.
 - ✅ Factory: `0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9`
 - ✅ Dispatcher: `0x5FbDB2315678afecb367f032d93F642f64180aa3`
 - ✅ Complete Orchestrator Suite Deployed
-- ✅ Fee Structure: 0.0007 ETH base + 0.0002 ETH platform
+- ✅ Fee Structure: 0.0009 ETH per facet
 - ✅ All Integration Tests Passing
 
 _This report reflects the actual deployed system capabilities as of August 1, 2025._
