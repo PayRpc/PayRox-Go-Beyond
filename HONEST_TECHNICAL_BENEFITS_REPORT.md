@@ -236,11 +236,21 @@ modularization
 - **Execution**: 10-15% overhead for function routing
 - **Upgrades**: Significantly cheaper than proxy pattern redeployments
 
+### **Scalability**
+
+- **Chunk Capacity**: Theoretically unlimited (2^256 tracking limit)
+- **Address Space**: Limited only by Ethereum's 2^160 address space
+- **Batch Processing**: Up to 100 chunks per deployment transaction
+- **Content Addressing**: Each unique bytecode gets one deterministic address
+
 ### **Security Model**
 
 - **Factory Security**: Protected by role-based access control
 - **Manifest Integrity**: Cryptographic verification of all routing decisions
 - **Upgrade Safety**: Time-locked governance with audit trails
+- **CREATE2 Bomb Protection**: Built-in validation prevents oversized deployments (24KB limit)
+- **Batch DoS Prevention**: Hard limit of 100 deployments per transaction
+- **Input Validation**: Protection against encodePacked collision attacks in batch operations
 
 ## 🔄 Comparison with Alternatives
 
@@ -322,8 +332,8 @@ deployment solutions.
 
 **Bottom Line**: PayRox delivers on its core promises around deterministic deployment, modular
 architecture, and upgrade management. The cross-chain universal addressing claim was oversold, but
-the actual capabilities combined with comprehensive developer tools make it a compelling enterprise
-solution.
+the actual capabilities combined with comprehensive developer tools and security protections make it
+a solid enterprise solution for complex blockchain applications that need scale and safety.
 
 ---
 
