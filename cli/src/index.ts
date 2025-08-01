@@ -277,29 +277,33 @@ class PayRoxCLI {
 
   private async handleUtils() {
     console.log('\n🔧 Utilities');
-    console.log('1. 🏗️  Deploy complete system');
-    console.log('2. 🧮 Calculate chunk address');
-    console.log('3. 📋 Generate manifest');
-    console.log('4. 🔍 Verify deployment');
-    console.log('5. 📊 Check manifest hash');
+    console.log('1. 🔨 Compile contracts');
+    console.log('2. 🏗️  Deploy complete system');
+    console.log('3. 🧮 Calculate chunk address');
+    console.log('4. 📋 Generate manifest');
+    console.log('5. 🔍 Verify deployment');
+    console.log('6. 📊 Check manifest hash');
     console.log('0. Back to main menu\n');
 
     const choice = await this.askQuestion('Select utility: ');
 
     switch (choice) {
       case '1':
-        await this.deployCompleteSystem();
+        await this.compileContracts();
         break;
       case '2':
-        await this.calculateChunkAddress();
+        await this.deployCompleteSystem();
         break;
       case '3':
-        await this.generateManifest();
+        await this.calculateChunkAddress();
         break;
       case '4':
-        await this.verifyDeployment();
+        await this.generateManifest();
         break;
       case '5':
+        await this.verifyDeployment();
+        break;
+      case '6':
         await this.checkManifestHash();
         break;
       case '0':
@@ -519,13 +523,63 @@ class PayRoxCLI {
   }
 
   // Utility methods
+  private async compileContracts() {
+    console.log('\n🔨 Compile Smart Contracts');
+    console.log('⚡ Compiling all contracts...');
+
+    return new Promise<void>(resolve => {
+      // Cross-platform command execution
+      const isWindows = process.platform === 'win32';
+      const command = isWindows ? 'npx.cmd' : 'npx';
+
+      const child = spawn(command, ['hardhat', 'compile'], {
+        stdio: 'inherit',
+        shell: true,
+        cwd: path.resolve('../'),
+      });
+
+      child.on('close', code => {
+        if (code === 0) {
+          console.log('✅ Compilation completed successfully!');
+        } else {
+          console.log(`❌ Compilation failed with code ${code}`);
+        }
+        console.log('\nPress Enter to continue...');
+        this.askQuestion('').then(() => resolve());
+      });
+    });
+  }
+
   private async deployCompleteSystem() {
     console.log('\n🏗️ Deploy Complete PayRox System');
     const confirm = await this.askQuestion('Deploy all contracts? (y/N): ');
 
     if (confirm.toLowerCase() === 'y') {
       console.log('⚡ Starting deployment...');
-      await this.executeScript('deploy-complete-system.ts');
+
+      // Detect platform and use appropriate deployment method
+      const platform = process.platform;
+      console.log(`🖥️  Detected platform: ${platform}`);
+
+      if (platform === 'win32') {
+        // Use TypeScript deployment script for Windows (works with CLI)
+        await this.executeScript('deploy-complete-system.ts');
+      } else {
+        // For Unix-like systems, offer choice between TS and shell script
+        console.log('\n📋 Choose deployment method:');
+        console.log('1. TypeScript script (recommended for CLI)');
+        console.log('2. Native shell script (bash)');
+
+        const choice = await this.askQuestion('Select method (1-2): ');
+
+        if (choice === '2') {
+          // Use native shell script
+          await this.executeShellScript('../deploy-complete-system.sh');
+        } else {
+          // Default to TypeScript
+          await this.executeScript('deploy-complete-system.ts');
+        }
+      }
     }
   }
 
@@ -571,7 +625,11 @@ class PayRoxCLI {
     });
 
     return new Promise<void>(resolve => {
-      const child = spawn('npx', ['hardhat', ...args], {
+      // Cross-platform command execution
+      const isWindows = process.platform === 'win32';
+      const command = isWindows ? 'npx.cmd' : 'npx';
+
+      const child = spawn(command, ['hardhat', ...args], {
         stdio: 'inherit',
         shell: true,
         cwd: path.resolve('../'),
@@ -595,8 +653,12 @@ class PayRoxCLI {
 
   private async executeScript(script: string, env?: Record<string, string>) {
     return new Promise<void>(resolve => {
+      // Cross-platform command execution
+      const isWindows = process.platform === 'win32';
+      const command = isWindows ? 'npx.cmd' : 'npx';
+
       const child = spawn(
-        'npx',
+        command,
         [
           'hardhat',
           'run',
@@ -619,6 +681,56 @@ class PayRoxCLI {
           console.log(`❌ Script failed with code ${code}`);
         }
         resolve();
+      });
+    });
+  }
+
+  private async executeShellScript(scriptPath: string, args: string[] = []) {
+    return new Promise<void>(resolve => {
+      const platform = process.platform;
+      let command: string;
+      let scriptArgs: string[];
+
+      if (platform === 'win32') {
+        // Windows batch file
+        command = path.resolve('../deploy-complete-system.bat');
+        scriptArgs = ['--network', this.currentNetwork, ...args];
+      } else {
+        // Unix shell script
+        command = 'bash';
+        scriptArgs = [
+          path.resolve('../deploy-complete-system.sh'),
+          '--network',
+          this.currentNetwork,
+          ...args,
+        ];
+      }
+
+      console.log(
+        `🖥️  Running native ${
+          platform === 'win32' ? 'batch' : 'shell'
+        } script...`
+      );
+
+      const child = spawn(command, scriptArgs, {
+        stdio: 'inherit',
+        shell: true,
+        cwd: path.resolve('../'),
+      });
+
+      child.on('close', code => {
+        if (code === 0) {
+          console.log('✅ Script completed successfully!');
+        } else {
+          console.log(`❌ Script failed with code ${code}`);
+        }
+        resolve();
+      });
+
+      child.on('error', error => {
+        console.log(`❌ Error running shell script: ${error.message}`);
+        console.log('💡 Falling back to TypeScript deployment...');
+        this.executeScript('deploy-complete-system.ts').then(() => resolve());
       });
     });
   }
