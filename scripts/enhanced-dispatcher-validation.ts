@@ -1,8 +1,5 @@
 /**
- * Production-Ready EnhancedManifestDispatcher Test Sui  // Get real function selectors from deployed facets
-  const pingSelector = "0x5c36b186"; // ping()
-  const echoSelector = "0xb5531d21"; // echo(bytes32)
-  const storeDataSelector = "0x9730174d"; // storeData(bytes32,bytes) *
+ * Production-Ready EnhancedManifestDispatcher Test Suite
  * Comprehensive validation of all production patterns using real system facets
  */
 

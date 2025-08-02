@@ -1,0 +1,420 @@
+{
+  "timestamp": "2025-08-02T22:13:43.746Z",
+  "totalFiles": 629,
+  "redundantFiles": [
+    {
+      "path": "docs\\README.md",
+      "fullPath": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\docs\\README.md",
+      "sizeMB": 0.011491775512695312,
+      "modified": "2025-08-01T22:15:39.705Z",
+      "extension": ".md"
+    },
+    {
+      "path": "cli\\README.md",
+      "fullPath": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\cli\\README.md",
+      "sizeMB": 0.004851341247558594,
+      "modified": "2025-08-01T22:15:39.413Z",
+      "extension": ".md"
+    },
+    {
+      "path": "tools\\ai-assistant\\backend\\package.json",
+      "fullPath": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\tools\\ai-assistant\\backend\\package.json",
+      "sizeMB": 0.0020465850830078125,
+      "modified": "2025-08-01T00:23:10.155Z",
+      "extension": ".json"
+    },
+    {
+      "path": "sdk\\package.json",
+      "fullPath": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\sdk\\package.json",
+      "sizeMB": 0.0018587112426757812,
+      "modified": "2025-08-02T07:31:26.023Z",
+      "extension": ".json"
+    },
+    {
+      "path": "tools\\ai-assistant\\frontend\\package.json",
+      "fullPath": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\tools\\ai-assistant\\frontend\\package.json",
+      "sizeMB": 0.001766204833984375,
+      "modified": "2025-08-01T00:23:10.172Z",
+      "extension": ".json"
+    },
+    {
+      "path": "plugins\\package.json",
+      "fullPath": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\plugins\\package.json",
+      "sizeMB": 0.0013294219970703125,
+      "modified": "2025-08-01T02:51:42.385Z",
+      "extension": ".json"
+    },
+    {
+      "path": "tools\\ai-assistant\\frontend\\tsconfig.json",
+      "fullPath": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\tools\\ai-assistant\\frontend\\tsconfig.json",
+      "sizeMB": 0.0012979507446289062,
+      "modified": "2025-08-01T00:23:10.172Z",
+      "extension": ".json"
+    },
+    {
+      "path": "tools\\ai-assistant\\backend\\tsconfig.json",
+      "fullPath": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\tools\\ai-assistant\\backend\\tsconfig.json",
+      "sizeMB": 0.0012216567993164062,
+      "modified": "2025-08-01T00:23:10.172Z",
+      "extension": ".json"
+    },
+    {
+      "path": "tools\\facetforge\\package.json",
+      "fullPath": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\tools\\facetforge\\package.json",
+      "sizeMB": 0.0009765625,
+      "modified": "2025-08-01T00:23:10.172Z",
+      "extension": ".json"
+    },
+    {
+      "path": "plugins\\production-defi-vault\\package.json",
+      "fullPath": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\plugins\\production-defi-vault\\package.json",
+      "sizeMB": 0.0008974075317382812,
+      "modified": "2025-08-01T02:57:38.204Z",
+      "extension": ".json"
+    },
+    {
+      "path": "plugins\\demo-defi-vault\\package.json",
+      "fullPath": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\plugins\\demo-defi-vault\\package.json",
+      "sizeMB": 0.0008897781372070312,
+      "modified": "2025-08-01T02:56:20.105Z",
+      "extension": ".json"
+    },
+    {
+      "path": "plugins\\dist\\templates\\defi-vault\\package.json",
+      "fullPath": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\plugins\\dist\\templates\\defi-vault\\package.json",
+      "sizeMB": 0.0008649826049804688,
+      "modified": "2025-08-01T02:51:42.415Z",
+      "extension": ".json"
+    },
+    {
+      "path": "plugins\\src\\templates\\defi-vault\\package.json",
+      "fullPath": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\plugins\\src\\templates\\defi-vault\\package.json",
+      "sizeMB": 0.0008649826049804688,
+      "modified": "2025-08-01T02:51:42.415Z",
+      "extension": ".json"
+    },
+    {
+      "path": "cli\\package.json",
+      "fullPath": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\cli\\package.json",
+      "sizeMB": 0.0007181167602539062,
+      "modified": "2025-08-01T00:23:09.884Z",
+      "extension": ".json"
+    },
+    {
+      "path": "plugins\\tsconfig.json",
+      "fullPath": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\plugins\\tsconfig.json",
+      "sizeMB": 0.0004673004150390625,
+      "modified": "2025-08-01T02:51:42.385Z",
+      "extension": ".json"
+    },
+    {
+      "path": "cli\\tsconfig.json",
+      "fullPath": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\cli\\tsconfig.json",
+      "sizeMB": 0.00039196014404296875,
+      "modified": "2025-08-01T00:23:09.888Z",
+      "extension": ".json"
+    }
+  ],
+  "essentialFiles": [
+    {
+      "path": ".gitignore",
+      "fullPath": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\.gitignore",
+      "sizeMB": 0.0017862319946289062,
+      "modified": "2025-08-01T00:23:09.855Z",
+      "extension": ""
+    },
+    {
+      "path": "cli\\package.json",
+      "fullPath": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\cli\\package.json",
+      "sizeMB": 0.0007181167602539062,
+      "modified": "2025-08-01T00:23:09.884Z",
+      "extension": ".json"
+    },
+    {
+      "path": "cli\\README.md",
+      "fullPath": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\cli\\README.md",
+      "sizeMB": 0.004851341247558594,
+      "modified": "2025-08-01T22:15:39.413Z",
+      "extension": ".md"
+    },
+    {
+      "path": "cli\\tsconfig.json",
+      "fullPath": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\cli\\tsconfig.json",
+      "sizeMB": 0.00039196014404296875,
+      "modified": "2025-08-01T00:23:09.888Z",
+      "extension": ".json"
+    },
+    {
+      "path": "DEVELOPMENT_STATUS.md",
+      "fullPath": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\DEVELOPMENT_STATUS.md",
+      "sizeMB": 0.0030727386474609375,
+      "modified": "2025-08-02T21:49:38.225Z",
+      "extension": ".md"
+    },
+    {
+      "path": "docs\\README.md",
+      "fullPath": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\docs\\README.md",
+      "sizeMB": 0.011491775512695312,
+      "modified": "2025-08-01T22:15:39.705Z",
+      "extension": ".md"
+    },
+    {
+      "path": "eslint.config.js",
+      "fullPath": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\eslint.config.js",
+      "sizeMB": 0.0028352737426757812,
+      "modified": "2025-08-01T02:21:42.352Z",
+      "extension": ".js"
+    },
+    {
+      "path": "hardhat.config.ts",
+      "fullPath": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\hardhat.config.ts",
+      "sizeMB": 0.010362625122070312,
+      "modified": "2025-08-01T22:56:25.639Z",
+      "extension": ".ts"
+    },
+    {
+      "path": "LICENSE",
+      "fullPath": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\LICENSE",
+      "sizeMB": 0.0010433197021484375,
+      "modified": "2025-08-01T00:23:09.872Z",
+      "extension": ""
+    },
+    {
+      "path": "package.json",
+      "fullPath": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\package.json",
+      "sizeMB": 0.004689216613769531,
+      "modified": "2025-08-02T22:08:40.940Z",
+      "extension": ".json"
+    },
+    {
+      "path": "plugins\\demo-defi-vault\\package.json",
+      "fullPath": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\plugins\\demo-defi-vault\\package.json",
+      "sizeMB": 0.0008897781372070312,
+      "modified": "2025-08-01T02:56:20.105Z",
+      "extension": ".json"
+    },
+    {
+      "path": "plugins\\dist\\templates\\defi-vault\\package.json",
+      "fullPath": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\plugins\\dist\\templates\\defi-vault\\package.json",
+      "sizeMB": 0.0008649826049804688,
+      "modified": "2025-08-01T02:51:42.415Z",
+      "extension": ".json"
+    },
+    {
+      "path": "plugins\\package.json",
+      "fullPath": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\plugins\\package.json",
+      "sizeMB": 0.0013294219970703125,
+      "modified": "2025-08-01T02:51:42.385Z",
+      "extension": ".json"
+    },
+    {
+      "path": "plugins\\production-defi-vault\\package.json",
+      "fullPath": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\plugins\\production-defi-vault\\package.json",
+      "sizeMB": 0.0008974075317382812,
+      "modified": "2025-08-01T02:57:38.204Z",
+      "extension": ".json"
+    },
+    {
+      "path": "plugins\\src\\templates\\defi-vault\\package.json",
+      "fullPath": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\plugins\\src\\templates\\defi-vault\\package.json",
+      "sizeMB": 0.0008649826049804688,
+      "modified": "2025-08-01T02:51:42.415Z",
+      "extension": ".json"
+    },
+    {
+      "path": "plugins\\tsconfig.json",
+      "fullPath": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\plugins\\tsconfig.json",
+      "sizeMB": 0.0004673004150390625,
+      "modified": "2025-08-01T02:51:42.385Z",
+      "extension": ".json"
+    },
+    {
+      "path": "QUICK_REFERENCE.md",
+      "fullPath": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\QUICK_REFERENCE.md",
+      "sizeMB": 0.00261688232421875,
+      "modified": "2025-08-02T07:31:26.005Z",
+      "extension": ".md"
+    },
+    {
+      "path": "sdk\\package.json",
+      "fullPath": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\sdk\\package.json",
+      "sizeMB": 0.0018587112426757812,
+      "modified": "2025-08-02T07:31:26.023Z",
+      "extension": ".json"
+    },
+    {
+      "path": "sdk\\tsconfig.json",
+      "fullPath": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\sdk\\tsconfig.json",
+      "sizeMB": 0.000698089599609375,
+      "modified": "2025-08-02T07:31:26.023Z",
+      "extension": ".json"
+    },
+    {
+      "path": "test\\README.md",
+      "fullPath": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\test\\README.md",
+      "sizeMB": 0.014812469482421875,
+      "modified": "2025-08-02T07:31:26.017Z",
+      "extension": ".md"
+    },
+    {
+      "path": "tools\\ai-assistant\\backend\\package.json",
+      "fullPath": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\tools\\ai-assistant\\backend\\package.json",
+      "sizeMB": 0.0020465850830078125,
+      "modified": "2025-08-01T00:23:10.155Z",
+      "extension": ".json"
+    },
+    {
+      "path": "tools\\ai-assistant\\backend\\tsconfig.json",
+      "fullPath": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\tools\\ai-assistant\\backend\\tsconfig.json",
+      "sizeMB": 0.0012216567993164062,
+      "modified": "2025-08-01T00:23:10.172Z",
+      "extension": ".json"
+    },
+    {
+      "path": "tools\\ai-assistant\\frontend\\package.json",
+      "fullPath": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\tools\\ai-assistant\\frontend\\package.json",
+      "sizeMB": 0.001766204833984375,
+      "modified": "2025-08-01T00:23:10.172Z",
+      "extension": ".json"
+    },
+    {
+      "path": "tools\\ai-assistant\\frontend\\tsconfig.json",
+      "fullPath": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\tools\\ai-assistant\\frontend\\tsconfig.json",
+      "sizeMB": 0.0012979507446289062,
+      "modified": "2025-08-01T00:23:10.172Z",
+      "extension": ".json"
+    },
+    {
+      "path": "tools\\facetforge\\package.json",
+      "fullPath": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\tools\\facetforge\\package.json",
+      "sizeMB": 0.0009765625,
+      "modified": "2025-08-01T00:23:10.172Z",
+      "extension": ".json"
+    }
+  ],
+  "bloatCategories": {
+    "completionDocs": [],
+    "summaryDocs": [],
+    "duplicates": [
+      {
+        "path": "sdk\\package.json",
+        "fullPath": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\sdk\\package.json",
+        "sizeMB": 0.0018587112426757812,
+        "modified": "2025-08-02T07:31:26.023Z",
+        "extension": ".json"
+      },
+      {
+        "path": "plugins\\production-defi-vault\\package.json",
+        "fullPath": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\plugins\\production-defi-vault\\package.json",
+        "sizeMB": 0.0008974075317382812,
+        "modified": "2025-08-01T02:57:38.204Z",
+        "extension": ".json"
+      },
+      {
+        "path": "plugins\\demo-defi-vault\\package.json",
+        "fullPath": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\plugins\\demo-defi-vault\\package.json",
+        "sizeMB": 0.0008897781372070312,
+        "modified": "2025-08-01T02:56:20.105Z",
+        "extension": ".json"
+      },
+      {
+        "path": "plugins\\dist\\templates\\defi-vault\\package.json",
+        "fullPath": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\plugins\\dist\\templates\\defi-vault\\package.json",
+        "sizeMB": 0.0008649826049804688,
+        "modified": "2025-08-01T02:51:42.415Z",
+        "extension": ".json"
+      },
+      {
+        "path": "plugins\\src\\templates\\defi-vault\\package.json",
+        "fullPath": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\plugins\\src\\templates\\defi-vault\\package.json",
+        "sizeMB": 0.0008649826049804688,
+        "modified": "2025-08-01T02:51:42.415Z",
+        "extension": ".json"
+      },
+      {
+        "path": "plugins\\package.json",
+        "fullPath": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\plugins\\package.json",
+        "sizeMB": 0.0013294219970703125,
+        "modified": "2025-08-01T02:51:42.385Z",
+        "extension": ".json"
+      },
+      {
+        "path": "tools\\ai-assistant\\frontend\\package.json",
+        "fullPath": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\tools\\ai-assistant\\frontend\\package.json",
+        "sizeMB": 0.001766204833984375,
+        "modified": "2025-08-01T00:23:10.172Z",
+        "extension": ".json"
+      },
+      {
+        "path": "tools\\facetforge\\package.json",
+        "fullPath": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\tools\\facetforge\\package.json",
+        "sizeMB": 0.0009765625,
+        "modified": "2025-08-01T00:23:10.172Z",
+        "extension": ".json"
+      },
+      {
+        "path": "tools\\ai-assistant\\backend\\package.json",
+        "fullPath": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\tools\\ai-assistant\\backend\\package.json",
+        "sizeMB": 0.0020465850830078125,
+        "modified": "2025-08-01T00:23:10.155Z",
+        "extension": ".json"
+      },
+      {
+        "path": "cli\\package.json",
+        "fullPath": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\cli\\package.json",
+        "sizeMB": 0.0007181167602539062,
+        "modified": "2025-08-01T00:23:09.884Z",
+        "extension": ".json"
+      },
+      {
+        "path": "docs\\README.md",
+        "fullPath": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\docs\\README.md",
+        "sizeMB": 0.011491775512695312,
+        "modified": "2025-08-01T22:15:39.705Z",
+        "extension": ".md"
+      },
+      {
+        "path": "cli\\README.md",
+        "fullPath": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\cli\\README.md",
+        "sizeMB": 0.004851341247558594,
+        "modified": "2025-08-01T22:15:39.413Z",
+        "extension": ".md"
+      },
+      {
+        "path": "plugins\\tsconfig.json",
+        "fullPath": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\plugins\\tsconfig.json",
+        "sizeMB": 0.0004673004150390625,
+        "modified": "2025-08-01T02:51:42.385Z",
+        "extension": ".json"
+      },
+      {
+        "path": "tools\\ai-assistant\\backend\\tsconfig.json",
+        "fullPath": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\tools\\ai-assistant\\backend\\tsconfig.json",
+        "sizeMB": 0.0012216567993164062,
+        "modified": "2025-08-01T00:23:10.172Z",
+        "extension": ".json"
+      },
+      {
+        "path": "tools\\ai-assistant\\frontend\\tsconfig.json",
+        "fullPath": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\tools\\ai-assistant\\frontend\\tsconfig.json",
+        "sizeMB": 0.0012979507446289062,
+        "modified": "2025-08-01T00:23:10.172Z",
+        "extension": ".json"
+      },
+      {
+        "path": "cli\\tsconfig.json",
+        "fullPath": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\cli\\tsconfig.json",
+        "sizeMB": 0.00039196014404296875,
+        "modified": "2025-08-01T00:23:09.888Z",
+        "extension": ".json"
+      }
+    ],
+    "outdatedReports": [],
+    "tempFiles": []
+  },
+  "sizeAnalysis": {
+    "totalSizeMB": 5.276643753051758,
+    "bloatSizeMB": 0.03193473815917969,
+    "potentialSavingsMB": 0.03193473815917969
+  }
+}

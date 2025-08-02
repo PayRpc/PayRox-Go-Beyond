@@ -1,7 +1,7 @@
 {
-  "version": "1.0.3",
-  "timestamp": "2025-08-01T17:15:00.000Z",
-  "description": "PayRox Go Beyond Deployed Contracts - FEE CORRECTED TO 0.0007 ETH v1.0.3",
+  "version": "1.0.4",
+  "timestamp": "2025-08-02T21:48:27.613Z",
+  "description": "PayRox Go Beyond Deployed Contracts - Address Synchronized v1.0.4",
   "network": {
     "name": "localhost",
     "chainId": "31337",
@@ -11,7 +11,7 @@
     "core": {
       "factory": {
         "name": "DeterministicChunkFactory",
-        "address": "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
+        "address": "0x59b670e9fA9D0A427751Af201D676719a970857b",
         "abi": "./artifacts/contracts/factory/DeterministicChunkFactory.sol/DeterministicChunkFactory.json",
         "deploymentFile": "./deployments/localhost/factory.json",
         "currentFee": "0.0007 ETH",
@@ -19,7 +19,7 @@
       },
       "dispatcher": {
         "name": "ManifestDispatcher",
-        "address": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+        "address": "0x68B1D87F95878fE05B998F19b66F4baba5De1aed",
         "abi": "./artifacts/contracts/dispatcher/ManifestDispatcher.sol/ManifestDispatcher.json",
         "deploymentFile": "./deployments/localhost/dispatcher.json"
       }
@@ -62,6 +62,16 @@
         "address": null,
         "abi": "./artifacts/contracts/facets/ExampleFacetB.sol/ExampleFacetB.json",
         "deploymentFile": "./deployments/localhost/facet-b.json"
+      },
+      "facet-a": {
+        "name": "ExampleFacetA",
+        "address": "0x4ed7c70F96B99c776995fB64377f0d4aB3B0e1C1",
+        "abi": "./artifacts/contracts/facets/ExampleFacetA.sol/ExampleFacetA.json"
+      },
+      "facet-b": {
+        "name": "ExampleFacetB",
+        "address": "0x322813Fd9A801c5507c9de605d63CEA4f2CE6c44",
+        "abi": "./artifacts/contracts/facets/ExampleFacetB.sol/ExampleFacetB.json"
       }
     }
   },
