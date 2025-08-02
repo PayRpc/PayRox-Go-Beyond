@@ -1,5 +1,5 @@
 // tools/facetforge/src/chunker.ts
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 
 export interface ChunkPlanningOptions {
   maxChunkSize: number;

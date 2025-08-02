@@ -1,5 +1,5 @@
 // tools/facetforge/src/parser.ts
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 import * as Parser from '@solidity-parser/parser';
 import * as fs from 'fs';
 

@@ -1,5 +1,5 @@
 // tools/facetforge/src/selector.ts
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 import { keccak256 } from 'ethers';
 import type { FunctionInfo } from './parser';
 
