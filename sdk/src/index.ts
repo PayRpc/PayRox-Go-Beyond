@@ -1,6 +1,6 @@
 import { ethers } from 'ethers';
-import { DeploymentResult, ManifestEntry, PayRoxConfig } from './types';
 import { PayRoxClient } from './client';
+import { DeploymentResult, ManifestEntry, PayRoxConfig } from './types';
 
 /**
  * PayRox Go Beyond SDK
@@ -280,26 +280,26 @@ export { PayRoxClient } from './client';
 // Service modules
 export { ChunkFactory } from './chunk-factory';
 export { Dispatcher } from './dispatcher';
-export { Orchestrator } from './orchestrator';
 export { ManifestBuilder } from './manifest-builder';
+export { Orchestrator } from './orchestrator';
 
 // Configuration and types
 export {
-  NETWORKS,
-  DEFAULT_NETWORK,
   CONSTANTS,
   CONTRACT_TYPES,
-  type NetworkConfig,
+  DEFAULT_NETWORK,
+  NETWORKS,
   type ContractAddresses,
-  type FeeConfig,
   type ContractType,
+  type FeeConfig,
+  type NetworkConfig,
 } from './config';
 
 // Manifest types
 export type {
+  Manifest,
   ManifestContract,
   ManifestRoute,
-  Manifest,
 } from './manifest-builder';
 
 // Utility functions

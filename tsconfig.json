@@ -24,11 +24,5 @@
     "./hardhat.config.ts",
     "./src/**/*"
   ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "artifacts",
-    "cache",
-    "coverage"
-  ]
+  "exclude": ["node_modules", "dist", "artifacts", "cache", "coverage"]
 }
