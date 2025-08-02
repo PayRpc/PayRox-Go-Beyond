@@ -8,7 +8,7 @@ import { task } from 'hardhat/config';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 
 // Import our orchestration modules
-import { main as deployDeterministicFactory } from '../scripts/deploy-deterministic-factory';
+import { main as deployDeterministicFactory } from '../scripts/deploy-deterministic-factory.js';
 import { validateManifestPreflight } from '../scripts/manifest-preflight';
 import { main as orchestrateDeployment } from '../scripts/orchestrate-crosschain';
 
@@ -109,7 +109,7 @@ task(
 
         // Import and use the deployer class for validation only
         const { DeterministicFactoryDeployer } = await import(
-          '../scripts/deploy-deterministic-factory'
+          '../scripts/deploy-deterministic-factory.js'
         );
         const deployer = new DeterministicFactoryDeployer();
 

@@ -13,8 +13,8 @@ import {
   CrossChainNetworkManager,
   CrossChainOrchestrator,
   CrossChainSaltGenerator,
-} from '../src/utils/cross-chain';
-import { NETWORK_CONFIGS, NetworkConfig } from '../src/utils/network';
+} from '../../src/utils/cross-chain';
+import { NETWORK_CONFIGS, NetworkConfig } from '../../src/utils/network';
 
 /**
  * Helper function to get network configuration by name
@@ -343,7 +343,7 @@ function createPredictCommand(): Command {
                 )
               );
             }
-          } catch (error) {
+          } catch {
             console.log(chalk.red(`❌ ${networkName}: Configuration error`));
           }
         }
@@ -385,7 +385,7 @@ function createHealthCommand(): Command {
           try {
             const config = getNetworkConfig(networkName);
             networkConfigs.push(config);
-          } catch (error) {
+          } catch {
             console.log(
               chalk.red(`❌ Failed to load config for ${networkName}`)
             );
