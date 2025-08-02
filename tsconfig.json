@@ -15,7 +15,7 @@
     "emitDecoratorMetadata": true,
     "outDir": "./dist",
     "rootDir": "./",
-    "typeRoots": ["./node_modules/@types", "./typechain-types"]
+    "typeRoots": ["./node_modules/@types"]
   },
   "include": [
     "./scripts/**/*",
@@ -25,10 +25,11 @@
     "./src/**/*"
   ],
   "exclude": [
-    "node_modules",
-    "dist",
-    "artifacts",
-    "cache",
-    "coverage"
+    "node_modules", 
+    "dist", 
+    "artifacts", 
+    "cache", 
+    "coverage",
+    "typechain-types"
   ]
 }
