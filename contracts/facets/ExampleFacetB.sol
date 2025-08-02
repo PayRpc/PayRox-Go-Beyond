@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.30;
 
+import {SignatureChecker} from "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
+
 /**
  * @title ExampleFacetB
  * @notice Delegatecalled facet to be routed by a Manifest‑gated dispatcher.
@@ -17,7 +19,10 @@ contract ExampleFacetB {
     error LengthMismatch();
     error NotOperator();
     error AlreadyInitialized();
+    error NotInitialized();
     error ZeroAddress();
+    error InvalidInitSignature();
+    error ExpiredSignature();
 
     /* ─────────── Gas / L2‑friendly caps & constants ─────────── */
     uint256 private constant MAX_OPERATION_TYPE = 5;     // valid types: 1..5
@@ -25,10 +30,35 @@ contract ExampleFacetB {
     uint256 private constant MAX_DATA_BYTES     = 1024;  // bound op payload
     uint256 private constant MAX_USER_OPS       = 256;   // ring buffer size
 
+    /* ───────────────────────── EIP-712 Constants ──────────────────────── */
+    bytes32 private constant EIP712_DOMAIN_TYPEHASH = keccak256(
+        "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
+    );
+
+    bytes32 private constant INIT_TYPEHASH = keccak256(
+        "InitializeFacetB(address operator,address governance,uint256 deadline,uint256 nonce)"
+    );
+
+    bytes32 private constant ROTATE_GOVERNANCE_TYPEHASH = keccak256(
+        "RotateGovernance(address newGovernance,uint256 deadline,uint256 nonce)"
+    );
+
+    bytes32 private constant ROTATE_OPERATOR_TYPEHASH = keccak256(
+        "RotateOperator(address newOperator,uint256 deadline,uint256 nonce)"
+    );
+
+    // Trusted deploy signer - prevents "first signer wins" attacks
+    // This should be set to the ManifestDispatcher admin or designated deployment authority
+    address private constant EXPECTED_DEPLOY_SIGNER = 0x1234567890123456789012345678901234567890;
+
     /* ───────────────────────────── Events ───────────────────────────── */
     event FacetBExecuted(address indexed caller, uint256 indexed operationType, bytes32 indexed dataHash);
     event StateChanged(uint256 oldValue, uint256 newValue, address indexed changer);
     event BatchOperationCompleted(uint256 operationCount, uint256 successCount, address indexed executor);
+    event PausedSet(bool paused, address indexed by);
+    event Initialized(address operator);
+    event GovernanceRotated(address indexed oldGovernance, address indexed newGovernance);
+    event OperatorRotated(address indexed oldOperator, address indexed newOperator);
 
     /* ─────────────── Diamond‑safe storage (fixed slot) ─────────────── */
     // Unique slot for this facet’s state.
@@ -62,6 +92,8 @@ contract ExampleFacetB {
         bool    paused;
         address operator;        // can set paused
         bool    initialized;     // one‑time initializer guard
+        uint256 initNonce;       // for EIP-712 replay protection
+        address governance;      // configurable governance address
     }
 
     function _layout() private pure returns (Layout storage l) {
@@ -74,6 +106,11 @@ contract ExampleFacetB {
         _;
     }
 
+    modifier whenInitialized() {
+        if (!_layout().initialized) revert NotInitialized();
+        _;
+    }
+
     modifier onlyOperator() {
         if (msg.sender != _layout().operator) revert NotOperator();
         _;
@@ -81,15 +118,55 @@ contract ExampleFacetB {
 
     /* ───────────────────────────── Admin (init) ───────────────────────────── */
     /**
-     * @notice One‑time initializer to set the facet operator (dispatcher admin should call this).
-     * @dev Call this immediately after routing the facet; cannot be called again.
+     * @notice One‑time initializer to set the facet operator (governance-signed).
+     * @dev Requires EIP-712 signature from governance to prevent init takeover.
+     * @param operator_ The operator address to set
+     * @param governance_ The governance address to set (can be a Safe or contract)
+     * @param deadline Signature expiry timestamp
+     * @param signature EIP-712 signature from governance
      */
-    function initializeFacetB(address operator_) external {
+    function initializeFacetB(
+        address operator_,
+        address governance_,
+        uint256 deadline,
+        bytes calldata signature
+    ) external {
         if (operator_ == address(0)) revert ZeroAddress();
+        if (governance_ == address(0)) revert ZeroAddress();
+        if (block.timestamp > deadline) revert ExpiredSignature();
+
         Layout storage l = _layout();
         if (l.initialized) revert AlreadyInitialized();
+
+        // Verify EIP-712 signature from governance
+        bytes32 domainSeparator = keccak256(
+            abi.encode(
+                EIP712_DOMAIN_TYPEHASH,
+                keccak256("PayRoxFacetB"),
+                keccak256("1.2.0"),
+                block.chainid,
+                address(this)
+            )
+        );
+
+        bytes32 structHash = keccak256(
+            abi.encode(INIT_TYPEHASH, operator_, governance_, deadline, l.initNonce)
+        );
+
+        bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator, structHash));
+
+        // Security: Verify signature from trusted deploy signer (prevents "first signer wins")
+        if (!SignatureChecker.isValidSignatureNow(EXPECTED_DEPLOY_SIGNER, digest, signature)) {
+            revert InvalidInitSignature();
+        }
+
+        // Initialize state with signed parameters
         l.operator = operator_;
+        l.governance = governance_;
         l.initialized = true;
+        unchecked { l.initNonce += 1; } // Prevent replay
+
+        emit Initialized(operator_);
     }
 
     /**
@@ -97,6 +174,99 @@ contract ExampleFacetB {
      */
     function setPaused(bool paused_) external onlyOperator {
         _layout().paused = paused_;
+        emit PausedSet(paused_, msg.sender);
+    }
+
+    /**
+     * @notice Rotate governance address (governance-signed).
+     * @dev Requires EIP-712 signature from current governance.
+     * @param newGovernance The new governance address
+     * @param deadline Signature expiry timestamp
+     * @param signature EIP-712 signature from current governance
+     */
+    function rotateGovernance(
+        address newGovernance,
+        uint256 deadline,
+        bytes calldata signature
+    ) external whenInitialized {
+        if (newGovernance == address(0)) revert ZeroAddress();
+        if (block.timestamp > deadline) revert ExpiredSignature();
+
+        Layout storage l = _layout();
+
+        // Build EIP-712 digest
+        bytes32 domainSeparator = keccak256(
+            abi.encode(
+                EIP712_DOMAIN_TYPEHASH,
+                keccak256("PayRoxFacetB"),
+                keccak256("1.2.0"),
+                block.chainid,
+                address(this)
+            )
+        );
+
+        bytes32 structHash = keccak256(
+            abi.encode(ROTATE_GOVERNANCE_TYPEHASH, newGovernance, deadline, l.initNonce)
+        );
+
+        bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator, structHash));
+
+        // Verify signature from current governance
+        if (!SignatureChecker.isValidSignatureNow(l.governance, digest, signature)) {
+            revert InvalidInitSignature();
+        }
+
+        address oldGovernance = l.governance;
+        l.governance = newGovernance;
+        unchecked { l.initNonce += 1; } // Prevent replay
+
+        emit GovernanceRotated(oldGovernance, newGovernance);
+    }
+
+    /**
+     * @notice Rotate operator address (governance-signed).
+     * @dev Requires EIP-712 signature from current governance.
+     * @param newOperator The new operator address
+     * @param deadline Signature expiry timestamp
+     * @param signature EIP-712 signature from current governance
+     */
+    function rotateOperator(
+        address newOperator,
+        uint256 deadline,
+        bytes calldata signature
+    ) external whenInitialized {
+        if (newOperator == address(0)) revert ZeroAddress();
+        if (block.timestamp > deadline) revert ExpiredSignature();
+
+        Layout storage l = _layout();
+
+        // Build EIP-712 digest
+        bytes32 domainSeparator = keccak256(
+            abi.encode(
+                EIP712_DOMAIN_TYPEHASH,
+                keccak256("PayRoxFacetB"),
+                keccak256("1.2.0"),
+                block.chainid,
+                address(this)
+            )
+        );
+
+        bytes32 structHash = keccak256(
+            abi.encode(ROTATE_OPERATOR_TYPEHASH, newOperator, deadline, l.initNonce)
+        );
+
+        bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator, structHash));
+
+        // Verify signature from current governance
+        if (!SignatureChecker.isValidSignatureNow(l.governance, digest, signature)) {
+            revert InvalidInitSignature();
+        }
+
+        address oldOperator = l.operator;
+        l.operator = newOperator;
+        unchecked { l.initNonce += 1; } // Prevent replay
+
+        emit OperatorRotated(oldOperator, newOperator);
     }
 
     /* ───────────────────────────── API ───────────────────────────── */
@@ -108,7 +278,7 @@ contract ExampleFacetB {
     function executeB(
         uint256 operationType,
         bytes calldata data
-    ) external whenNotPaused returns (bytes32 operationId) {
+    ) external whenInitialized whenNotPaused returns (bytes32 operationId) {
         if (operationType == 0 || operationType > MAX_OPERATION_TYPE) revert InvalidOperationType();
         uint256 len = data.length;
         if (len == 0) revert EmptyData();
@@ -120,9 +290,12 @@ contract ExampleFacetB {
         unchecked { l.operationCounter += 1; }
         uint256 ctr = l.operationCounter;
 
+        // Hash data once and reuse
+        bytes32 dataHash = keccak256(data);
+
         // Stable ID (includes chainid + data hash for compactness).
         operationId = keccak256(
-            abi.encodePacked(msg.sender, operationType, keccak256(data), block.chainid, ctr)
+            abi.encodePacked(msg.sender, operationType, dataHash, block.chainid, ctr)
         );
 
         // Record operation (stores bounded payload).
@@ -151,7 +324,7 @@ contract ExampleFacetB {
 
         l.lastExecutor = msg.sender;
 
-        emit FacetBExecuted(msg.sender, operationType, keccak256(data));
+        emit FacetBExecuted(msg.sender, operationType, dataHash);
     }
 
     /**
@@ -161,7 +334,7 @@ contract ExampleFacetB {
     function batchExecuteB(
         uint256[] calldata operations,
         bytes[] calldata dataArray
-    ) external whenNotPaused returns (bytes32[] memory results) {
+    ) external whenInitialized whenNotPaused returns (bytes32[] memory results) {
         uint256 n = operations.length;
         if (n == 0) revert EmptyBatch();
         if (n != dataArray.length) revert LengthMismatch();
@@ -186,8 +359,10 @@ contract ExampleFacetB {
                 unchecked { l.operationCounter += 1; }
                 uint256 ctr = l.operationCounter;
 
+                // Hash data once per item
+                bytes32 dHash = keccak256(dat);
                 bytes32 operationId = keccak256(
-                    abi.encodePacked(msg.sender, op, keccak256(dat), block.chainid, ctr)
+                    abi.encodePacked(msg.sender, op, dHash, block.chainid, ctr)
                 );
 
                 l.operations[operationId] = OperationData({
@@ -211,6 +386,9 @@ contract ExampleFacetB {
                 _applyOperation(op, dat, l);
                 results[i] = operationId;
                 successCount++;
+
+                // Emit per-item event for detailed tracking
+                emit FacetBExecuted(msg.sender, op, dHash);
             }
             unchecked { ++i; }
         }
@@ -239,22 +417,16 @@ contract ExampleFacetB {
         view
         returns (uint256[] memory operationTypes)
     {
-        Layout storage l = _layout();
-        UserOpsRB storage rb = l.userOps[user];
+        UserOpsRB storage rb = _layout().userOps[user];
 
         uint256 sz = rb.size;
         operationTypes = new uint256[](sz);
         if (sz == 0) return operationTypes;
 
-        // Walk from newest to oldest.
-        uint256 head = rb.head;
+        // Walk from newest to oldest with cleaner uint256 math
+        uint256 headU = uint256(rb.head);
         for (uint256 i; i < sz; ) {
-            // Index of the (sz - 1 - i)-th previous element
-            uint256 idx;
-            unchecked {
-                uint256 offset = (MAX_USER_OPS + head - 1 - i) % MAX_USER_OPS;
-                idx = offset;
-            }
+            uint256 idx = (MAX_USER_OPS + headU + MAX_USER_OPS - 1 - i) % MAX_USER_OPS;
             operationTypes[i] = rb.buf[idx];
             unchecked { ++i; }
         }
@@ -298,6 +470,7 @@ contract ExampleFacetB {
      * @return isPaused Current pause state
      * @return isInitialized Initialization status
      * @return operatorAddr Current operator address
+     * @return governanceAddr Current governance address
      */
     function getAdvancedAnalytics()
         external
@@ -308,7 +481,8 @@ contract ExampleFacetB {
             address lastExecutor,
             bool isPaused,
             bool isInitialized,
-            address operatorAddr
+            address operatorAddr,
+            address governanceAddr
         )
     {
         Layout storage l = _layout();
@@ -318,8 +492,25 @@ contract ExampleFacetB {
             l.lastExecutor,
             l.paused,
             l.initialized,
-            l.operator
+            l.operator,
+            l.governance
         );
+    }
+
+    /**
+     * @dev Get current nonce for EIP-712 signature generation.
+     * @return nonce Current initialization nonce
+     */
+    function getInitNonce() external view returns (uint256 nonce) {
+        return _layout().initNonce;
+    }
+
+    /**
+     * @dev Get the current governance address.
+     * @return governance Current governance address
+     */
+    function getGovernance() external view returns (address governance) {
+        return _layout().governance;
     }
 
     /**
@@ -336,23 +527,27 @@ contract ExampleFacetB {
     {
         Layout storage l = _layout();
         UserOpsRB storage rb = l.userOps[user];
-        
+
         totalUserOps = rb.size;
-        
+
         if (totalUserOps > 0) {
             // Get most recent operation
             uint256 lastIdx = (MAX_USER_OPS + rb.head - 1) % MAX_USER_OPS;
             mostRecentOp = rb.buf[lastIdx];
-            
-            // Count unique operation types
-            bool[6] memory seen = [false, false, false, false, false, false]; // Initialize array
-            for (uint256 i = 0; i < totalUserOps; i++) {
-                uint256 idx = (MAX_USER_OPS + rb.head - 1 - i) % MAX_USER_OPS;
+
+            // Count unique operation types using bitmask (gas optimized)
+            uint8 mask;
+            for (uint256 i = 0; i < totalUserOps; ) {
+                uint256 idx = (MAX_USER_OPS + uint256(rb.head) + MAX_USER_OPS - 1 - i) % MAX_USER_OPS;
                 uint256 opType = rb.buf[idx];
-                if (opType <= MAX_OPERATION_TYPE && !seen[opType]) {
-                    seen[opType] = true;
-                    uniqueOpTypes++;
+                if (opType >= 1 && opType <= MAX_OPERATION_TYPE) {
+                    uint8 bit = uint8(1) << uint8(opType);
+                    if ((mask & bit) == 0) {
+                        mask |= bit;
+                        uniqueOpTypes++;
+                    }
                 }
+                unchecked { ++i; }
             }
         }
     }
@@ -395,7 +590,7 @@ contract ExampleFacetB {
     {
         Layout storage l = _layout();
         uint256 currentValue = l.currentValue;
-        
+
         // Calculate what the new value would be
         if (operationType == 1) {
             uint256 inc = abi.decode(data, (uint256));
@@ -454,20 +649,24 @@ contract ExampleFacetB {
         name = "ExampleFacetB";
         version = "1.2.0"; // Updated version for enhanced features
 
-        selectors = new bytes4[](13); // Increased from 9 to 13
+        selectors = new bytes4[](17); // Increased from 15 to 17 for rotation functions
         selectors[0] = this.initializeFacetB.selector;
         selectors[1] = this.setPaused.selector;
-        selectors[2] = this.executeB.selector;
-        selectors[3] = this.batchExecuteB.selector;
-        selectors[4] = this.getOperation.selector;
-        selectors[5] = this.getUserOperations.selector;
-        selectors[6] = this.complexCalculation.selector;
-        selectors[7] = this.getStateSummary.selector;
-        selectors[8] = this.getFacetInfoB.selector;
-        // New production-grade functions
-        selectors[9] = this.getAdvancedAnalytics.selector;
-        selectors[10] = this.getUserStatistics.selector;
-        selectors[11] = this.validateOperation.selector;
-        selectors[12] = this.simulateOperation.selector;
+        selectors[2] = this.rotateGovernance.selector;
+        selectors[3] = this.rotateOperator.selector;
+        selectors[4] = this.executeB.selector;
+        selectors[5] = this.batchExecuteB.selector;
+        selectors[6] = this.getOperation.selector;
+        selectors[7] = this.getUserOperations.selector;
+        selectors[8] = this.complexCalculation.selector;
+        selectors[9] = this.getStateSummary.selector;
+        selectors[10] = this.getFacetInfoB.selector;
+        // Production-grade functions
+        selectors[11] = this.getAdvancedAnalytics.selector;
+        selectors[12] = this.getUserStatistics.selector;
+        selectors[13] = this.validateOperation.selector;
+        selectors[14] = this.simulateOperation.selector;
+        selectors[15] = this.getInitNonce.selector;
+        selectors[16] = this.getGovernance.selector;
     }
 }

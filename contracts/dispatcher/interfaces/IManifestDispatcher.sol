@@ -27,6 +27,17 @@ interface IManifestDispatcher is IAccessControl {
     event ManifestVersionUpdated(uint64 indexed oldVersion, uint64 indexed newVersion);
     event Frozen();
 
+    // Enhanced governance and operation events
+    event ManifestCommitted(bytes32 indexed manifestHash, uint64 timestamp);
+    event ManifestApplied(bytes32 indexed manifestHash, uint256 routeCount);
+    event StatusSnapshot(bytes32 indexed activeRoot, uint64 version, uint256 routeCount);
+    event GovernanceRotationQueued(address indexed newGov, uint64 eta);
+    event GovernanceRotated(address indexed oldGov, address indexed newGov);
+    event GuardianAction(address indexed guardian, string action, uint64 timestamp);
+    event OperationQueued(uint256 indexed nonce, bytes32 opHash, uint64 eta);
+    event OperationExecuted(uint256 indexed nonce, bool success, uint256 gasUsed);
+    event OperationCancelled(uint256 indexed nonce, bytes32 opHash);
+
     // ───────────────────── Read-only views ────────────────────
     function routes(bytes4 selector) external view returns (address facet, bytes32 codehash);
 
@@ -38,7 +49,7 @@ interface IManifestDispatcher is IAccessControl {
 
     function activationDelay() external view returns (uint64);
     function frozen() external view returns (bool);
-    
+
     // New enhanced views
     function getManifestVersion() external view returns (uint64);
     function getRoute(bytes4 selector) external view returns (address facet);

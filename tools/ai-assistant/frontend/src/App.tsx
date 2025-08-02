@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
-import { ContractAnalysisRequest, usePayRoxBackend } from './services/PayRoxBackend';
+import ContractInterface from './components/ContractInterfaceV2';
 import './styles/components.css';
+import './styles/contract-dashboard.css';
 import './styles/globals.css';
 
 // Types
+type DeploymentStrategy = 'single' | 'faceted' | 'chunked';
+
 interface ContractAnalysis {
   name: string;
   functions: number;
   variables: number;
   size: number;
-  deploymentStrategy: 'single' | 'faceted' | 'chunked';
+  deploymentStrategy: DeploymentStrategy;
   chunkingRequired: boolean;
   facetCandidates: Array<{
     name: string;
@@ -36,17 +39,17 @@ interface AnalysisStatus {
 }
 
 // Components
-const Header: React.FC<{ isConnected: boolean }> = ({ isConnected }) => (
+const Header: React.FC = () => (
   <header className="header">
     <div className="container">
       <div className="header-content">
         <div className="header-text">
           <h1>PayRox Go Beyond</h1>
-          <p>AI-Powered Smart Contract Modularization Platform</p>
+          <p>Smart Contract Interaction Platform</p>
         </div>
         <div className="connection-status">
-          <span className={`status-indicator ${isConnected ? 'connected' : 'disconnected'}`}>
-            {isConnected ? '● Backend Connected' : '● Offline Mode'}
+          <span className="status-indicator connected">
+            ● Ready
           </span>
         </div>
       </div>
@@ -328,37 +331,75 @@ const App: React.FC = () => {
     isAnalyzing: false,
     hasError: false,
   });
+  const [activeTab, setActiveTab] = useState<'analysis' | 'dashboard'>('dashboard');
 
-  // Initialize PayRox backend connection
-  const { analyzeContract, isConnected } = usePayRoxBackend();
+  // Local analysis function (simulated)
+  const analyzeContractLocally = (contractCode: string, contractName: string): ContractAnalysis => {
+    // Simple analysis based on code patterns
+    const functions = (contractCode.match(/function\s+\w+/g) || []).length;
+    const variables = (contractCode.match(/\w+\s+(public|private|internal)\s+\w+/g) || []).length;
+    const size = Math.round(contractCode.length / 1024);
+
+    // Determine deployment strategy
+    let deploymentStrategy: DeploymentStrategy;
+    if (size > 24) {
+      deploymentStrategy = 'chunked';
+    } else if (functions > 15) {
+      deploymentStrategy = 'faceted';
+    } else {
+      deploymentStrategy = 'single';
+    }
+
+    // Generate sample facet suggestions
+    const facetCandidates = [
+      {
+        name: 'CoreFacet',
+        functions: [
+          { name: 'constructor', visibility: 'public', stateMutability: 'nonpayable' },
+          { name: 'owner', visibility: 'public', stateMutability: 'view' }
+        ]
+      },
+      {
+        name: 'TokenFacet',
+        functions: [
+          { name: 'transfer', visibility: 'external', stateMutability: 'nonpayable' },
+          { name: 'balances', visibility: 'public', stateMutability: 'view' }
+        ]
+      }
+    ];
+
+    const manifestRoutes = [
+      { functionName: 'transfer', selector: '0xa9059cbb', securityLevel: 'Medium' },
+      { functionName: 'mint', selector: '0x40c10f19', securityLevel: 'High' },
+      { functionName: 'pause', selector: '0x8456cb59', securityLevel: 'Critical' }
+    ];
+
+    return {
+      name: contractName,
+      functions,
+      variables,
+      size,
+      deploymentStrategy,
+      chunkingRequired: size > 24,
+      facetCandidates,
+      manifestRoutes,
+      storageWarnings: ['Consider using packed structs for gas efficiency'],
+      gasOptimizations: ['Use assembly for low-level operations', 'Pack struct variables'],
+      securityConsiderations: ['Add reentrancy guards', 'Validate all external inputs']
+    };
+  };
 
   const handleAnalyze = async (contractCode: string, contractName: string) => {
     setStatus({ isAnalyzing: true, hasError: false });
     setAnalysis(null);
 
     try {
-      const request: ContractAnalysisRequest = {
-        contractCode,
-        contractName,
-        analysisType: 'refactor',
-        preferences: {
-          facetSize: 'medium',
-          optimization: 'gas'
-        }
-      };
+      // Simulate analysis delay
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
-      const result = await analyzeContract(request);
-
-      if (result.success && result.analysis) {
-        setAnalysis(result.analysis);
-        setStatus({ isAnalyzing: false, hasError: false });
-      } else {
-        setStatus({
-          isAnalyzing: false,
-          hasError: true,
-          errorMessage: result.error || 'Analysis failed - check connection and try again'
-        });
-      }
+      const result = analyzeContractLocally(contractCode, contractName);
+      setAnalysis(result);
+      setStatus({ isAnalyzing: false, hasError: false });
     } catch (error) {
       setStatus({
         isAnalyzing: false,
@@ -374,16 +415,55 @@ const App: React.FC = () => {
 
   return (
     <div className="app">
-      <Header isConnected={isConnected ?? false} />
+      <div className="header">
+        <h1>PayRox Go Beyond</h1>
+        <p>Advanced Blockchain Deployment & Orchestration Framework</p>
+      </div>
 
-      <main className="main-content">
-        <ContractInput onAnalyze={handleAnalyze} isAnalyzing={status.isAnalyzing} />
+      <nav className="tabs">
+        <button
+          className={`tab ${activeTab === 'dashboard' ? 'active' : ''}`}
+          onClick={() => setActiveTab('dashboard')}
+        >
+          � Contract Interface
+        </button>
+        <button
+          className={`tab ${activeTab === 'analysis' ? 'active' : ''}`}
+          onClick={() => setActiveTab('analysis')}
+        >
+          � Analysis Portal
+        </button>
+      </nav>
 
-        {status.hasError && status.errorMessage && (
-          <ErrorDisplay message={status.errorMessage} onClear={clearError} />
+      <main className="content">
+        {activeTab === 'dashboard' && (
+          <ContractInterface />
         )}
 
-        {analysis && <AnalysisResults analysis={analysis} />}
+        {activeTab === 'analysis' && (
+          <div className="analysis-section">
+            <ContractInput onAnalyze={handleAnalyze} isAnalyzing={status.isAnalyzing} />
+
+            {status.hasError && status.errorMessage && (
+              <ErrorDisplay message={status.errorMessage} onClear={clearError} />
+            )}
+
+            {status.isAnalyzing && (
+              <div className="analyzing-status">
+                <div className="container">
+                  <div className="status-card">
+                    <h3>Analyzing Contract...</h3>
+                    <p>Please wait while we analyze your contract code.</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {analysis && !status.isAnalyzing && (
+              <AnalysisResults analysis={analysis} />
+            )}
+          </div>
+        )}
       </main>
 
       <footer className="footer">

@@ -2,17 +2,19 @@
 pragma solidity 0.8.30;
 
 import "./ManifestTypes.sol";
+import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 
 /**
  * @title ManifestUtils
  * @dev Utility functions for manifest processing and validation
  */
 library ManifestUtils {
-    
+
     // Gas estimation constants for clarity and maintainability
     uint256 private constant BASE_MANIFEST_GAS = 100_000;      // Base gas for manifest processing
     uint256 private constant GAS_PER_SELECTOR = 5_000;        // Gas per function selector
-    uint256 private constant GAS_PER_CHUNK = 50_000;          // Gas per chunk deployment  
+    uint256 private constant GAS_PER_CHUNK = 50_000;          // Gas per chunk deployment
     uint256 private constant MERKLE_VERIFICATION_GAS = 30_000; // Gas for Merkle verification
 
     /**
@@ -32,7 +34,7 @@ library ManifestUtils {
     }
 
     /**
-     * @dev Verify a manifest signature
+     * @dev Verify a manifest signature using OpenZeppelin's robust ECDSA
      * @param manifest The manifest to verify
      * @param expectedSigner The expected signer address
      * @return isValid Whether the signature is valid
@@ -42,39 +44,13 @@ library ManifestUtils {
         address expectedSigner
     ) internal pure returns (bool isValid) {
         bytes32 hash = calculateManifestHash(manifest);
-        bytes32 ethSignedHash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", hash));
-
-        address recoveredSigner = recoverSigner(ethSignedHash, manifest.signature);
-        return recoveredSigner == expectedSigner;
+        bytes32 digest = MessageHashUtils.toEthSignedMessageHash(hash);
+        (address recoveredSigner, ECDSA.RecoverError err, ) = ECDSA.tryRecover(digest, manifest.signature);
+        return err == ECDSA.RecoverError.NoError && recoveredSigner == expectedSigner;
     }
 
     /**
-     * @dev Recover signer from signature
-     * @param hash The hash that was signed
-     * @param signature The signature
-     * @return signer The recovered signer address
-     */
-    function recoverSigner(
-        bytes32 hash,
-        bytes memory signature
-    ) internal pure returns (address signer) {
-        require(signature.length == 65, "ManifestUtils: invalid signature length");
-
-        bytes32 r;
-        bytes32 s;
-        uint8 v;
-
-        assembly {
-            r := mload(add(signature, 32))
-            s := mload(add(signature, 64))
-            v := byte(0, mload(add(signature, 96)))
-        }
-
-        return ecrecover(hash, v, r, s);
-    }
-
-    /**
-     * @dev Validate manifest structure and constraints
+     * @dev Validate manifest structure and constraints with enhanced security checks
      * @param manifest The manifest to validate
      * @param policy The security policy to enforce
      * @return isValid Whether the manifest is valid
@@ -104,11 +80,26 @@ library ManifestUtils {
                 return (false, "Facet has no selectors");
             }
 
-            // Check for duplicate selectors
+            // Check for duplicate selectors within facet
             for (uint256 j = 0; j < facet.selectors.length; j++) {
                 for (uint256 k = j + 1; k < facet.selectors.length; k++) {
                     if (facet.selectors[j] == facet.selectors[k]) {
-                        return (false, "Duplicate selectors");
+                        return (false, "Duplicate selectors within facet");
+                    }
+                }
+            }
+        }
+
+        // Check for selector collisions across facets
+        for (uint256 i = 0; i < manifest.facets.length; i++) {
+            for (uint256 j = i + 1; j < manifest.facets.length; j++) {
+                bytes4[] memory A = manifest.facets[i].selectors;
+                bytes4[] memory B = manifest.facets[j].selectors;
+                for (uint256 a = 0; a < A.length; a++) {
+                    for (uint256 b = 0; b < B.length; b++) {
+                        if (A[a] == B[b]) {
+                            return (false, "Selector collision across facets");
+                        }
                     }
                 }
             }
@@ -122,7 +113,7 @@ library ManifestUtils {
                 return (false, "Invalid chunk address");
             }
 
-            if (chunk.size > policy.maxFacetSize) {
+            if (chunk.size > policy.maxChunkSize) {
                 return (false, "Chunk size exceeds limit");
             }
         }
@@ -132,6 +123,7 @@ library ManifestUtils {
 
     /**
      * @dev Generate Merkle root for chunks
+     * @dev Uses keccak256(left||right) convention - must match OrderedMerkle verifier
      * @param chunks Array of chunk mappings
      * @return merkleRoot The calculated Merkle root
      */
@@ -184,11 +176,11 @@ library ManifestUtils {
     }
 
     /**
-     * @dev Extract selectors from facets
+     * @dev Collect all selectors from facets (may contain duplicates for analysis)
      * @param facets Array of facet info
-     * @return allSelectors All unique selectors
+     * @return allSelectors All selectors from all facets
      */
-    function extractSelectors(
+    function collectSelectors(
         ManifestTypes.FacetInfo[] memory facets
     ) internal pure returns (bytes4[] memory allSelectors) {
         uint256 totalSelectors = 0;
@@ -205,6 +197,53 @@ library ManifestUtils {
         for (uint256 i = 0; i < facets.length; i++) {
             for (uint256 j = 0; j < facets[i].selectors.length; j++) {
                 allSelectors[index] = facets[i].selectors[j];
+                index++;
+            }
+        }
+    }
+
+    /**
+     * @dev Collect unique selectors from facets (removes duplicates)
+     * @param facets Array of facet info
+     * @return uniqueSelectors Unique selectors from all facets
+     */
+    function collectUniqueSelectors(
+        ManifestTypes.FacetInfo[] memory facets
+    ) internal pure returns (bytes4[] memory uniqueSelectors) {
+        bytes4[] memory allSelectors = collectSelectors(facets);
+
+        if (allSelectors.length == 0) {
+            return new bytes4[](0);
+        }
+
+        // Count unique selectors
+        uint256 uniqueCount = 0;
+        for (uint256 i = 0; i < allSelectors.length; i++) {
+            bool isUnique = true;
+            for (uint256 j = 0; j < i; j++) {
+                if (allSelectors[i] == allSelectors[j]) {
+                    isUnique = false;
+                    break;
+                }
+            }
+            if (isUnique) {
+                uniqueCount++;
+            }
+        }
+
+        // Collect unique selectors
+        uniqueSelectors = new bytes4[](uniqueCount);
+        uint256 index = 0;
+        for (uint256 i = 0; i < allSelectors.length; i++) {
+            bool isUnique = true;
+            for (uint256 j = 0; j < i; j++) {
+                if (allSelectors[i] == allSelectors[j]) {
+                    isUnique = false;
+                    break;
+                }
+            }
+            if (isUnique) {
+                uniqueSelectors[index] = allSelectors[i];
                 index++;
             }
         }
@@ -269,18 +308,23 @@ library ManifestUtils {
     }
 
     /**
-     * @dev Calculate governance proposal hash
+     * @dev Calculate governance proposal hash with structured data hashing
      * @param proposal The governance proposal
      * @return proposalHash The calculated hash
      */
     function calculateProposalHash(
         ManifestTypes.GovernanceProposal memory proposal
     ) internal pure returns (bytes32 proposalHash) {
+        // Hash the description separately to handle variable length data
+        bytes32 descriptionHash = keccak256(abi.encodePacked(proposal.description));
+
+        // Create structured hash with proper ordering and type safety
         return keccak256(abi.encode(
+            "GOVERNANCE_PROPOSAL", // Type identifier for domain separation
             proposal.proposalId,
             proposal.proposer,
-            proposal.description,
-            proposal.targetHashes,
+            descriptionHash, // Use hashed description for consistency
+            keccak256(abi.encodePacked(proposal.targetHashes)), // Hash the array
             proposal.votingDeadline
         ));
     }
@@ -325,33 +369,35 @@ library ManifestUtils {
     }
 
     /**
-     * @dev Production-grade manifest integrity verification
+     * @dev Production-grade manifest integrity verification with chain validation
      * @param manifest The manifest to verify
      * @param previousManifestHash Hash of the previous manifest
      * @param currentTimestamp Current block timestamp
+     * @param expectedChainId Expected chain ID for this deployment
      * @return isValid Whether the manifest is valid
-     * @return errorCode Error code (0=valid, 1=invalid chain, 2=stale timestamp, 3=invalid previous hash)
+     * @return errorCode Error code (0=valid, 1=wrong chain, 2=stale timestamp, 3=invalid previous hash)
      */
     function verifyManifestIntegrity(
         ManifestTypes.ReleaseManifest memory manifest,
         bytes32 previousManifestHash,
-        uint256 currentTimestamp
+        uint256 currentTimestamp,
+        uint256 expectedChainId
     ) internal pure returns (bool isValid, uint256 errorCode) {
-        // Check chain ID consistency
-        if (manifest.header.chainId == 0) {
+        // Check chain ID matches expected deployment target
+        if (manifest.header.chainId != expectedChainId) {
             return (false, 1);
         }
-        
+
         // Check timestamp is not too far in the past (within 24 hours)
         if (currentTimestamp > manifest.header.timestamp + 86400) {
             return (false, 2);
         }
-        
+
         // Check previous hash linkage
         if (manifest.header.previousHash != previousManifestHash) {
             return (false, 3);
         }
-        
+
         return (true, 0);
     }
 
@@ -365,25 +411,25 @@ library ManifestUtils {
     ) internal pure returns (uint256 estimatedGas) {
         // Base gas for manifest processing
         estimatedGas = BASE_MANIFEST_GAS;
-        
+
         // Add gas per facet (route updates)
         uint256 totalSelectors = 0;
         for (uint256 i = 0; i < manifest.facets.length; i++) {
             totalSelectors += manifest.facets[i].selectors.length;
         }
         estimatedGas += totalSelectors * GAS_PER_SELECTOR;
-        
+
         // Add gas per chunk deployment
         estimatedGas += manifest.chunks.length * GAS_PER_CHUNK;
-        
+
         // Add gas for Merkle verification
         estimatedGas += MERKLE_VERIFICATION_GAS;
-        
+
         return estimatedGas;
     }
 
     /**
-     * @dev Validate manifest security properties
+     * @dev Validate manifest security properties with correct EIP-170 limits
      * @param manifest The manifest to validate
      * @return isSecure Whether the manifest meets security requirements
      * @return riskLevel Risk level (0=low, 1=medium, 2=high)
@@ -393,22 +439,26 @@ library ManifestUtils {
     ) internal view returns (bool isSecure, uint256 riskLevel) {
         // Check for excessive facet count (potential attack vector)
         if (manifest.facets.length > 50) {
-            return (false, 2); // High risk
+            return (false, 2); // High risk - outright reject
         }
-        
-        // Check for suspicious chunk sizes
+
+        // Check for suspicious chunk sizes using correct EIP-170 runtime limit
         for (uint256 i = 0; i < manifest.chunks.length; i++) {
-            // Very large chunks could be gas bombs
-            if (manifest.chunks[i].size > 24000) { // Close to contract size limit
-                return (false, 1); // Medium risk
+            // EIP-170 runtime bytecode limit is 24,576 bytes
+            if (manifest.chunks[i].size > 24576) { // Exact EIP-170 limit
+                return (false, 2); // High risk - exceeds runtime limit, reject
+            }
+            // Flag chunks close to the limit as medium risk but still secure
+            if (manifest.chunks[i].size > 20000) { // 82% of limit
+                return (true, 1); // Medium risk - secure but flagged for review
             }
         }
-        
-        // Check manifest age (stale manifests are risky)
+
+        // Check manifest age (stale manifests are risky but not rejected)
         if (block.timestamp > manifest.header.timestamp + 604800) { // 1 week old
-            return (false, 1); // Medium risk
+            return (true, 1); // Medium risk - secure but flagged for staleness
         }
-        
+
         return (true, 0); // Low risk
     }
 
@@ -425,14 +475,14 @@ library ManifestUtils {
         summary.manifestHash = calculateManifestHash(manifest);
         summary.version = manifest.header.version;
         summary.timestamp = manifest.header.timestamp;
-        
+
         // Count total selectors across all facets
         uint256 totalSelectors = 0;
         for (uint256 i = 0; i < manifest.facets.length; i++) {
             totalSelectors += manifest.facets[i].selectors.length;
         }
         summary.totalSelectors = totalSelectors;
-        
+
         return summary;
     }
 }

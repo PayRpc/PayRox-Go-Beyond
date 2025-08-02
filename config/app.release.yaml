@@ -27,14 +27,23 @@ facets:
   - name: "ExampleFacetB"
     contract: "ExampleFacetB"
     functions:
+      - "initializeFacetB(address,address,uint256,bytes)"
+      - "setPaused(bool)"
+      - "rotateGovernance(address,uint256,bytes)"
+      - "rotateOperator(address,uint256,bytes)"
       - "executeB(uint256,bytes)"
       - "batchExecuteB(uint256[],bytes[])"
       - "getOperation(bytes32)"
       - "getUserOperations(address)"
       - "complexCalculation(uint256[])"
-      - "togglePause()"
       - "getStateSummary()"
-      - "getFacetInfo()"
+      - "getFacetInfoB()"
+      - "getAdvancedAnalytics()"
+      - "getUserStatistics(address)"
+      - "validateOperation(uint256,bytes)"
+      - "simulateOperation(uint256,bytes)"
+      - "getInitNonce()"
+      - "getGovernance()"
     priority: 2
     gasLimit: 750000
 

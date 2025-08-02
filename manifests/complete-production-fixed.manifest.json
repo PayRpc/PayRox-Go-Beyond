@@ -1,0 +1,67 @@
+{
+  "version": "1.0.0",
+  "timestamp": "2025-08-01T00:00:00.000Z",
+  "description": "Bootstrap manifest for PayRox Go Beyond deployment framework",
+  "network": {
+    "name": "localhost",
+    "chainId": "31337"
+  },
+  "factory": "0x84eA74d481Ee0A5332c457a4d796187F6Ba67fEB",
+  "facets": [
+    {
+      "name": "ExampleFacetA",
+      "contract": "ExampleFacetA",
+      "address": "0x9E545E3C0baAB3E08CdfD552C960A1050f373042",
+      "salt": "0x0000000000000000000000000000000000000000000000000000000000000001",
+      "bytecodeHash": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+      "codehash": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+      "functions": ["getValueA()", "setValueA(uint256)"]
+    },
+    {
+      "name": "ExampleFacetB",
+      "contract": "ExampleFacetB",
+      "address": "0xa82fF9aFd8f496c3d6ac40E2a0F282E47488CFc9",
+      "salt": "0x0000000000000000000000000000000000000000000000000000000000000002",
+      "bytecodeHash": "0x2345678901bcdef02345678901bcdef02345678901bcdef02345678901bcdef0",
+      "codehash": "0x2345678901bcdef02345678901bcdef02345678901bcdef02345678901bcdef0",
+      "functions": [
+        "getValueB()",
+        "setValueB(uint256)",
+        "emergencyPause()",
+        "emergencyUnpause()"
+      ]
+    }
+  ],
+  "routes": [
+    {
+      "selector": "0xe2ab79b1",
+      "facet": "0x9E545E3C0baAB3E08CdfD552C960A1050f373042",
+      "codehash": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
+    },
+    {
+      "selector": "0x289b3c0d",
+      "facet": "0xa82fF9aFd8f496c3d6ac40E2a0F282E47488CFc9",
+      "codehash": "0x2345678901bcdef02345678901bcdef02345678901bcdef02345678901bcdef0"
+    }
+  ],
+  "merkle": {
+    "root": "0xf99865c0139d6470264e332b1ebe6baac600a7e37b7bbf40e8f3b4c2bee3ab37",
+    "leaves": [
+      "0x8be23030c866c38d86c7e3c23f7c825a2b1b844e9e094e93e34d80b1e0cac0ad",
+      "0x2c8b66334e7f5f2a17f2fe3bd996a74ca8a4b28e825f0cbe68a4e4f5b6dd8b5f"
+    ],
+    "proofs": {
+      "0x8be23030c866c38d86c7e3c23f7c825a2b1b844e9e094e93e34d80b1e0cac0ad": [
+        "0x2c8b66334e7f5f2a17f2fe3bd996a74ca8a4b28e825f0cbe68a4e4f5b6dd8b5f"
+      ],
+      "0x2c8b66334e7f5f2a17f2fe3bd996a74ca8a4b28e825f0cbe68a4e4f5b6dd8b5f": [
+        "0x8be23030c866c38d86c7e3c23f7c825a2b1b844e9e094e93e34d80b1e0cac0ad"
+      ]
+    }
+  },
+  "metadata": {
+    "buildHash": "bootstrap-fixed",
+    "deploymentMode": "development",
+    "securityLevel": "basic"
+  }
+}

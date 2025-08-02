@@ -14,7 +14,7 @@ import {
   CompilationError,
   AnalysisError,
   ManifestRoute,
-  FacetCandidate
+  FacetCandidate,
 } from '../types/index';
 
 // Define AST node types to replace 'any'
@@ -127,18 +127,21 @@ export class SolidityAnalyzer {
   /**
    * Parse and analyze a Solidity contract
    */
-  async parseContract(sourceCode: string, contractName?: string): Promise<ParsedContract> {
+  async parseContract(
+    sourceCode: string,
+    contractName?: string
+  ): Promise<ParsedContract> {
     try {
       // Parse the AST
       const ast = parse(sourceCode, {
         loc: true,
         range: true,
-        tolerant: false
+        tolerant: false,
       });
 
       // Compile to get additional metadata
       const compiled = await this.compileContract(sourceCode, contractName);
-      
+
       // Extract contract information
       const contractNode = this.findContractNode(ast, contractName);
       if (!contractNode) {
@@ -153,14 +156,17 @@ export class SolidityAnalyzer {
       const inheritance = this.extractInheritance(contractNode);
       const storageLayout = this.extractStorageLayout(compiled);
       const totalSize = this.estimateContractSize(compiled);
-      
+
       // PayRox Go Beyond specific analysis
       const facetCandidates = this.identifyFacetCandidates(functions);
       const manifestRoutes = this.generateManifestRoutes(functions, compiled);
       const chunkingRequired = this.requiresChunking(totalSize);
       const runtimeCodehash = this.calculateRuntimeCodehash(compiled);
       const storageCollisions = this.detectStorageCollisions(variables);
-      const deploymentStrategy = this.determineDeploymentStrategy(totalSize, functions.length);
+      const deploymentStrategy = this.determineDeploymentStrategy(
+        totalSize,
+        functions.length
+      );
 
       return {
         name: contractNode.name,
@@ -179,28 +185,34 @@ export class SolidityAnalyzer {
         chunkingRequired,
         runtimeCodehash,
         storageCollisions,
-        deploymentStrategy
+        deploymentStrategy,
       };
-
     } catch (error: unknown) {
       if (error instanceof AnalysisError) {
         throw error;
       }
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      throw new AnalysisError(`Failed to parse contract: ${errorMessage}`, error);
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+      throw new AnalysisError(
+        `Failed to parse contract: ${errorMessage}`,
+        error
+      );
     }
   }
 
   /**
    * Compile Solidity source code
    */
-  private async compileContract(sourceCode: string, _contractName?: string): Promise<Record<string, unknown>> {
+  private async compileContract(
+    sourceCode: string,
+    _contractName?: string
+  ): Promise<Record<string, unknown>> {
     const input = {
       language: 'Solidity',
       sources: {
         'contract.sol': {
-          content: sourceCode
-        }
+          content: sourceCode,
+        },
       },
       settings: {
         outputSelection: {
@@ -212,22 +224,24 @@ export class SolidityAnalyzer {
               'evm.gasEstimates',
               'storageLayout',
               'devdoc',
-              'userdoc'
-            ]
-          }
+              'userdoc',
+            ],
+          },
         },
         optimizer: {
           enabled: true,
-          runs: 200
-        }
-      }
+          runs: 200,
+        },
+      },
     };
 
     try {
       const output = JSON.parse(solc.compile(JSON.stringify(input)));
-      
+
       if (output.errors) {
-        const errors = output.errors.filter((err: { severity: string }) => err.severity === 'error');
+        const errors = output.errors.filter(
+          (err: { severity: string }) => err.severity === 'error'
+        );
         if (errors.length > 0) {
           throw new CompilationError('Compilation failed', errors);
         }
@@ -238,7 +252,8 @@ export class SolidityAnalyzer {
       if (error instanceof CompilationError) {
         throw error;
       }
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
       throw new CompilationError(`Compilation failed: ${errorMessage}`, error);
     }
   }
@@ -246,10 +261,13 @@ export class SolidityAnalyzer {
   /**
    * Find the main contract node in AST
    */
-  private findContractNode(ast: unknown, contractName?: string): ContractNode | null {
+  private findContractNode(
+    ast: unknown,
+    contractName?: string
+  ): ContractNode | null {
     const contractNodes: ContractNode[] = [];
-    
-    this.visitNode(ast as ASTNode, (node) => {
+
+    this.visitNode(ast as ASTNode, node => {
       if (node.type === 'ContractDefinition') {
         contractNodes.push(node as ContractNode);
       }
@@ -269,25 +287,32 @@ export class SolidityAnalyzer {
   /**
    * Extract function information
    */
-  private extractFunctions(contractNode: ContractNode, sourceCode: string): FunctionInfo[] {
+  private extractFunctions(
+    contractNode: ContractNode,
+    sourceCode: string
+  ): FunctionInfo[] {
     const functions: FunctionInfo[] = [];
 
-    this.visitNode(contractNode, (node) => {
+    this.visitNode(contractNode, node => {
       if (node.type === 'FunctionDefinition') {
         const functionNode = node as FunctionNode;
         const functionInfo: FunctionInfo = {
-          name: functionNode.name || (functionNode.isConstructor ? 'constructor' : 'fallback'),
+          name:
+            functionNode.name ||
+            (functionNode.isConstructor ? 'constructor' : 'fallback'),
           selector: this.calculateSelector(functionNode),
           signature: this.buildFunctionSignature(functionNode),
           visibility: functionNode.visibility || 'public',
           stateMutability: functionNode.stateMutability || 'nonpayable',
           parameters: this.extractParameters(functionNode.parameters),
-          returnParameters: this.extractParameters(functionNode.returnParameters),
+          returnParameters: this.extractParameters(
+            functionNode.returnParameters
+          ),
           modifiers: this.extractFunctionModifiers(functionNode),
           gasEstimate: this.estimateFunctionGas(functionNode),
           dependencies: this.findFunctionDependencies(functionNode, sourceCode),
           codeSize: this.estimateFunctionSize(functionNode, sourceCode),
-          sourceLocation: this.getSourceLocation(functionNode, sourceCode)
+          sourceLocation: this.getSourceLocation(functionNode, sourceCode),
         };
 
         functions.push(functionInfo);
@@ -300,11 +325,14 @@ export class SolidityAnalyzer {
   /**
    * Extract state variables
    */
-  private extractVariables(contractNode: ContractNode, sourceCode: string): VariableInfo[] {
+  private extractVariables(
+    contractNode: ContractNode,
+    sourceCode: string
+  ): VariableInfo[] {
     const variables: VariableInfo[] = [];
     let slotCounter = 0;
 
-    this.visitNode(contractNode, (node) => {
+    this.visitNode(contractNode, node => {
       if (node.type === 'StateVariableDeclaration') {
         const variables_node = node as unknown as { variables: VariableNode[] };
         if (variables_node.variables) {
@@ -319,12 +347,12 @@ export class SolidityAnalyzer {
               offset: 0,
               size: this.calculateVariableSize(variable.typeName),
               dependencies: this.findVariableDependencies(variable, sourceCode),
-              sourceLocation: this.getSourceLocation(variable, sourceCode)
+              sourceLocation: this.getSourceLocation(variable, sourceCode),
             };
 
             // Update slot counter based on variable size
             slotCounter += Math.ceil(variableInfo.size / 32);
-            
+
             variables.push(variableInfo);
           }
         }
@@ -337,17 +365,28 @@ export class SolidityAnalyzer {
   /**
    * Extract events
    */
-  private extractEvents(contractNode: ContractNode, sourceCode: string): EventInfo[] {
+  private extractEvents(
+    contractNode: ContractNode,
+    sourceCode: string
+  ): EventInfo[] {
     const events: EventInfo[] = [];
 
-    this.visitNode(contractNode, (node) => {
+    this.visitNode(contractNode, node => {
       if (node.type === 'EventDefinition') {
         const eventInfo: EventInfo = {
           name: node.name || '',
           signature: this.buildEventSignature(node as unknown as EventNode),
-          parameters: this.extractParameters((node as any).parameters || { type: 'ParameterList', parameters: [] }),
-          indexed: (node as any).parameters?.map?.((param: any) => param.isIndexed || false) || [],
-          sourceLocation: this.getSourceLocation(node, sourceCode)
+          parameters: this.extractParameters(
+            (node as any).parameters || {
+              type: 'ParameterList',
+              parameters: [],
+            }
+          ),
+          indexed:
+            (node as any).parameters?.map?.(
+              (param: any) => param.isIndexed || false
+            ) || [],
+          sourceLocation: this.getSourceLocation(node, sourceCode),
         };
 
         events.push(eventInfo);
@@ -360,15 +399,23 @@ export class SolidityAnalyzer {
   /**
    * Extract modifiers
    */
-  private extractModifiers(contractNode: any, sourceCode: string): ModifierInfo[] {
+  private extractModifiers(
+    contractNode: any,
+    sourceCode: string
+  ): ModifierInfo[] {
     const modifiers: ModifierInfo[] = [];
 
-    this.visitNode(contractNode, (node) => {
+    this.visitNode(contractNode, node => {
       if (node.type === 'ModifierDefinition') {
         const modifierInfo: ModifierInfo = {
           name: node.name || '',
-          parameters: this.extractParameters((node as any).parameters || { type: 'ParameterList', parameters: [] }),
-          sourceLocation: this.getSourceLocation(node, sourceCode)
+          parameters: this.extractParameters(
+            (node as any).parameters || {
+              type: 'ParameterList',
+              parameters: [],
+            }
+          ),
+          sourceLocation: this.getSourceLocation(node, sourceCode),
         };
 
         modifiers.push(modifierInfo);
@@ -384,12 +431,14 @@ export class SolidityAnalyzer {
   private extractImports(ast: any): ImportInfo[] {
     const imports: ImportInfo[] = [];
 
-    this.visitNode(ast, (node) => {
+    this.visitNode(ast, node => {
       if (node.type === 'ImportDirective') {
         const importInfo: ImportInfo = {
           path: (node as any).path || '',
-          symbols: (node as any).symbolAliases?.map?.((alias: any) => alias.foreign) || [],
-          sourceLocation: this.getSourceLocation(node, '')
+          symbols:
+            (node as any).symbolAliases?.map?.((alias: any) => alias.foreign) ||
+            [],
+          sourceLocation: this.getSourceLocation(node, ''),
         };
 
         imports.push(importInfo);
@@ -403,7 +452,10 @@ export class SolidityAnalyzer {
    * Extract inheritance information
    */
   private extractInheritance(contractNode: any): string[] {
-    return contractNode.baseContracts?.map((base: any) => base.baseName.namePath) || [];
+    return (
+      contractNode.baseContracts?.map((base: any) => base.baseName.namePath) ||
+      []
+    );
   }
 
   /**
@@ -411,7 +463,7 @@ export class SolidityAnalyzer {
    */
   private extractStorageLayout(compiled: any): StorageSlot[] {
     const storageLayout: StorageSlot[] = [];
-    
+
     try {
       const contracts = compiled.contracts?.['contract.sol'];
       if (!contracts) {
@@ -428,7 +480,7 @@ export class SolidityAnalyzer {
               size: this.calculateTypeSize(storage.type, layout.types),
               type: storage.type,
               variable: storage.label,
-              contract: contractName
+              contract: contractName,
             });
           }
         }
@@ -461,9 +513,10 @@ export class SolidityAnalyzer {
       return 'constructor';
     }
 
-    const params = functionNode.parameters?.parameters?.map((param) => 
-      this.typeToString(param.typeName)
-    ).join(',') || '';
+    const params =
+      functionNode.parameters?.parameters
+        ?.map(param => this.typeToString(param.typeName))
+        .join(',') || '';
 
     return `${functionNode.name}(${params})`;
   }
@@ -472,9 +525,10 @@ export class SolidityAnalyzer {
    * Build event signature string
    */
   private buildEventSignature(eventNode: EventNode): string {
-    const params = eventNode.parameters?.parameters?.map((param) => 
-      this.typeToString(param.typeName)
-    ).join(',') || '';
+    const params =
+      eventNode.parameters?.parameters
+        ?.map(param => this.typeToString(param.typeName))
+        .join(',') || '';
 
     return `${eventNode.name}(${params})`;
   }
@@ -482,15 +536,17 @@ export class SolidityAnalyzer {
   /**
    * Extract parameters from parameter list
    */
-  private extractParameters(parameterList: ParameterListNode | undefined): ParameterInfo[] {
+  private extractParameters(
+    parameterList: ParameterListNode | undefined
+  ): ParameterInfo[] {
     if (!parameterList?.parameters) {
       return [];
     }
 
-    return parameterList.parameters.map((param) => ({
+    return parameterList.parameters.map(param => ({
       name: param.name || '',
       type: this.typeToString(param.typeName),
-      indexed: param.isIndexed || false
+      indexed: param.isIndexed || false,
     }));
   }
 
@@ -498,7 +554,7 @@ export class SolidityAnalyzer {
    * Extract function modifiers
    */
   private extractFunctionModifiers(functionNode: FunctionNode): string[] {
-    return functionNode.modifiers?.map((modifier) => modifier.name) || [];
+    return functionNode.modifiers?.map(modifier => modifier.name) || [];
   }
 
   /**
@@ -515,13 +571,19 @@ export class SolidityAnalyzer {
       case 'UserDefinedTypeName':
         return typeNode.namePath || 'unknown';
       case 'ArrayTypeName': {
-        const baseType = typeNode.baseTypeName ? this.typeToString(typeNode.baseTypeName) : 'unknown';
+        const baseType = typeNode.baseTypeName
+          ? this.typeToString(typeNode.baseTypeName)
+          : 'unknown';
         const length = typeNode.length ? `[${typeNode.length}]` : '[]';
         return `${baseType}${length}`;
       }
       case 'MappingTypeName': {
-        const keyType = typeNode.keyType ? this.typeToString(typeNode.keyType) : 'unknown';
-        const valueType = typeNode.valueType ? this.typeToString(typeNode.valueType) : 'unknown';
+        const keyType = typeNode.keyType
+          ? this.typeToString(typeNode.keyType)
+          : 'unknown';
+        const valueType = typeNode.valueType
+          ? this.typeToString(typeNode.valueType)
+          : 'unknown';
         return `mapping(${keyType} => ${valueType})`;
       }
       default:
@@ -594,7 +656,7 @@ export class SolidityAnalyzer {
 
     const location = this.getSourceLocation(functionNode, sourceCode);
     const functionCode = sourceCode.slice(location.start, location.end);
-    
+
     // Rough estimation: 1 byte per 2 characters of source (accounting for compilation)
     return Math.ceil(functionCode.length / 2);
   }
@@ -602,10 +664,13 @@ export class SolidityAnalyzer {
   /**
    * Find function dependencies (other functions called)
    */
-  private findFunctionDependencies(functionNode: any, _sourceCode: string): string[] {
+  private findFunctionDependencies(
+    functionNode: any,
+    _sourceCode: string
+  ): string[] {
     const dependencies: Set<string> = new Set();
 
-    this.visitNode(functionNode, (node) => {
+    this.visitNode(functionNode, node => {
       if (node.type === 'FunctionCall' && node.name) {
         dependencies.add(node.name);
       }
@@ -620,11 +685,14 @@ export class SolidityAnalyzer {
   /**
    * Find variable dependencies
    */
-  private findVariableDependencies(variableNode: any, _sourceCode: string): string[] {
+  private findVariableDependencies(
+    variableNode: any,
+    _sourceCode: string
+  ): string[] {
     const dependencies: Set<string> = new Set();
 
     if (variableNode.expression) {
-      this.visitNode(variableNode.expression, (node) => {
+      this.visitNode(variableNode.expression, node => {
         if (node.type === 'Identifier' && node.name) {
           dependencies.add(node.name);
         }
@@ -639,24 +707,24 @@ export class SolidityAnalyzer {
    */
   private calculateVariableSize(typeNode: any): number {
     const typeString = this.typeToString(typeNode);
-    
+
     // Basic size mapping
     const sizeMap: Record<string, number> = {
-      'bool': 1,
-      'uint8': 1,
-      'uint16': 2,
-      'uint32': 4,
-      'uint64': 8,
-      'uint128': 16,
-      'uint256': 32,
-      'int8': 1,
-      'int16': 2,
-      'int32': 4,
-      'int64': 8,
-      'int128': 16,
-      'int256': 32,
-      'address': 20,
-      'bytes32': 32,
+      bool: 1,
+      uint8: 1,
+      uint16: 2,
+      uint32: 4,
+      uint64: 8,
+      uint128: 16,
+      uint256: 32,
+      int8: 1,
+      int16: 2,
+      int32: 4,
+      int64: 8,
+      int128: 16,
+      int256: 32,
+      address: 20,
+      bytes32: 32,
     };
 
     // Handle basic types
@@ -672,7 +740,10 @@ export class SolidityAnalyzer {
     // Handle fixed-size arrays
     const arrayMatch = typeString.match(/^(.+)\[(\d+)\]$/);
     if (arrayMatch && arrayMatch[2]) {
-      const baseSize = this.calculateVariableSize({ type: 'ElementaryTypeName', name: arrayMatch[1] });
+      const baseSize = this.calculateVariableSize({
+        type: 'ElementaryTypeName',
+        name: arrayMatch[1],
+      });
       const length = parseInt(arrayMatch[2]);
       return baseSize * length;
     }
@@ -698,7 +769,7 @@ export class SolidityAnalyzer {
   private estimateBlockGas(blockNode: any): number {
     let gasEstimate = 0;
 
-    this.visitNode(blockNode, (node) => {
+    this.visitNode(blockNode, node => {
       switch (node.type) {
         case 'AssignmentOperator':
           gasEstimate += 5; // SSTORE cost
@@ -730,7 +801,7 @@ export class SolidityAnalyzer {
         start: node.range?.[0] || 0,
         end: node.range?.[1] || 0,
         line: node.loc.start?.line || 0,
-        column: node.loc.start?.column || 0
+        column: node.loc.start?.column || 0,
       };
     }
 
@@ -738,7 +809,7 @@ export class SolidityAnalyzer {
       start: 0,
       end: sourceCode.length,
       line: 1,
-      column: 1
+      column: 1,
     };
   }
 
@@ -760,7 +831,11 @@ export class SolidityAnalyzer {
             this.visitNode(child as ASTNode, callback);
           }
         });
-      } else if (typeof value === 'object' && value !== null && key !== 'parent') {
+      } else if (
+        typeof value === 'object' &&
+        value !== null &&
+        key !== 'parent'
+      ) {
         this.visitNode(value as ASTNode, callback);
       }
     }
@@ -773,21 +848,26 @@ export class SolidityAnalyzer {
   /**
    * Identify facet candidates based on function grouping strategies
    */
-  private identifyFacetCandidates(functions: FunctionInfo[]): Map<string, FunctionInfo[]> {
+  private identifyFacetCandidates(
+    functions: FunctionInfo[]
+  ): Map<string, FunctionInfo[]> {
     const facets = new Map<string, FunctionInfo[]>();
 
     for (const fn of functions) {
-      let facetKey = "UtilityFacet";
-      
+      let facetKey = 'UtilityFacet';
+
       // Categorize by function patterns and access levels
       if (this.isAdminFunction(fn)) {
-        facetKey = "AdminFacet";
+        facetKey = 'AdminFacet';
       } else if (this.isGovernanceFunction(fn)) {
-        facetKey = "GovernanceFacet";
-      } else if (fn.stateMutability === "view" || fn.stateMutability === "pure") {
-        facetKey = "ViewFacet";
+        facetKey = 'GovernanceFacet';
+      } else if (
+        fn.stateMutability === 'view' ||
+        fn.stateMutability === 'pure'
+      ) {
+        facetKey = 'ViewFacet';
       } else if (this.isCoreFunction(fn)) {
-        facetKey = "CoreFacet";
+        facetKey = 'CoreFacet';
       }
 
       if (!facets.has(facetKey)) {
@@ -807,22 +887,24 @@ export class SolidityAnalyzer {
    */
   private isAdminFunction(func: FunctionInfo): boolean {
     const adminPatterns = [
-      /^set[A-Z]/,           // setX functions
-      /^update[A-Z]/,        // updateX functions
-      /^change[A-Z]/,        // changeX functions
-      /^withdraw/,           // withdraw functions
-      /^pause/,              // pause functions
-      /^unpause/,            // unpause functions
-      /^emergency/,          // emergency functions
-      /^admin/,              // admin functions
-      /^owner/,              // owner functions
-      /^manage/,             // management functions
-      /^initialize/,         // initialization
-      /^configure/           // configuration
+      /^set[A-Z]/, // setX functions
+      /^update[A-Z]/, // updateX functions
+      /^change[A-Z]/, // changeX functions
+      /^withdraw/, // withdraw functions
+      /^pause/, // pause functions
+      /^unpause/, // unpause functions
+      /^emergency/, // emergency functions
+      /^admin/, // admin functions
+      /^owner/, // owner functions
+      /^manage/, // management functions
+      /^initialize/, // initialization
+      /^configure/, // configuration
     ];
 
-    return adminPatterns.some(pattern => pattern.test(func.name)) ||
-           func.modifiers.some(mod => /owner|admin|auth|role/i.test(mod));
+    return (
+      adminPatterns.some(pattern => pattern.test(func.name)) ||
+      func.modifiers.some(mod => /owner|admin|auth|role/i.test(mod))
+    );
   }
 
   /**
@@ -835,7 +917,7 @@ export class SolidityAnalyzer {
       /^execute/,
       /^delegate/,
       /^governance/,
-      /^timelock/
+      /^timelock/,
     ];
 
     return governancePatterns.some(pattern => pattern.test(func.name));
@@ -846,18 +928,23 @@ export class SolidityAnalyzer {
    */
   private isCoreFunction(func: FunctionInfo): boolean {
     // Functions that are not admin, governance, or view are considered core
-    return !this.isAdminFunction(func) && 
-           !this.isGovernanceFunction(func) && 
-           func.stateMutability !== "view" && 
-           func.stateMutability !== "pure";
+    return (
+      !this.isAdminFunction(func) &&
+      !this.isGovernanceFunction(func) &&
+      func.stateMutability !== 'view' &&
+      func.stateMutability !== 'pure'
+    );
   }
 
   /**
    * Generate manifest routes for PayRox Go Beyond deployment
    */
-  private generateManifestRoutes(functions: FunctionInfo[], compiled: any): ManifestRoute[] {
+  private generateManifestRoutes(
+    functions: FunctionInfo[],
+    compiled: any
+  ): ManifestRoute[] {
     const routes: ManifestRoute[] = [];
-    
+
     for (const func of functions) {
       // Skip constructor and fallback functions
       if (func.name === 'constructor' || func.name === 'fallback') {
@@ -866,11 +953,11 @@ export class SolidityAnalyzer {
 
       const route: ManifestRoute = {
         selector: func.selector,
-        facet: "<predicted_facet_address>", // Will be filled during deployment
+        facet: '<predicted_facet_address>', // Will be filled during deployment
         codehash: this.calculateRuntimeCodehash(compiled),
         functionName: func.name,
         gasEstimate: func.gasEstimate,
-        securityLevel: this.assessSecurityLevel(func)
+        securityLevel: this.assessSecurityLevel(func),
       };
 
       routes.push(route);
@@ -882,14 +969,24 @@ export class SolidityAnalyzer {
   /**
    * Assess security level of a function
    */
-  private assessSecurityLevel(func: FunctionInfo): 'low' | 'medium' | 'high' | 'critical' {
+  private assessSecurityLevel(
+    func: FunctionInfo
+  ): 'low' | 'medium' | 'high' | 'critical' {
     // Critical: Admin functions, fund transfers
-    if (this.isAdminFunction(func) || func.name.includes('transfer') || func.name.includes('withdraw')) {
+    if (
+      this.isAdminFunction(func) ||
+      func.name.includes('transfer') ||
+      func.name.includes('withdraw')
+    ) {
       return 'critical';
     }
 
     // High: State-changing functions with modifiers
-    if (func.stateMutability !== 'view' && func.stateMutability !== 'pure' && func.modifiers.length > 0) {
+    if (
+      func.stateMutability !== 'view' &&
+      func.stateMutability !== 'pure' &&
+      func.modifiers.length > 0
+    ) {
       return 'high';
     }
 
@@ -914,9 +1011,12 @@ export class SolidityAnalyzer {
 
       // Get the first contract's deployed bytecode
       for (const [, contractData] of Object.entries(contracts)) {
-        const deployedBytecode = (contractData as any).evm?.deployedBytecode?.object;
+        const deployedBytecode = (contractData as any).evm?.deployedBytecode
+          ?.object;
         if (deployedBytecode) {
-          const cleanBytecode = deployedBytecode.startsWith("0x") ? deployedBytecode : `0x${deployedBytecode}`;
+          const cleanBytecode = deployedBytecode.startsWith('0x')
+            ? deployedBytecode
+            : `0x${deployedBytecode}`;
           return keccak256(cleanBytecode);
         }
       }
@@ -956,13 +1056,17 @@ export class SolidityAnalyzer {
     // Check for collisions
     for (const [slot, vars] of Array.from(slotMap.entries())) {
       if (vars.length > 1) {
-        collisions.push(`Potential storage collision at slot ${slot}: ${vars.join(', ')}`);
+        collisions.push(
+          `Potential storage collision at slot ${slot}: ${vars.join(', ')}`
+        );
       }
     }
 
     // Check for diamond storage pattern compliance
     if (variables.length > 0 && !this.isDiamondStorageCompliant(variables)) {
-      collisions.push('Contract may not be diamond storage compliant - consider using diamond storage pattern');
+      collisions.push(
+        'Contract may not be diamond storage compliant - consider using diamond storage pattern'
+      );
     }
 
     return collisions;
@@ -973,14 +1077,15 @@ export class SolidityAnalyzer {
    */
   private isDiamondStorageCompliant(variables: VariableInfo[]): boolean {
     // Look for diamond storage struct patterns
-    const hasStorageStruct = variables.some(v => 
-      v.name.toLowerCase().includes('storage') || 
-      v.type.toLowerCase().includes('storage')
+    const hasStorageStruct = variables.some(
+      v =>
+        v.name.toLowerCase().includes('storage') ||
+        v.type.toLowerCase().includes('storage')
     );
 
     // Check if variables are properly isolated
-    const hasProperIsolation = variables.every(v => 
-      v.slot >= 0 && v.offset >= 0
+    const hasProperIsolation = variables.every(
+      v => v.slot >= 0 && v.offset >= 0
     );
 
     return hasStorageStruct && hasProperIsolation;
@@ -990,16 +1095,19 @@ export class SolidityAnalyzer {
    * Determine optimal deployment strategy based on contract characteristics
    */
   private determineDeploymentStrategy(
-    totalSize: number, 
+    totalSize: number,
     functionCount: number
   ): 'single' | 'faceted' | 'chunked' {
-    const SIZE_THRESHOLD = 20000;      // Threshold for considering faceting
-    const FUNCTION_THRESHOLD = 10;     // Threshold for considering faceting
-    const CHUNK_THRESHOLD = 24000;     // Threshold for chunking
+    const SIZE_THRESHOLD = 20000; // Threshold for considering faceting
+    const FUNCTION_THRESHOLD = 10; // Threshold for considering faceting
+    const CHUNK_THRESHOLD = 24000; // Threshold for chunking
 
     if (totalSize > CHUNK_THRESHOLD) {
       return 'chunked';
-    } else if (totalSize > SIZE_THRESHOLD || functionCount > FUNCTION_THRESHOLD) {
+    } else if (
+      totalSize > SIZE_THRESHOLD ||
+      functionCount > FUNCTION_THRESHOLD
+    ) {
       return 'faceted';
     } else {
       return 'single';
@@ -1012,11 +1120,11 @@ export class SolidityAnalyzer {
   generateManifestEntries(contract: ParsedContract): Record<string, unknown>[] {
     return contract.functions.map(fn => ({
       selector: fn.selector,
-      facet: "<predicted_facet_address>",
-      codehash: contract.runtimeCodehash || "<runtime_codehash>",
+      facet: '<predicted_facet_address>',
+      codehash: contract.runtimeCodehash || '<runtime_codehash>',
       functionName: fn.name,
       gasEstimate: fn.gasEstimate,
-      securityLevel: this.assessSecurityLevel(fn)
+      securityLevel: this.assessSecurityLevel(fn),
     }));
   }
 
@@ -1031,37 +1139,44 @@ export class SolidityAnalyzer {
     chunkingStrategy?: string;
   } {
     const facetRecommendations: FacetCandidate[] = [];
-    
+
     // Convert facet candidates to structured recommendations
-    for (const [facetName, functions] of Array.from(contract.facetCandidates.entries())) {
+    for (const [facetName, functions] of Array.from(
+      contract.facetCandidates.entries()
+    )) {
       const candidate: FacetCandidate = {
         name: facetName,
         functions: functions,
         estimatedSize: functions.reduce((total, fn) => total + fn.codeSize, 0),
         category: this.categorizeFacet(facetName),
         dependencies: this.analyzeFacetDependencies(functions),
-        storageRequirements: this.analyzeFacetStorage(functions)
+        storageRequirements: this.analyzeFacetStorage(functions),
       };
-      
+
       facetRecommendations.push(candidate);
     }
 
     const gasOptimizations = this.generateGasOptimizations(contract);
-    const securityConsiderations = this.generateSecurityConsiderations(contract);
+    const securityConsiderations =
+      this.generateSecurityConsiderations(contract);
 
     return {
       facetRecommendations,
       deploymentStrategy: contract.deploymentStrategy,
       gasOptimizations,
       securityConsiderations,
-      ...(contract.chunkingRequired && { chunkingStrategy: 'DeterministicChunkFactory staging required' })
+      ...(contract.chunkingRequired && {
+        chunkingStrategy: 'DeterministicChunkFactory staging required',
+      }),
     };
   }
 
   /**
    * Categorize facet by name
    */
-  private categorizeFacet(facetName: string): 'admin' | 'governance' | 'view' | 'utility' | 'core' {
+  private categorizeFacet(
+    facetName: string
+  ): 'admin' | 'governance' | 'view' | 'utility' | 'core' {
     const name = facetName.toLowerCase();
     if (name.includes('admin')) {
       return 'admin';
@@ -1083,13 +1198,13 @@ export class SolidityAnalyzer {
    */
   private analyzeFacetDependencies(functions: FunctionInfo[]): string[] {
     const dependencies = new Set<string>();
-    
+
     for (const func of functions) {
       for (const dep of func.dependencies) {
         dependencies.add(dep);
       }
     }
-    
+
     return Array.from(dependencies);
   }
 
@@ -1109,20 +1224,30 @@ export class SolidityAnalyzer {
     const optimizations: string[] = [];
 
     if (contract.chunkingRequired) {
-      optimizations.push('Deploy via DeterministicChunkFactory to avoid contract size limits');
+      optimizations.push(
+        'Deploy via DeterministicChunkFactory to avoid contract size limits'
+      );
     }
 
     if (contract.facetCandidates.size > 1) {
-      optimizations.push('Modular facet deployment reduces individual deployment costs');
+      optimizations.push(
+        'Modular facet deployment reduces individual deployment costs'
+      );
     }
 
     if (contract.storageCollisions.length > 0) {
-      optimizations.push('Implement diamond storage pattern to avoid storage collisions');
+      optimizations.push(
+        'Implement diamond storage pattern to avoid storage collisions'
+      );
     }
 
-    const viewFunctions = contract.functions.filter(f => f.stateMutability === 'view' || f.stateMutability === 'pure');
+    const viewFunctions = contract.functions.filter(
+      f => f.stateMutability === 'view' || f.stateMutability === 'pure'
+    );
     if (viewFunctions.length > 5) {
-      optimizations.push('Consider separate ViewFacet for read-only operations');
+      optimizations.push(
+        'Consider separate ViewFacet for read-only operations'
+      );
     }
 
     return optimizations;
@@ -1134,25 +1259,35 @@ export class SolidityAnalyzer {
   private generateSecurityConsiderations(contract: ParsedContract): string[] {
     const considerations: string[] = [];
 
-    const criticalFunctions = contract.functions.filter(f => 
-      this.assessSecurityLevel(f) === 'critical'
+    const criticalFunctions = contract.functions.filter(
+      f => this.assessSecurityLevel(f) === 'critical'
     );
-    
+
     if (criticalFunctions.length > 0) {
-      considerations.push(`${criticalFunctions.length} critical functions require enhanced access control`);
+      considerations.push(
+        `${criticalFunctions.length} critical functions require enhanced access control`
+      );
     }
 
     if (contract.storageCollisions.length > 0) {
-      considerations.push('Storage collisions detected - implement proper facet isolation');
+      considerations.push(
+        'Storage collisions detected - implement proper facet isolation'
+      );
     }
 
-    const adminFunctions = contract.functions.filter(f => this.isAdminFunction(f));
+    const adminFunctions = contract.functions.filter(f =>
+      this.isAdminFunction(f)
+    );
     if (adminFunctions.length > 0) {
-      considerations.push('Separate AdminFacet recommended for privileged functions');
+      considerations.push(
+        'Separate AdminFacet recommended for privileged functions'
+      );
     }
 
     if (contract.deploymentStrategy === 'chunked') {
-      considerations.push('Chunked deployment requires additional integrity verification');
+      considerations.push(
+        'Chunked deployment requires additional integrity verification'
+      );
     }
 
     return considerations;

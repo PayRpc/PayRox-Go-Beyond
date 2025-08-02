@@ -1,13 +1,15 @@
 # PayRox Smart Contract CLI
 
-Interactive command-line interface for PayRox Go Beyond production smart contracts.
+Interactive command-line interface for PayRox Go Beyond production smart contracts with cross-chain
+deployment capabilities.
 
 ## Features
 
-🏭 **DeterministicChunkFactory** - Deploy contract chunks with predictable addresses 🗂️
-**ManifestDispatcher** - Function routing and manifest management 🎯 **Orchestrator** - Coordinate
-complex deployments ⚙️ **Settings** - Network configuration 📊 **Status** - View deployment
-information 🔧 **Utils** - Deployment utilities
+🏭 **DeterministicChunkFactory** - Deploy contract chunks with predictable addresses across networks
+🗂️ **ManifestDispatcher** - Function routing and manifest management 🎯 **Orchestrator** -
+Coordinate complex deployments 🌐 **Cross-Chain** - Multi-network deployment with address
+consistency ⚙️ **Settings** - Network configuration 📊 **Status** - View deployment information 🔧
+**Utils** - Deployment utilities
 
 ## Installation
 
@@ -38,8 +40,36 @@ node dist/index.js deploy --network localhost
 # Check deployment status
 node dist/index.js status --network sepolia
 
+# Cross-chain deployment
+node dist/index.js crosschain:deploy --networks "ethereum,polygon,arbitrum"
+
 # Show help
 node dist/index.js --help
+```
+
+## Cross-Chain Capabilities
+
+### Supported Networks
+
+- **Mainnets**: Ethereum, Polygon, Arbitrum, Optimism, Base, Avalanche, Fantom, BSC
+- **Testnets**: Sepolia, Holesky, Mumbai, Amoy, Arbitrum Sepolia, Optimism Sepolia, Base Sepolia,
+  Fuji, Fantom Testnet, BSC Testnet
+- **Development**: Localhost, Hardhat
+
+### Cross-Chain Commands
+
+```bash
+# Generate universal salt for consistent addresses
+node dist/index.js crosschain:generate-salt --content "0x..." --deployer "0x..."
+
+# Predict addresses across networks
+node dist/index.js crosschain:predict-addresses --networks "ethereum,polygon" --salt "0x..."
+
+# Health check multiple networks
+node dist/index.js crosschain:health-check --networks "ethereum,polygon,arbitrum"
+
+# Sync manifest across networks
+node dist/index.js crosschain:sync-manifest --networks "ethereum,polygon" --manifest "./manifest.json"
 ```
 
 ## Interactive Features

@@ -28,16 +28,80 @@ async function main() {
   );
   console.log(`🔢 Starting Nonce: ${initialNonce}`);
 
-  // Step 1: Deploy Factory
+  // Step 1: Deploy Dispatcher first (needed for Factory constructor)
+  console.log(`\n📡 Deploying ManifestDispatcher...`);
+
+  const DispatcherContract = await ethers.getContractFactory(
+    'ManifestDispatcher'
+  );
+  const dispatcher = await DispatcherContract.deploy(
+    deployer.address, // admin
+    0 // activationDelay = 0 for bootstrap (immediate activation)
+  );
+  await dispatcher.waitForDeployment();
+
+  const dispatcherAddress = await dispatcher.getAddress();
+  console.log(`✅ Dispatcher deployed to: ${dispatcherAddress}`);
+
+  // Step 1.5: Bootstrap manifest commitment for factory deployment
+  console.log(`\n🔧 Committing bootstrap manifest for factory deployment...`);
+
+  // Use a real hash for bootstrap manifest (dispatcher doesn't allow zero hash)
+  const bootstrapManifestHash = ethers.keccak256(
+    ethers.toUtf8Bytes('bootstrap-manifest-v1')
+  );
+  console.log(`   📝 Bootstrap manifest hash: ${bootstrapManifestHash}`);
+
+  // Commit and activate the bootstrap manifest
+  const commitTx = await dispatcher.commitRoot(bootstrapManifestHash, 1);
+  await commitTx.wait();
+  console.log(`   ✅ Bootstrap manifest committed`);
+
+  const activateTx = await dispatcher.activateCommittedRoot();
+  await activateTx.wait();
+  console.log(`   ✅ Bootstrap manifest activated`);
+
+  // Verify the dispatcher now has the manifest hash
+  const activeRoot = await dispatcher.activeRoot();
+  if (activeRoot !== bootstrapManifestHash) {
+    throw new Error(
+      `Bootstrap manifest activation failed: expected ${bootstrapManifestHash}, got ${activeRoot}`
+    );
+  }
+  console.log(`   ✅ Dispatcher ready with bootstrap manifest`);
+
+  // Verify dispatcher deployment
+  const activationDelay = await dispatcher.activationDelay();
+  const frozen = await dispatcher.frozen();
+  console.log(`   ⏱️  Activation delay: ${activationDelay} seconds`);
+  console.log(`   🔒 Frozen status: ${frozen}`);
+
+  // Step 2: Deploy Factory with all 6 required parameters
   console.log(`\n🏭 Deploying DeterministicChunkFactory...`);
 
   const FactoryContract = await ethers.getContractFactory(
     'DeterministicChunkFactory'
   );
+
+  // For bootstrap deployment, use the bootstrap manifest hash we just committed
+  const expectedManifestHash = bootstrapManifestHash;
+
+  // During construction, address(this).codehash returns empty hash
+  // This is what the contract sees during its own constructor execution
+  const expectedFactoryBytecodeHash = ethers.keccak256('0x'); // Empty bytecode hash
+
+  console.log(`   🔐 Expected Manifest Hash: ${expectedManifestHash}`);
+  console.log(
+    `   🔐 Expected Factory Bytecode Hash: ${expectedFactoryBytecodeHash}`
+  );
+
   const factory = await FactoryContract.deploy(
     deployer.address, // admin
     deployer.address, // feeRecipient
-    ethers.parseEther('0.001') // baseFeeWei (0.001 ETH)
+    ethers.parseEther('0.001'), // baseFeeWei (0.001 ETH)
+    expectedManifestHash, // expectedManifestHash (bootstrap manifest)
+    expectedFactoryBytecodeHash, // expectedFactoryBytecodeHash
+    dispatcherAddress // manifestDispatcher
   );
   await factory.waitForDeployment();
 
@@ -49,27 +113,6 @@ async function main() {
   const baseFeeWei = await factory.baseFeeWei();
   console.log(`   💰 Fee recipient: ${feeRecipient}`);
   console.log(`   📊 Base fee: ${ethers.formatEther(baseFeeWei)} ETH`);
-
-  // Step 2: Deploy Dispatcher (immediately after, same session)
-  console.log(`\n📡 Deploying ManifestDispatcher...`);
-
-  const DispatcherContract = await ethers.getContractFactory(
-    'ManifestDispatcher'
-  );
-  const dispatcher = await DispatcherContract.deploy(
-    deployer.address, // admin
-    60 // activationDelay (60 seconds)
-  );
-  await dispatcher.waitForDeployment();
-
-  const dispatcherAddress = await dispatcher.getAddress();
-  console.log(`✅ Dispatcher deployed to: ${dispatcherAddress}`);
-
-  // Verify dispatcher deployment
-  const activationDelay = await dispatcher.activationDelay();
-  const frozen = await dispatcher.frozen();
-  console.log(`   ⏱️  Activation delay: ${activationDelay} seconds`);
-  console.log(`   ❄️  Frozen: ${frozen}`);
 
   // Step 3: Verify addresses are different
   if (factoryAddress === dispatcherAddress) {
@@ -97,7 +140,14 @@ async function main() {
       network: network.name,
       timestamp: new Date().toISOString(),
       transactionHash: factory.deploymentTransaction()?.hash,
-      constructorArguments: [deployer.address, deployer.address, '0.001 ETH'],
+      constructorArguments: [
+        deployer.address,
+        deployer.address,
+        '0.001 ETH',
+        bootstrapManifestHash,
+        expectedFactoryBytecodeHash,
+        dispatcherAddress,
+      ],
       feeRecipient: feeRecipient,
     },
     'factory.json'
@@ -111,7 +161,7 @@ async function main() {
       network: network.name,
       timestamp: new Date().toISOString(),
       transactionHash: dispatcher.deploymentTransaction()?.hash,
-      constructorArguments: [deployer.address, 60],
+      constructorArguments: [deployer.address, 0],
       activationDelay: activationDelay.toString(),
       frozen: frozen,
     },

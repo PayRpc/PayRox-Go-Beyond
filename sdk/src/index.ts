@@ -291,14 +291,14 @@ export {
   type NetworkConfig,
   type ContractAddresses,
   type FeeConfig,
-  type ContractType
+  type ContractType,
 } from './config';
 
 // Manifest types
 export type {
   ManifestContract,
   ManifestRoute,
-  Manifest
+  Manifest,
 } from './manifest-builder';
 
 // Utility functions
@@ -324,7 +324,9 @@ export function createClient(
 /**
  * Create a browser client (MetaMask, etc.)
  */
-export async function createBrowserClient(networkName?: string): Promise<PayRoxClient> {
+export async function createBrowserClient(
+  networkName?: string
+): Promise<PayRoxClient> {
   return await PayRoxClient.fromBrowser(networkName);
 }
 

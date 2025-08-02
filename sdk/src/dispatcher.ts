@@ -10,20 +10,24 @@ export class Dispatcher {
   private network: NetworkConfig;
   private contract: ethers.Contract;
 
-  constructor(provider: Provider, signer: Signer | undefined, network: NetworkConfig) {
+  constructor(
+    provider: Provider,
+    signer: Signer | undefined,
+    network: NetworkConfig
+  ) {
     this.provider = provider;
     this.signer = signer;
     this.network = network;
 
     // ManifestDispatcher ABI (essential functions)
     const abi = [
-      "function updateManifest(bytes32 merkleRoot, string calldata ipfsHash) external",
-      "function getCurrentRoot() external view returns (bytes32)",
-      "function getRoute(bytes4 selector) external view returns (address facet, bool exists)",
-      "function batchCall(bytes[] calldata calls) external returns (bytes[] memory results)",
-      "function fallback() external payable",
-      "event ManifestUpdated(bytes32 indexed oldRoot, bytes32 indexed newRoot, string ipfsHash)",
-      "event RouteCall(bytes4 indexed selector, address indexed facet, address indexed caller)"
+      'function updateManifest(bytes32 merkleRoot, string calldata ipfsHash) external',
+      'function getCurrentRoot() external view returns (bytes32)',
+      'function getRoute(bytes4 selector) external view returns (address facet, bool exists)',
+      'function batchCall(bytes[] calldata calls) external returns (bytes[] memory results)',
+      'function fallback() external payable',
+      'event ManifestUpdated(bytes32 indexed oldRoot, bytes32 indexed newRoot, string ipfsHash)',
+      'event RouteCall(bytes4 indexed selector, address indexed facet, address indexed caller)',
     ];
 
     this.contract = new ethers.Contract(
@@ -52,7 +56,7 @@ export class Dispatcher {
     const tx = await this.contract.updateManifest(merkleRoot, ipfsHash, {
       gasLimit: options?.gasLimit || this.network.fees.gasLimit,
       maxFeePerGas: options?.maxFeePerGas,
-      maxPriorityFeePerGas: options?.maxPriorityFeePerGas
+      maxPriorityFeePerGas: options?.maxPriorityFeePerGas,
     });
 
     const receipt = await tx.wait();
@@ -98,18 +102,18 @@ export class Dispatcher {
     const tx = await this.contract.batchCall(calls, {
       gasLimit: options?.gasLimit || this.network.fees.gasLimit,
       maxFeePerGas: options?.maxFeePerGas,
-      maxPriorityFeePerGas: options?.maxPriorityFeePerGas
+      maxPriorityFeePerGas: options?.maxPriorityFeePerGas,
     });
 
     const receipt = await tx.wait();
-    
+
     // Decode results from transaction logs or return value
     // This would need to be implemented based on the actual contract response
     const results: string[] = []; // TODO: Parse actual results
-    
+
     return {
       results,
-      transactionHash: receipt.hash
+      transactionHash: receipt.hash,
     };
   }
 
@@ -148,14 +152,14 @@ export class Dispatcher {
       value: options?.value || '0',
       gasLimit: options?.gasLimit || this.network.fees.gasLimit,
       maxFeePerGas: options?.maxFeePerGas,
-      maxPriorityFeePerGas: options?.maxPriorityFeePerGas
+      maxPriorityFeePerGas: options?.maxPriorityFeePerGas,
     });
 
     const receipt = await tx.wait();
-    
+
     return {
       result: receipt.logs[0]?.data || '0x', // Simplified result parsing
-      transactionHash: receipt.hash
+      transactionHash: receipt.hash,
     };
   }
 
@@ -182,17 +186,19 @@ export class Dispatcher {
       to: this.network.contracts.dispatcher,
       data: txData,
       value,
-      from: await this.signer.getAddress()
+      from: await this.signer.getAddress(),
     });
   }
 
   /**
    * Get all available routes (this would require additional contract methods)
    */
-  async getAllRoutes(): Promise<Array<{
-    selector: string;
-    facet: string;
-  }>> {
+  async getAllRoutes(): Promise<
+    Array<{
+      selector: string;
+      facet: string;
+    }>
+  > {
     // This would need to be implemented based on events or additional contract methods
     // For now, return empty array
     return [];
@@ -223,7 +229,9 @@ export class Dispatcher {
   /**
    * Listen for manifest update events
    */
-  onManifestUpdated(callback: (oldRoot: string, newRoot: string, ipfsHash: string) => void): void {
+  onManifestUpdated(
+    callback: (oldRoot: string, newRoot: string, ipfsHash: string) => void
+  ): void {
     this.contract.on('ManifestUpdated', (oldRoot, newRoot, ipfsHash) => {
       callback(oldRoot, newRoot, ipfsHash);
     });
@@ -232,7 +240,9 @@ export class Dispatcher {
   /**
    * Listen for route call events
    */
-  onRouteCall(callback: (selector: string, facet: string, caller: string) => void): void {
+  onRouteCall(
+    callback: (selector: string, facet: string, caller: string) => void
+  ): void {
     this.contract.on('RouteCall', (selector, facet, caller) => {
       callback(selector, facet, caller);
     });
