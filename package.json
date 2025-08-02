@@ -77,7 +77,6 @@
   },
   "dependencies": {
     "@openzeppelin/contracts": "^5.4.0",
-    "@payrox/go-beyond-sdk": "file:./sdk",
     "chalk": "^5.4.1",
     "commander": "^14.0.0",
     "dotenv": "^17.2.1",

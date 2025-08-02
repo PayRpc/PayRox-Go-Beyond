@@ -1,16 +1,15 @@
-import { BytesLike, Contract, ethers, Provider, Signer } from 'ethers';
+import { ethers, Provider, Signer, Contract, BytesLike } from 'ethers';
+import {
+  NETWORKS,
+  DEFAULT_NETWORK,
+  CONSTANTS,
+  NetworkConfig,
+  ContractType,
+} from './config';
 import { ChunkFactory } from './chunk-factory';
-import { DEFAULT_NETWORK, NetworkConfig, NETWORKS } from './config';
 import { Dispatcher } from './dispatcher';
-import { ManifestBuilder } from './manifest-builder';
 import { Orchestrator } from './orchestrator';
-
-// Extend Window type for Ethereum provider
-declare global {
-  interface Window {
-    ethereum?: any;
-  }
-}
+import { ManifestBuilder } from './manifest-builder';
 
 /**
  * PayRox Go Beyond SDK Client
@@ -70,16 +69,13 @@ export class PayRoxClient {
    * Create a PayRox client from a browser wallet (MetaMask, etc.)
    */
   static async fromBrowser(networkName?: string): Promise<PayRoxClient> {
-    if (
-      typeof globalThis !== 'undefined' &&
-      globalThis.window &&
-      globalThis.window.ethereum
-    ) {
-      const provider = new ethers.BrowserProvider(globalThis.window.ethereum);
-      const signer = await provider.getSigner();
-      return new PayRoxClient(provider, signer, networkName);
+    if (typeof window === 'undefined' || !window.ethereum) {
+      throw new Error('Browser wallet not available');
     }
-    throw new Error('Browser wallet not available');
+
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    const signer = await provider.getSigner();
+    return new PayRoxClient(provider, signer, networkName);
   }
 
   /**
@@ -114,6 +110,7 @@ export class PayRoxClient {
   async deployContract(
     bytecode: BytesLike,
     constructorArgs: any[] = [],
+    contractType: ContractType = 'utility',
     options?: {
       gasLimit?: number;
       maxFeePerGas?: string;
@@ -196,6 +193,7 @@ export class PayRoxClient {
       name: string;
       bytecode: BytesLike;
       constructorArgs?: any[];
+      contractType?: ContractType;
     }>
   ): Promise<any> {
     return this.manifest.build(contracts);

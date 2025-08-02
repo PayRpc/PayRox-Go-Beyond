@@ -1,6 +1,5 @@
-import { BytesLike, ethers, Provider, Signer } from 'ethers';
+import { ethers, Provider, Signer, BytesLike } from 'ethers';
 import { NetworkConfig } from './config';
-import { DeterministicChunkFactoryABI } from './contracts';
 
 /**
  * ChunkFactory service for deterministic contract deployment
@@ -20,10 +19,20 @@ export class ChunkFactory {
     this.signer = signer;
     this.network = network;
 
-    // Use full DeterministicChunkFactory ABI from artifacts
+    // DeterministicChunkFactory ABI (essential functions)
+    const abi = [
+      'function deployChunk(bytes calldata data, bytes32 salt) external payable returns (address chunkAddr)',
+      'function getChunkAddress(bytes32 dataHash) external view returns (address)',
+      'function calculateSalt(bytes calldata data) external pure returns (bytes32)',
+      'function baseFeeWei() external view returns (uint256)',
+      'function feesEnabled() external view returns (bool)',
+      'function feeRecipient() external view returns (address)',
+      'event ChunkDeployed(bytes32 indexed hash, address indexed chunk, uint256 size)',
+    ];
+
     this.contract = new ethers.Contract(
       this.network.contracts.factory,
-      DeterministicChunkFactoryABI,
+      abi,
       this.signer || this.provider
     );
   }

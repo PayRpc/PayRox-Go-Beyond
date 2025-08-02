@@ -9,29 +9,26 @@ export { PayRoxClient } from './client';
 // Service modules
 export { ChunkFactory } from './chunk-factory';
 export { Dispatcher } from './dispatcher';
-export { ManifestBuilder } from './manifest-builder';
 export { Orchestrator } from './orchestrator';
-
-// Development tools
-export { DevTools, createDevTools, quickNetworkCheck } from './dev-tools';
+export { ManifestBuilder } from './manifest-builder';
 
 // Configuration and types
 export {
+  NETWORKS,
+  DEFAULT_NETWORK,
   CONSTANTS,
   CONTRACT_TYPES,
-  DEFAULT_NETWORK,
-  NETWORKS,
-  type ContractAddresses,
-  type ContractType,
-  type FeeConfig,
   type NetworkConfig,
+  type ContractAddresses,
+  type FeeConfig,
+  type ContractType,
 } from './config';
 
 // Manifest types
 export type {
-  Manifest,
   ManifestContract,
   ManifestRoute,
+  Manifest,
 } from './manifest-builder';
 
 // Utility functions

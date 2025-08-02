@@ -1,6 +1,5 @@
 import { ethers, Provider, Signer } from 'ethers';
 import { NetworkConfig } from './config';
-import { ManifestDispatcherABI } from './contracts';
 
 /**
  * Dispatcher service for routing function calls to facets
@@ -20,206 +19,23 @@ export class Dispatcher {
     this.signer = signer;
     this.network = network;
 
-    // Use full ManifestDispatcher ABI from artifacts
+    // ManifestDispatcher ABI (essential functions)
+    const abi = [
+      'function updateManifest(bytes32 merkleRoot, string calldata ipfsHash) external',
+      'function getCurrentRoot() external view returns (bytes32)',
+      'function getRoute(bytes4 selector) external view returns (address facet, bool exists)',
+      'function batchCall(bytes[] calldata calls) external returns (bytes[] memory results)',
+      'function fallback() external payable',
+      'event ManifestUpdated(bytes32 indexed oldRoot, bytes32 indexed newRoot, string ipfsHash)',
+      'event RouteCall(bytes4 indexed selector, address indexed facet, address indexed caller)',
+    ];
+
     this.contract = new ethers.Contract(
       this.network.contracts.dispatcher,
-      ManifestDispatcherABI,
+      abi,
       this.signer || this.provider
     );
   }
-
-  /**
-   * Production Timelock Operations (verified gas metrics)
-   */
-
-  /**
-   * Commit a new manifest root (Phase 1 of timelock workflow)
-   * Verified production gas: 72,519 ≤ 80,000 target
-   */
-  async commitRoot(
-    merkleRoot: string,
-    epoch: number,
-    options?: {
-      gasLimit?: number;
-      maxFeePerGas?: string;
-      maxPriorityFeePerGas?: string;
-    }
-  ): Promise<{
-    success: boolean;
-    transactionHash: string;
-    gasUsed: number;
-  }> {
-    const tx = await this.contract.commitRoot(merkleRoot, epoch, {
-      gasLimit: options?.gasLimit || 80000,
-      maxFeePerGas: options?.maxFeePerGas,
-      maxPriorityFeePerGas: options?.maxPriorityFeePerGas,
-    });
-
-    const receipt = await tx.wait();
-    if (!receipt) {
-      throw new Error('Transaction failed');
-    }
-
-    return {
-      success: receipt.status === 1,
-      transactionHash: receipt.hash,
-      gasUsed: parseInt(receipt.gasUsed.toString()),
-    };
-  }
-
-  /**
-   * Apply routes with Merkle proofs (Phase 2 of timelock workflow)
-   * Verified production gas: 85,378 ≤ 90,000 target
-   */
-  async applyRoutes(
-    selectors: string[],
-    facets: string[],
-    codehashes: string[],
-    proofs: string[][],
-    isRight: boolean[][],
-    options?: {
-      gasLimit?: number;
-      maxFeePerGas?: string;
-      maxPriorityFeePerGas?: string;
-    }
-  ): Promise<{
-    success: boolean;
-    transactionHash: string;
-    gasUsed: number;
-  }> {
-    const tx = await this.contract.applyRoutes(
-      selectors,
-      facets,
-      codehashes,
-      proofs,
-      isRight,
-      {
-        gasLimit: options?.gasLimit || 90000,
-        maxFeePerGas: options?.maxFeePerGas,
-        maxPriorityFeePerGas: options?.maxPriorityFeePerGas,
-      }
-    );
-
-    const receipt = await tx.wait();
-    if (!receipt) {
-      throw new Error('Transaction failed');
-    }
-
-    return {
-      success: receipt.status === 1,
-      transactionHash: receipt.hash,
-      gasUsed: parseInt(receipt.gasUsed.toString()),
-    };
-  }
-
-  /**
-   * Activate the committed root (Phase 3 of timelock workflow)
-   * Verified production gas: 54,508 ≤ 60,000 target
-   */
-  async activateCommittedRoot(options?: {
-    gasLimit?: number;
-    maxFeePerGas?: string;
-    maxPriorityFeePerGas?: string;
-  }): Promise<{
-    success: boolean;
-    transactionHash: string;
-    gasUsed: number;
-  }> {
-    const tx = await this.contract.activateCommittedRoot({
-      gasLimit: options?.gasLimit || 60000,
-      maxFeePerGas: options?.maxFeePerGas,
-      maxPriorityFeePerGas: options?.maxPriorityFeePerGas,
-    });
-
-    const receipt = await tx.wait();
-    if (!receipt) {
-      throw new Error('Transaction failed');
-    }
-
-    return {
-      success: receipt.status === 1,
-      transactionHash: receipt.hash,
-      gasUsed: parseInt(receipt.gasUsed.toString()),
-    };
-  }
-
-  /**
-   * Emergency Operations
-   */
-
-  /**
-   * Pause the system (emergency function)
-   */
-  async pauseSystem(): Promise<{ success: boolean; transactionHash: string }> {
-    const tx = await this.contract.pause();
-    const receipt = await tx.wait();
-
-    return {
-      success: receipt?.status === 1,
-      transactionHash: receipt?.hash || '',
-    };
-  }
-
-  /**
-   * Unpause the system (emergency function)
-   */
-  async unpauseSystem(): Promise<{
-    success: boolean;
-    transactionHash: string;
-  }> {
-    const tx = await this.contract.unpause();
-    const receipt = await tx.wait();
-
-    return {
-      success: receipt?.status === 1,
-      transactionHash: receipt?.hash || '',
-    };
-  }
-
-  /**
-   * System Status and Monitoring
-   */
-
-  /**
-   * Get comprehensive system status
-   */
-  async getSystemStatus(): Promise<{
-    isPaused: boolean;
-    activeRoot: string;
-    pendingRoot: string;
-    pendingEpoch: number;
-    activationDelay: number;
-    activeEpoch: number;
-  }> {
-    const [
-      isPaused,
-      activeRoot,
-      pendingRoot,
-      pendingEpoch,
-      activationDelay,
-      activeEpoch,
-    ] = await Promise.all([
-      this.contract.paused(),
-      this.contract.activeRoot(),
-      this.contract.pendingRoot(),
-      this.contract.pendingEpoch(),
-      this.contract.activationDelay(),
-      this.contract.activeEpoch(),
-    ]);
-
-    return {
-      isPaused,
-      activeRoot,
-      pendingRoot,
-      pendingEpoch: parseInt(pendingEpoch.toString()),
-      activationDelay: parseInt(activationDelay.toString()),
-      activeEpoch: parseInt(activeEpoch.toString()),
-    };
-  }
-
-  /**
-   * Legacy Functions (for compatibility)
-   */
 
   /**
    * Update the manifest with new routing information
@@ -341,10 +157,6 @@ export class Dispatcher {
 
     const receipt = await tx.wait();
 
-    if (!receipt) {
-      throw new Error('Transaction receipt is null');
-    }
-
     return {
       result: receipt.logs[0]?.data || '0x', // Simplified result parsing
       transactionHash: receipt.hash,
@@ -418,7 +230,7 @@ export class Dispatcher {
    * Listen for manifest update events
    */
   onManifestUpdated(
-    callback: (_oldRoot: string, _newRoot: string, _ipfsHash: string) => void
+    callback: (oldRoot: string, newRoot: string, ipfsHash: string) => void
   ): void {
     this.contract.on('ManifestUpdated', (oldRoot, newRoot, ipfsHash) => {
       callback(oldRoot, newRoot, ipfsHash);
@@ -429,7 +241,7 @@ export class Dispatcher {
    * Listen for route call events
    */
   onRouteCall(
-    callback: (_selector: string, _facet: string, _caller: string) => void
+    callback: (selector: string, facet: string, caller: string) => void
   ): void {
     this.contract.on('RouteCall', (selector, facet, caller) => {
       callback(selector, facet, caller);

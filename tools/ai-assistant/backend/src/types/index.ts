@@ -9,7 +9,6 @@
 // Type aliases for security levels and severities
 export type SecurityLevel = 'low' | 'medium' | 'high' | 'critical';
 export type SeverityLevel = 'low' | 'medium' | 'high' | 'critical';
-export type RiskLevel = 'low' | 'medium' | 'high' | 'critical';
 export type StatusLevel = 'passed' | 'warning' | 'failed';
 
 // PayRox Go Beyond specific types
@@ -180,23 +179,12 @@ export interface StorageStrategy {
 }
 
 export interface StorageConflict {
-  slot: number;
-  offset: number;
-  variables: Array<{
-    facet: string;
-    name: string;
-    type: string;
-    size: number;
-  }>;
-  severity: SeverityLevel;
-  recommendations: string[];
-}
-
-export interface SlotInfo {
-  variable: string;
-  type: string;
-  size: number;
-  offset: number;
+  type: 'overlap' | 'unsafe_access' | 'state_mutation' | 'inheritance';
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  description: string;
+  affectedVariables: string[];
+  suggestedFix: string;
+  sourceLocation?: SourceLocation;
 }
 
 export interface DeploymentPlan {
@@ -258,7 +246,7 @@ export interface SecurityCheck {
   status: 'passed' | 'warning' | 'failed';
   description: string;
   recommendation?: string;
-  severity: SeverityLevel;
+  severity: 'low' | 'medium' | 'high' | 'critical';
 }
 
 export interface GovernanceInfo {
@@ -408,7 +396,7 @@ export interface FacetSuggestion {
   functions: string[];
   estimatedSize: number;
   gasOptimization: 'Low' | 'Medium' | 'High';
-  securityRating: SecurityLevel;
+  securityRating: 'Low' | 'Medium' | 'High' | 'Critical';
   dependencies: string[];
   reasoning: string;
 }
@@ -419,8 +407,6 @@ export interface RefactorPlan {
   deploymentStrategy: 'sequential' | 'parallel' | 'mixed';
   estimatedGasSavings: number;
   warnings: string[];
-  callGraph?: any; // Optional call graph data
-  compatibilityReport?: any; // Optional compatibility report
 }
 
 export interface FacetDefinition {
@@ -472,152 +458,49 @@ export interface SimulationResult {
     gasUsed: number;
     result: string;
     warnings: string[];
-    abiDecoded?: {
-      functionName: string;
-      inputs: Record<string, unknown>;
-      outputs: Record<string, unknown>;
-    };
-    transactionHash?: string;
-    blockNumber?: number;
   }>;
   expectedGas?: number;
   gasEfficiency?: number;
-  contractInteractions?: Array<{
-    contract: string;
-    function: string;
-    success: boolean;
-    gasUsed: number;
-    returnValue: unknown;
-  }>;
-}
-
-// ABI and contract integration types
-export interface ABIFunction {
-  name: string;
-  type: 'function' | 'constructor' | 'receive' | 'fallback';
-  inputs: Array<{
-    name: string;
-    type: string;
-    internalType?: string;
-    components?: ABIFunction['inputs'];
-  }>;
-  outputs?: Array<{
-    name: string;
-    type: string;
-    internalType?: string;
-    components?: ABIFunction['inputs'];
-  }>;
-  stateMutability: 'pure' | 'view' | 'payable' | 'nonpayable';
-}
-
-export interface ContractABI {
-  contractName: string;
-  abi: ABIFunction[];
-  bytecode: string;
-  deployedBytecode: string;
-  linkReferences?: Record<string, unknown>;
-}
-
-export interface TestStep {
-  facet: string;
-  function: string;
-  parameters: Array<{
-    name: string;
-    type: string;
-    value: unknown;
-  }>;
-  target?: string;
-  action?: string;
-  expectation?: 'success' | 'failure' | 'partial';
-  abiFunction?: ABIFunction;
 }
 
 export interface TestScenario {
   name: string;
   description: string;
-  steps: TestStep[];
+  steps: Array<{
+    facet: string;
+    function: string;
+    parameters: unknown[];
+    target?: string;
+    action?: string;
+    expectation?: 'success' | 'failure' | 'partial';
+  }>;
   expectedGas: number;
-  expectedResults: Array<{
-    step: number;
-    success: boolean;
-    value: unknown;
-    gasUsed?: number;
-  }>;
+  expectedResults: unknown[];
   expectedResult?: string;
-  contractABIs?: Record<string, ContractABI>;
-  validationRules?: Array<{
-    step: number;
-    rule: string;
-    params: Record<string, unknown>;
-  }>;
 }
 
-// Enhanced Storage layout types for PayRox Go Beyond
-export interface DiamondStoragePattern {
-  name: string;
-  facet?: string;
-  slot: number;
-  structName: string;
-  variables: string[];
-  isolated: boolean;
-  namespace: string;
-  validation: {
-    valid: boolean;
-    issues: string[];
-  };
-}
-
-// PayRox test execution integration
-export interface PayRoxTestExecutor {
-  loadContractABIs(): Promise<Record<string, ContractABI>>;
-  validateTestScenario(_scenario: TestScenario): Promise<{
-    valid: boolean;
-    errors: string[];
-    warnings: string[];
-  }>;
-  executeTestScenario(_scenario: TestScenario): Promise<SimulationResult>;
-  encodeParameters(
-    _functionABI: ABIFunction,
-    _params: TestStep['parameters']
-  ): string;
-  decodeReturnData(_functionABI: ABIFunction, _returnData: string): unknown;
-}
-
-export interface FacetStorageMetadata {
-  facet: string;
-  slotMap: Map<number, SlotInfo>;
-  totalSize: number;
-  usesDiamondPattern: boolean;
-  isolated: boolean;
-  slotEfficiency: number;
-}
-
-export interface PayRoxCompatibilityReport {
-  compatible: boolean;
-  manifestReady: boolean;
-  issues: string[];
-  isolationScore: number;
-  riskLevel: RiskLevel;
-}
-
+// Storage layout types
 export interface StorageLayoutReport {
   totalSlots: number;
   usedSlots: number;
-  conflicts: StorageConflict[];
-  diamondPatterns: DiamondStoragePattern[];
-  facetStorageMetadata: Record<string, FacetStorageMetadata>;
-  facetIsolation: {
-    fullyIsolated: boolean;
-    isolationScore: number;
-    riskLevel: RiskLevel;
-    isolatedFacets: string[];
-    overlappingFacets: string[];
-    criticalConflictCount: number;
+  conflicts: Array<{
+    contract: string;
+    slot: number;
+    variable: string;
+  }>;
+  optimizations: string[];
+  packedVariables: Array<{
+    slot: number;
+    variables: Array<{
+      name: string;
+      type: string;
+      offset: number;
+      size: number;
+    }>;
+  }>;
+  gasImpact: {
+    reads: number;
+    writes: number;
+    totalEstimate: number;
   };
-  diagnostics: {
-    securityIssues: string[];
-    gasOptimizations: string[];
-    recommendations: string[];
-  };
-  compatibility: PayRoxCompatibilityReport;
 }

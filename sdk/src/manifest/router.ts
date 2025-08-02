@@ -1,6 +1,6 @@
 // sdk/src/manifest/router.ts
 import { ethers } from 'ethers';
-import { FACET_LIMITS, GAS_LIMITS } from '../constants';
+import { FACET_LIMITS, GAS_LIMITS } from '../../../constants/system';
 import { DeploymentManifest, ManifestRoute } from '../types';
 
 export interface RouterConfig {

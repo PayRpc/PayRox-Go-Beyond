@@ -69,42 +69,6 @@ npx hardhat crosschain:health-check \
   --networks "ethereum,polygon,arbitrum"
 ```
 
-## Production Testing & Validation
-
-### Complete Production Timelock Test
-
-```bash
-npx hardhat run scripts/production-timelock-test.ts --network hardhat
-```
-
-**Features Tested:**
-
-- ✅ Queue ETA validation (3600-second timelock)
-- ✅ Governance role controls (COMMIT/APPLY/EMERGENCY roles)
-- ✅ Emergency pause/unpause functionality
-- ✅ Diamond Loupe compatibility patterns
-- ✅ Production invariants (EIP-170, codehash integrity, root consumption)
-- ✅ Cross-chain determinism validation
-- ✅ Gas optimization targets (~212k total workflow)
-
-**Gas Metrics:**
-
-- Commit: ~72k gas
-- Apply: ~85k gas (66k per selector)
-- Activate: ~54k gas
-
-### Multi-Facet Production Test
-
-```bash
-npx hardhat run scripts/comprehensive-multi-facet-production-test.ts --network hardhat
-```
-
-### Fixed Routing Baseline Test
-
-```bash
-npx hardhat run scripts/fixed-routing-test.ts --network hardhat
-```
-
 ## Current Deployment
 
 **Network**: Localhost (Hardhat) **Deployment Fee**: 0.0007 ETH **Status**: ✅ Production Ready with
@@ -112,43 +76,19 @@ Cross-Chain Support
 
 **Contract Addresses:**
 
-- Factory: `0x59b670e9fA9D0A427751Af201D676719a970857b`
-- Dispatcher: `0x68B1D87F95878fE05B998F19b66F4baba5De1aed`
+- Factory: `0x5FbDB2315678afecb367f032d93F642f64180aa3`
+- Dispatcher: `0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512`
 - Orchestrator: `0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9`
 
 ## Cross-Chain Networks Supported
 
-### Mainnet Networks
-
 - Ethereum Mainnet (Chain ID: 1)
-- Polygon (Chain ID: 137)
-- Polygon zkEVM (Chain ID: 1101)
+- Polygon Mainnet (Chain ID: 137)
 - Arbitrum One (Chain ID: 42161)
-- Optimism (Chain ID: 10)
-- Base (Chain ID: 8453)
-- Avalanche C-Chain (Chain ID: 43114)
-- Fantom (Chain ID: 250)
-- BNB Smart Chain (Chain ID: 56)
-- opBNB (Chain ID: 204)
-- Sei EVM (Chain ID: 1329)
-
-### Testnet Networks
-
-- Sepolia (Chain ID: 11155111)
-- Polygon zkEVM Cardona (Chain ID: 2442)
-- Arbitrum Sepolia (Chain ID: 421614)
-- Optimism Sepolia (Chain ID: 11155420)
-- Base Sepolia (Chain ID: 84532)
-- Avalanche Fuji (Chain ID: 43113)
-- Fantom Testnet (Chain ID: 4002)
-- BNB Testnet (Chain ID: 97)
-- opBNB Testnet (Chain ID: 5611)
-- Sei Devnet (Chain ID: 713715)
-
-### Local Networks
-
-- Hardhat (Chain ID: 31337)
-- Localhost (Chain ID: 31337)
+- Goerli Testnet (Chain ID: 5)
+- Sepolia Testnet (Chain ID: 11155111)
+- Mumbai Testnet (Chain ID: 80001)
+- Local Networks (Hardhat/Localhost)
 
 ## Examples
 
@@ -184,6 +124,4 @@ payrox-cli deploy <bytecode> --args arg1,arg2 --network localhost
 payrox-cli fee --network localhost
 ```
 
-## Production Ready
-
-The PayRox SDK is ready for production use! 🚀
+**The PayRox SDK is ready for production use! 🚀**

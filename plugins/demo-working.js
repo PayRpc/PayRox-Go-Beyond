@@ -96,8 +96,8 @@ What was demonstrated:
 ✅ CLI tool capabilities
 
 Current PayRox Infrastructure:
-🏭 Factory: 0x59b670e9fA9D0A427751Af201D676719a970857b (localhost)
-🎛️  Dispatcher: 0x68B1D87F95878fE05B998F19b66F4baba5De1aed (localhost)
+🏭 Factory: 0x5FbDB2315678afecb367f032d93F642f64180aa3 (localhost)
+🎛️  Dispatcher: 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512 (localhost)
 🎼 Orchestrator: 0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9 (localhost)
 💰 Deployment Fee: 0.0007 ETH
 
