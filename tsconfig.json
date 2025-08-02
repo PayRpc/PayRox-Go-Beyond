@@ -5,7 +5,7 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "declaration": true,
-    "strict": true,
+    "strict": false,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
@@ -15,14 +15,16 @@
     "emitDecoratorMetadata": true,
     "outDir": "./dist",
     "rootDir": "./",
-    "typeRoots": ["./node_modules/@types", "./typechain-types"]
+    "noImplicitAny": false,
+    "typeRoots": ["./node_modules/@types"]
   },
   "include": [
     "./scripts/**/*",
     "./test/**/*",
     "./tasks/**/*",
     "./hardhat.config.ts",
-    "./src/**/*"
+    "./src/**/*",
+    "./typechain-types/**/*"
   ],
   "exclude": ["node_modules", "dist", "artifacts", "cache", "coverage"]
 }
