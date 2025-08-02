@@ -8,8 +8,14 @@ async function main() {
   // Get selectors from PingFacet
   const PingFacet = await ethers.getContractFactory('PingFacet');
   console.log('PingFacet selectors:');
-  console.log('  ping():', PingFacet.interface.getFunction('ping')?.selector || 'N/A');
-  console.log('  echo():', PingFacet.interface.getFunction('echo')?.selector || 'N/A');
+  console.log(
+    '  ping():',
+    PingFacet.interface.getFunction('ping')?.selector || 'N/A'
+  );
+  console.log(
+    '  echo():',
+    PingFacet.interface.getFunction('echo')?.selector || 'N/A'
+  );
 
   // Get selectors from ExampleFacetA
   const ExampleFacetA = await ethers.getContractFactory('ExampleFacetA');

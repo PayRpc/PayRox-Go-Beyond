@@ -192,7 +192,9 @@ export class DeterministicFactoryDeployer {
       const isAlreadyDeployed = existingCode !== '0x';
 
       // Estimate deployment fee
-      const gasEstimate = await ethers.provider.estimateGas(await deployTransaction);
+      const gasEstimate = await ethers.provider.estimateGas(
+        await deployTransaction
+      );
       const gasPrice = (await ethers.provider.getFeeData()).gasPrice || 0n;
       const deploymentFee = gasEstimate * gasPrice;
 

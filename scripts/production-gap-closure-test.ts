@@ -300,7 +300,9 @@ async function main() {
 
   try {
     // Try to commit as unauthorized user
-    await (dispatcher as any).connect(user).commitManifest(ethers.keccak256('0x1234'));
+    await (dispatcher as any)
+      .connect(user)
+      .commitManifest(ethers.keccak256('0x1234'));
     console.log(`   ❌ SECURITY ISSUE: Unauthorized commit succeeded!`);
   } catch (error) {
     console.log(`   ✅ Unauthorized commit properly rejected`);
@@ -362,7 +364,9 @@ async function main() {
 
     if (isConsumed) {
       try {
-        await (dispatcher as any).connect(governance).commitManifest(manifestHash);
+        await (dispatcher as any)
+          .connect(governance)
+          .commitManifest(manifestHash);
         console.log(`   ❌ SECURITY ISSUE: Replay attack succeeded!`);
       } catch (error) {
         console.log(`   ✅ Replay attack properly blocked`);

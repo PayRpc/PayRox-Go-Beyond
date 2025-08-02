@@ -102,7 +102,9 @@ export async function main(hre: HardhatRuntimeEnvironment) {
   // Step 3: Apply committed manifest (with cheap assertion)
   console.log('\n3️⃣ Testing manifest application...');
 
-  const applyTx = await (govDispatcher as any).applyCommittedManifest(manifestData);
+  const applyTx = await (govDispatcher as any).applyCommittedManifest(
+    manifestData
+  );
   const applyReceipt = await applyTx.wait();
   console.log(`   ✅ Manifest applied - Gas used: ${applyReceipt?.gasUsed}`);
 
@@ -123,7 +125,9 @@ export async function main(hre: HardhatRuntimeEnvironment) {
   // Step 1: Queue governance rotation
   console.log('\n1️⃣ Testing governance rotation queue...');
 
-  const queueTx = await (govDispatcher as any).queueRotateGovernance(newGovernance);
+  const queueTx = await (govDispatcher as any).queueRotateGovernance(
+    newGovernance
+  );
   await queueTx.wait();
   console.log(`   ✅ Governance rotation queued for: ${newGovernance}`);
 
@@ -177,7 +181,10 @@ export async function main(hre: HardhatRuntimeEnvironment) {
   const operationData = dispatcher.interface.encodeFunctionData('pause');
   const eta = Math.floor(Date.now() / 1000) + 3600; // 1 hour from now
 
-  const queueOpTx = await (govDispatcher as any).queueOperation(operationData, eta);
+  const queueOpTx = await (govDispatcher as any).queueOperation(
+    operationData,
+    eta
+  );
   const queueOpReceipt = await queueOpTx.wait();
   console.log(`   ✅ Operation queued - Gas used: ${queueOpReceipt?.gasUsed}`);
 
@@ -186,9 +193,7 @@ export async function main(hre: HardhatRuntimeEnvironment) {
     (log: any) =>
       log.topics[0] === ethers.id('OperationQueued(uint256,bytes32,uint64)')
   );
-  const nonce = queueEvent
-    ? BigInt(queueEvent.topics[1])
-    : BigInt(0);
+  const nonce = queueEvent ? BigInt(queueEvent.topics[1]) : BigInt(0);
   console.log(`   📋 Operation nonce: ${nonce}`);
 
   // Step 2: Test nonce ordering
