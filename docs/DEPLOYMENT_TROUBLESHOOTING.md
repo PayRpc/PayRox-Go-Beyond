@@ -24,6 +24,21 @@ ls deployments/hardhat/
 # Deploy individual facets
 npx hardhat run scripts/deploy-facet-a.ts --network hardhat
 npx hardhat run scripts/deploy-facet-b-direct.ts --network hardhat
+
+# Note: ExampleFacetB requires initialization with EIP-712 signature
+# This is handled automatically in deploy-complete-system.ts
+# For manual deployment, see ExampleFacetB initialization requirements
+```
+
+### 3.5 ExampleFacetB Initialization (Production Requirement)
+
+```bash
+# ExampleFacetB requires initializeFacetB() call with valid EIP-712 signature
+# This is complex and handled automatically by the complete deployment script
+# Manual initialization requires:
+# 1. Generate EIP-712 signature from governance key
+# 2. Call initializeFacetB(operator, governance, deadline, signature)
+# 3. Verify initialization succeeded before using facet functions
 ```
 
 ### 4. Build & Verify Manifest

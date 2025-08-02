@@ -32,11 +32,26 @@ pnpm build
 cp .env.example .env
 # set PRIVATE_KEY and RPC URLs
 
+# Complete Production Deployment (All Components)
+./deploy-complete-system.ps1 -Network localhost     # Full system with CLI
+npx hardhat run scripts/deploy-complete-system.ts --network localhost  # Script only
+
+# Interactive CLI
+cd cli && npm run dev
+
+# Legacy quick start
 npx payrox-go-beyond release --network sepolia
 # or: npx payrox release -n sepolia
 ```
 
 ## Available Commands
+
+### Production Deployment
+
+- `./deploy-complete-system.ps1 -Network <network>` - Complete system deployment (PowerShell)
+- `npx hardhat run scripts/deploy-complete-system.ts` - Deploy all components (TypeScript)
+- `cd cli && npm run dev` - Interactive CLI for all operations
+- `cd cli && node dist/index.js deploy --network <network>` - CLI deployment
 
 ### Core Deployment
 
