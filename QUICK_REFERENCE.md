@@ -112,8 +112,8 @@ Cross-Chain Support
 
 **Contract Addresses:**
 
-- Factory: `0x5FbDB2315678afecb367f032d93F642f64180aa3`
-- Dispatcher: `0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512`
+- Factory: `0x59b670e9fA9D0A427751Af201D676719a970857b`
+- Dispatcher: `0x68B1D87F95878fE05B998F19b66F4baba5De1aed`
 - Orchestrator: `0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9`
 
 ## Cross-Chain Networks Supported

@@ -11,7 +11,7 @@
     "core": {
       "factory": {
         "name": "DeterministicChunkFactory",
-        "address": "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
+        "address": "0x59b670e9fA9D0A427751Af201D676719a970857b",
         "abi": "./artifacts/contracts/factory/DeterministicChunkFactory.sol/DeterministicChunkFactory.json",
         "deploymentFile": "./deployments/localhost/factory.json",
         "currentFee": "0.0007 ETH",
@@ -19,7 +19,7 @@
       },
       "dispatcher": {
         "name": "ManifestDispatcher",
-        "address": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+        "address": "0x68B1D87F95878fE05B998F19b66F4baba5De1aed",
         "abi": "./artifacts/contracts/dispatcher/ManifestDispatcher.sol/ManifestDispatcher.json",
         "deploymentFile": "./deployments/localhost/dispatcher.json"
       }

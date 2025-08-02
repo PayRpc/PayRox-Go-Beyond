@@ -18,10 +18,23 @@ export async function main(hre: HardhatRuntimeEnvironment, params?: any) {
 
   // Deploy contract
   console.log('📡 Deploying contract...');
+
+  // For local testing, use placeholder hashes
+  const expectedManifestHash = ethers.keccak256(
+    ethers.toUtf8Bytes('test-manifest')
+  );
+  const expectedFactoryBytecodeHash = ethers.keccak256(
+    ethers.toUtf8Bytes('test-factory')
+  );
+  const manifestDispatcher = deployer.address; // Use deployer as placeholder for local testing
+
   const factory = await FactoryContract.deploy(
     deployer.address, // admin
     deployer.address, // feeRecipient
-    ethers.parseEther('0.0007') // baseFeeWei (0.0007 ETH)
+    ethers.parseEther('0.0007'), // baseFeeWei (0.0007 ETH)
+    expectedManifestHash, // expectedManifestHash
+    expectedFactoryBytecodeHash, // expectedFactoryBytecodeHash
+    manifestDispatcher // manifestDispatcher
   );
   await factory.waitForDeployment();
 

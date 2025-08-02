@@ -2,7 +2,7 @@
 
 /**
  * PayRox System Status Demo
- * 
+ *
  * This script demonstrates the current PayRox deployment status
  * and shows developers what's available for immediate use.
  */
@@ -20,8 +20,8 @@ Current PayRox Infrastructure (Ready for Use):
 ┌─────────────────┬──────────────────────────────────────────────┐
 │ Contract        │ Address                                      │
 ├─────────────────┼──────────────────────────────────────────────┤
-│ 🏭 Factory      │ 0x5FbDB2315678afecb367f032d93F642f64180aa3 │
-│ 🎛️  Dispatcher   │ 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512 │
+│ 🏭 Factory      │ 0x59b670e9fA9D0A427751Af201D676719a970857b │
+│ 🎛️  Dispatcher   │ 0x68B1D87F95878fE05B998F19b66F4baba5De1aed │
 │ 🎼 Orchestrator │ 0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9 │
 │ 🏛️  Governance   │ 0x5FC8d32690cc91D4c39d9d3abcBD16989F875707 │
 │ 📋 AuditRegistry│ 0x0165878A594ca255338adfa4d48449f69242Eb8F │
@@ -60,11 +60,11 @@ Current PayRox Infrastructure (Ready for Use):
 
 📖 1. QUICK START:
    npm install @payrox/go-beyond-sdk
-   
+
 📝 2. BASIC USAGE:
    import { PayRoxClient } from '@payrox/go-beyond-sdk';
    const client = PayRoxClient.fromRpc('http://localhost:8545', privateKey);
-   
+
 🚀 3. DEPLOY CONTRACT:
    const result = await client.deployContract(bytecode, args, 'token');
    console.log('Deployed to:', result.address); // Always deterministic!
@@ -78,7 +78,7 @@ Current PayRox Infrastructure (Ready for Use):
 📚 DOCUMENTATION AVAILABLE:
 
 📖 Complete Developer Guide: SDK_PRODUCTION_READY.md
-📋 Quick Reference: QUICK_REFERENCE.md  
+📋 Quick Reference: QUICK_REFERENCE.md
 🔧 API Documentation: sdk/README.md
 💡 Examples: sdk/examples/ (token deployment, DeFi vault, etc.)
 
@@ -88,7 +88,7 @@ Current PayRox Infrastructure (Ready for Use):
 
 When ready for production:
 1. Deploy contracts to testnet using same scripts
-2. Update SDK configuration with new addresses  
+2. Update SDK configuration with new addresses
 3. Switch networks seamlessly - same deterministic addresses!
 
 ═══════════════════════════════════════════════════════════════
@@ -96,7 +96,7 @@ When ready for production:
 ✨ WHAT MAKES PAYROX SPECIAL:
 
 🎯 Deterministic = Predictable dApp architecture
-💰 Fixed Fees = Predictable deployment costs  
+💰 Fixed Fees = Predictable deployment costs
 🔗 Content-Addressed = Automatic verification & deduplication
 🚀 Production Ready = Start building TODAY
 
@@ -112,12 +112,12 @@ console.log('\n🔍 Checking PayRox system health...');
 
 const statusChecks = [
   '✅ Core contracts deployed',
-  '✅ Deployment fee corrected (0.0007 ETH)', 
+  '✅ Deployment fee corrected (0.0007 ETH)',
   '✅ TypeScript SDK ready',
   '✅ Documentation complete',
   '✅ Examples available',
   '✅ CLI tools prepared',
-  '✅ Build system configured'
+  '✅ Build system configured',
 ];
 
 statusChecks.forEach((check, index) => {

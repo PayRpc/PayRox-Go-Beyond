@@ -161,10 +161,10 @@ npx hardhat payrox:chunk:predict --factory <factoryAddress> (--data 0x...)|(--fi
 
 ```bash
 # Hex payload inline
-npx hardhat payrox:chunk:predict --factory 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512 --data 0x1234 --network localhost
+npx hardhat payrox:chunk:predict --factory 0x59b670e9fA9D0A427751Af201D676719a970857b --data 0x1234 --network localhost
 
 # From file (auto-detects hex vs binary; binary is hex-encoded)
-npx hardhat payrox:chunk:predict --factory 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512 --file ./build/myblob.bin --network localhost
+npx hardhat payrox:chunk:predict --factory 0x59b670e9fA9D0A427751Af201D676719a970857b --file ./build/myblob.bin --network localhost
 ```
 
 **Output**:
@@ -194,7 +194,7 @@ npx hardhat payrox:chunk:stage --factory <factoryAddress> (--data 0x...)|(--file
 
 ```bash
 npx hardhat payrox:chunk:stage \
-  --factory 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512 \
+  --factory 0x59b670e9fA9D0A427751Af201D676719a970857b \
   --file ./build/myblob.bin \
   --value 0.001 \
   --network localhost
