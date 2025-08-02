@@ -54,7 +54,7 @@ async function main() {
     );
 
     // Test auto ETA (eta = 0)
-    const queueTx = await dispatcher
+    const queueTx = await (dispatcher as any)
       .connect(governance)
       .queueOperation(operationData, 0);
     const queueReceipt = await queueTx.wait();
@@ -145,14 +145,14 @@ async function main() {
       console.log('   ❌ Preflight failed, skipping apply test');
     } else {
       // Step 2: Commit manifest
-      const commitTx = await dispatcher
+      const commitTx = await (dispatcher as any)
         .connect(governance)
         .commitManifest(manifestHash);
       await commitTx.wait();
       console.log(`   ✅ Manifest committed: ${manifestHash}`);
 
       // Step 3: Apply manifest
-      const applyTx = await dispatcher
+      const applyTx = await (dispatcher as any)
         .connect(governance)
         .applyCommittedManifest(manifestData);
       const applyReceipt = await applyTx.wait();
@@ -161,7 +161,7 @@ async function main() {
       console.log(`   ⛽ Apply Gas Used: ${applyReceipt?.gasUsed?.toString()}`);
 
       // Check Diamond events were emitted
-      const diamondCutEvents = applyReceipt?.logs?.filter(log => {
+      const diamondCutEvents = applyReceipt?.logs?.filter((log: any) => {
         try {
           const parsed = dispatcher.interface.parseLog(log);
           return parsed?.name === 'DiamondCut';
@@ -300,7 +300,7 @@ async function main() {
 
   try {
     // Try to commit as unauthorized user
-    await dispatcher.connect(user).commitManifest(ethers.keccak256('0x1234'));
+    await (dispatcher as any).connect(user).commitManifest(ethers.keccak256('0x1234'));
     console.log(`   ❌ SECURITY ISSUE: Unauthorized commit succeeded!`);
   } catch (error) {
     console.log(`   ✅ Unauthorized commit properly rejected`);
@@ -310,13 +310,13 @@ async function main() {
 
   try {
     // Guardian can pause
-    await dispatcher.connect(guardian).guardianPause();
+    await (dispatcher as any).connect(guardian).guardianPause();
     console.log(
       `   ✅ Guardian pause successful: ${await dispatcher.paused()}`
     );
 
     // Guardian can unpause
-    await dispatcher.connect(guardian).unpause();
+    await (dispatcher as any).connect(guardian).unpause();
     console.log(
       `   ✅ Guardian unpause successful: ${!(await dispatcher.paused())}`
     );
@@ -362,7 +362,7 @@ async function main() {
 
     if (isConsumed) {
       try {
-        await dispatcher.connect(governance).commitManifest(manifestHash);
+        await (dispatcher as any).connect(governance).commitManifest(manifestHash);
         console.log(`   ❌ SECURITY ISSUE: Replay attack succeeded!`);
       } catch (error) {
         console.log(`   ✅ Replay attack properly blocked`);

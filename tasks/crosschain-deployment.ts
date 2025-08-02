@@ -8,7 +8,7 @@ import { task } from 'hardhat/config';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 
 // Import our orchestration modules
-import { main as deployDeterministicFactory } from '../scripts/deploy-deterministic-factory.js';
+import { main as deployDeterministicFactory } from '../scripts/deploy-deterministic-factory';
 import { validateManifestPreflight } from '../scripts/manifest-preflight';
 import { main as orchestrateDeployment } from '../scripts/orchestrate-crosschain';
 

@@ -22,7 +22,11 @@ async function checkNetworkStatus(
   dispatcher: { deployed: boolean; address?: string; details?: any };
   errors: string[];
 }> {
-  const result = {
+  const result: {
+    factory: { deployed: boolean; address?: string; details?: any };
+    dispatcher: { deployed: boolean; address?: string; details?: any };
+    errors: string[];
+  } = {
     factory: { deployed: false },
     dispatcher: { deployed: false },
     errors: [] as string[],

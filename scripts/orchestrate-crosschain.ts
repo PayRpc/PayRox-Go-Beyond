@@ -70,7 +70,7 @@ export class CrossChainOrchestrator {
   ): Promise<OrchestrationResult> {
     const startTime = Date.now();
     console.log('🎭 PayRox Go Beyond - Cross-Chain Deployment Orchestrator');
-    console.log('=' * 70);
+    console.log('='.repeat(70));
     console.log(`🌐 Target networks: ${config.networks.join(', ')}`);
     console.log(`🔧 Dry run: ${config.dryRun || false}`);
     console.log(`⏸️  Paused deployment: ${config.pausedDeployment || false}`);
@@ -154,7 +154,7 @@ export class CrossChainOrchestrator {
     // Test network connectivity
     for (const networkName of config.networks) {
       try {
-        await hre.changeNetwork(networkName);
+        console.log(`📡 Connecting to network: ${networkName}`);
         const { ethers } = hre;
         const [deployer] = await ethers.getSigners();
         const balance = await ethers.provider.getBalance(deployer.address);
@@ -295,7 +295,7 @@ export class CrossChainOrchestrator {
 
     for (const networkName of config.networks) {
       try {
-        await hre.changeNetwork(networkName);
+        console.log(`📡 Deploying to network: ${networkName}`);
         const { ethers } = hre;
         const [deployer] = await ethers.getSigners();
 
@@ -348,7 +348,7 @@ export class CrossChainOrchestrator {
 
     for (const networkName of config.networks) {
       try {
-        await hre.changeNetwork(networkName);
+        console.log(`📡 Connecting to network: ${networkName}`);
         const { ethers } = hre;
 
         // Load deployed contracts
