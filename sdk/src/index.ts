@@ -1,5 +1,6 @@
 import { ethers } from 'ethers';
 import { DeploymentResult, ManifestEntry, PayRoxConfig } from './types';
+import { PayRoxClient } from './client';
 
 /**
  * PayRox Go Beyond SDK
@@ -332,7 +333,6 @@ export async function createBrowserClient(
 
 // Default export
 export default PayRoxClient;
-export { PayRoxSDK as default };
 
 // Export new manifest utilities
 export {
@@ -345,14 +345,3 @@ export {
   type SelectorInfo,
   type SelectorMap,
 } from './manifest/selector';
-
-// Re-export protocol constants for external tools
-export {
-  MAX_FACET_SIZE,
-  MAX_FACETS,
-  MAX_SELECTORS_PER_FACET,
-  PROTOCOL_LIMITS,
-  validateFacetCount,
-  validateFacetSize,
-  validateOperationType,
-} from '../../constants/limits';

@@ -161,7 +161,7 @@ export class FacetSimulator {
   /**
    * Simulate manifest-based function routing
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   private async simulateManifestRouting(
     facets: FacetDefinition[],
     _config: PayRoxSimulationConfig
@@ -253,7 +253,7 @@ export class FacetSimulator {
   /**
    * Simulate facet storage isolation
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   private async simulateFacetIsolation(_facets: FacetDefinition[]): Promise<SimulationResult[]> {
     const results: SimulationResult[] = [];
     const startTime = Date.now();
@@ -367,7 +367,7 @@ export class FacetSimulator {
   /**
    * Run custom facet interaction tests
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   private async runCustomInteractionTests(
     tests: FacetInteractionTest[],
     _config: PayRoxSimulationConfig
@@ -430,7 +430,7 @@ export class FacetSimulator {
   /**
    * Simulate emergency scenarios (pause, freeze, route removal)
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   private async simulateEmergencyScenarios(
     _facets: FacetDefinition[],
     _config: PayRoxSimulationConfig
@@ -608,7 +608,7 @@ export class FacetSimulator {
   /**
    * Generate comprehensive PayRox Go Beyond deployment simulation
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   async simulateFullDeployment(
     facets: FacetDefinition[],
     _config: PayRoxSimulationConfig
