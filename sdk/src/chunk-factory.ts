@@ -1,5 +1,6 @@
-import { ethers, Provider, Signer, BytesLike } from 'ethers';
+import { BytesLike, ethers, Provider, Signer } from 'ethers';
 import { NetworkConfig } from './config';
+import { DeterministicChunkFactoryABI } from './contracts';
 
 /**
  * ChunkFactory service for deterministic contract deployment
@@ -10,25 +11,19 @@ export class ChunkFactory {
   private network: NetworkConfig;
   private contract: ethers.Contract;
 
-  constructor(provider: Provider, signer: Signer | undefined, network: NetworkConfig) {
+  constructor(
+    provider: Provider,
+    signer: Signer | undefined,
+    network: NetworkConfig
+  ) {
     this.provider = provider;
     this.signer = signer;
     this.network = network;
 
-    // DeterministicChunkFactory ABI (essential functions)
-    const abi = [
-      "function deployChunk(bytes calldata data, bytes32 salt) external payable returns (address chunkAddr)",
-      "function getChunkAddress(bytes32 dataHash) external view returns (address)",
-      "function calculateSalt(bytes calldata data) external pure returns (bytes32)",
-      "function baseFeeWei() external view returns (uint256)",
-      "function feesEnabled() external view returns (bool)",
-      "function feeRecipient() external view returns (address)",
-      "event ChunkDeployed(bytes32 indexed hash, address indexed chunk, uint256 size)"
-    ];
-
+    // Use full DeterministicChunkFactory ABI from artifacts
     this.contract = new ethers.Contract(
       this.network.contracts.factory,
-      abi,
+      DeterministicChunkFactoryABI,
       this.signer || this.provider
     );
   }
@@ -70,11 +65,11 @@ export class ChunkFactory {
       value: options?.value || this.network.fees.deploymentFee,
       gasLimit: options?.gasLimit || this.network.fees.gasLimit,
       maxFeePerGas: options?.maxFeePerGas,
-      maxPriorityFeePerGas: options?.maxPriorityFeePerGas
+      maxPriorityFeePerGas: options?.maxPriorityFeePerGas,
     });
 
     const receipt = await tx.wait();
-    
+
     // Find ChunkDeployed event
     const deployEvent = receipt.logs.find((log: any) => {
       try {
@@ -94,14 +89,17 @@ export class ChunkFactory {
     return {
       address: receipt.contractAddress || '',
       transactionHash: receipt.hash,
-      chunkAddress
+      chunkAddress,
     };
   }
 
   /**
    * Calculate the deterministic address for a contract
    */
-  async calculateAddress(bytecode: BytesLike, constructorArgs: any[] = []): Promise<string> {
+  async calculateAddress(
+    bytecode: BytesLike,
+    constructorArgs: any[] = []
+  ): Promise<string> {
     // Encode constructor arguments if provided
     let deploymentData = bytecode;
     if (constructorArgs.length > 0) {
@@ -112,7 +110,7 @@ export class ChunkFactory {
 
     // Calculate data hash
     const dataHash = ethers.keccak256(deploymentData);
-    
+
     // Get chunk address from factory
     return await this.contract.getChunkAddress(dataHash);
   }
@@ -120,7 +118,10 @@ export class ChunkFactory {
   /**
    * Estimate gas for deployment
    */
-  async estimateDeploymentGas(bytecode: BytesLike, constructorArgs: any[] = []): Promise<bigint> {
+  async estimateDeploymentGas(
+    bytecode: BytesLike,
+    constructorArgs: any[] = []
+  ): Promise<bigint> {
     if (!this.signer) {
       throw new Error('Signer required for gas estimation');
     }
@@ -138,7 +139,7 @@ export class ChunkFactory {
 
     // Estimate gas
     return await this.contract.deployChunk.estimateGas(deploymentData, salt, {
-      value: this.network.fees.deploymentFee
+      value: this.network.fees.deploymentFee,
     });
   }
 

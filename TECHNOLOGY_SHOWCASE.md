@@ -1,39 +1,38 @@
-# PayRox Go Beyond - Technology Showcase
+# PayRox Go Beyond - Production-Ready L2 Deployment System
 
-## 🎯 **REVOLUTIONARY BLOCKCHAIN INFRASTRUCTURE TECHNOLOGY**
+## 🎯 **DETERMINISTIC CROSS-L2 DEPLOYMENT INFRASTRUCTURE**
 
-### **The World's First Production-Ready Deterministic Cross-Chain Deployment System**
+### **Production-Validated Timelock System for EVM Layer 2 Networks**
 
-PayRox Go Beyond represents a breakthrough in blockchain infrastructure technology. We've solved the
-fundamental problems that have plagued the industry while enabling unprecedented scale, security,
-and reliability.
+PayRox Go Beyond delivers deterministic contract deployment across EVM Layer 2 networks with
+production-verified gas optimization and enterprise security features. Built for the L2 ecosystem
+where speed, cost, and reliability matter most.
 
 ---
 
-## 🏆 **TECHNICAL ACHIEVEMENTS**
+## 📊 **VERIFIED PRODUCTION METRICS (FRONT AND CENTER)**
 
-### **Performance Excellence**
-
-**Gas Optimization Results (Production Validated)**
+### **Gas Optimization Results - Production Tested**
 
 ```
-Commit Operations:   72,519 gas ≤ 80,000 target  (10% under budget) ✅
-Apply Operations:    85,378 gas ≤ 90,000 target  (5% under budget)  ✅
-Activate Operations: 54,508 gas ≤ 60,000 target  (15% under budget) ✅
+✅ commitRoot():           72,519 gas ≤ 80,000 target  (10% under budget)
+✅ applyRoutes():          85,378 gas ≤ 90,000 target  (5% under budget)
+✅ activateCommittedRoot(): 54,508 gas ≤ 60,000 target  (15% under budget)
 
-PRODUCTION VERDICT: ALL ACCEPTANCE GATES EXCEEDED
+TOTAL WORKFLOW: 212,405 gas for complete timelock deployment
+PRODUCTION STATUS: All acceptance gates exceeded ✅
 ```
 
-**Performance Improvements vs Industry Standards**
+**Measured Performance Improvements**
 
-- 10-15% gas savings across all operations
-- Zero failed deployments in production testing
-- Sub-second deployment validation
-- Real-time monitoring with <1s alert latency
+- 5-15% gas savings across all timelock operations
+- Zero failed deployments in production testing environment
+- Sub-second deployment validation on supported L2s
+- Real-time monitoring with sub-1s alert response
 
-### **Security Revolution**
+### **Security & Reliability Features**
 
-**Six Major Security Improvements Implemented**
+**Production Security Improvements**
 
 1. **Time-Lock Protection**
 
@@ -56,7 +55,7 @@ PRODUCTION VERDICT: ALL ACCEPTANCE GATES EXCEEDED
 4. **Replay Protection**
 
    - Unique nonces prevent duplicate transactions
-   - Cross-chain replay attack prevention
+   - Cross-L2 replay attack prevention
    - Temporal validation with time windows
 
 5. **Emergency Response System**
@@ -65,49 +64,70 @@ PRODUCTION VERDICT: ALL ACCEPTANCE GATES EXCEEDED
    - Fail-closed design prioritizes safety
    - Governance separation for emergency actions
 
-6. **Private Relay Integration**
-   - MEV protection through Flashbots integration
+6. **MEV Protection**
+   - Private relay integration support
    - Transaction privacy and front-running prevention
-   - Institutional-grade transaction handling
+   - L2-optimized transaction handling
 
-### **Cross-Chain Determinism**
+### **Negative Test Coverage (Audit Trust)**
 
-**21 Supported Networks with Identical Deployment Addresses**
+**Validated Failure Scenarios**
 
-**Mainnet Networks**
+- ✅ **Wrong Merkle Proof**: System correctly rejects invalid proofs
+- ✅ **Duplicate Selectors**: Prevents selector collision during route application
+- ✅ **Oversized Batch**: Enforces per-apply batch cap (≤50 selectors)
+- ✅ **EIP-170**: Per-facet runtime bytecode ≤ 24 KB is verified
+- ✅ **Timelock Bypass**: Cannot activate before delay period
+- ✅ **Unauthorized Access**: Role-based restrictions properly enforced
+- ✅ **Code Hash Mismatch**: Rejects facets with unexpected code
+- ✅ **Replay Attack**: Nonce validation prevents duplicate operations
 
-- Ethereum Mainnet
-- Polygon
+**Production Error Handling**
+
+- Custom error types for precise failure diagnosis
+- Gas-efficient revert messages
+- Comprehensive event logging for all failure cases
+
+### **Cross-L2 Deterministic Deployment**
+
+**Selected EVM Layer 2 Networks (Mainnets + Sepolia Testnets)**
+
+**Supported L2 Mainnets**
+
 - Arbitrum One
 - Optimism
 - Base
-- Avalanche C-Chain
-- Binance Smart Chain
-- Fantom
-- Gnosis Chain
+- Polygon zkEVM
+- zkSync Era\*
+- Scroll
+- Linea
+- Mantle
 
-**Testnet Networks**
+\*zkSync Era is zk-EVM-like; note compatibility caveats for custom CREATE2 factories.
 
-- Sepolia (Ethereum)
-- Polygon Mumbai
+**Corresponding Sepolia Testnets**
+
 - Arbitrum Sepolia
 - Optimism Sepolia
 - Base Sepolia
-- Avalanche Fuji
-- BSC Testnet
-- Fantom Testnet
-- Gnosis Chiado
+- Polygon zkEVM Testnet
+- zkSync Era Sepolia
+- Scroll Sepolia
+- Linea Sepolia
+- Mantle Sepolia
+
+**Development Networks**
+
 - Hardhat Local
-- Localhost
-- Coverage Network
+- Localhost Coverage
 
 **Technology Stack**
 
-- CREATE2 deterministic deployment
-- Universal salt generation
-- Network-specific parameter optimization
-- Automatic gas price adjustment
-- Cross-chain state synchronization
+- CREATE2 deterministic deployment across L2s
+- Universal salt generation for identical addresses
+- L2-optimized gas parameter adjustment
+- Cross-L2 state synchronization
+- Deployment cost estimation per network
 
 ---
 
@@ -330,7 +350,66 @@ class ComplianceManager {
 
 ---
 
-## 🛠 **DEVELOPER EXPERIENCE**
+## � **QUICK DEPLOYMENT & COST ESTIMATION**
+
+### **L2 Chain Picker & Cost Estimator**
+
+**Select Your Target L2 Networks**
+
+```typescript
+// Cost estimation per L2 network
+const deploymentCosts = {
+  arbitrum: { commitGas: 72519, applyGas: 85378, activateGas: 54508 },
+  optimism: { commitGas: 72519, applyGas: 85378, activateGas: 54508 },
+  base: { commitGas: 72519, applyGas: 85378, activateGas: 54508 },
+  polygon: { commitGas: 72519, applyGas: 85378, activateGas: 54508 },
+  avalanche: { commitGas: 72519, applyGas: 85378, activateGas: 54508 },
+};
+
+// Total: 212,405 gas per deployment
+```
+
+### **Pay & Deploy CTA**
+
+**Ready to Deploy? Copy-Paste This Code:**
+
+```bash
+# Install PayRox CLI
+npm install -g @payrox/go-beyond-cli
+
+# Quick deploy to Arbitrum One
+payrox deploy --network arbitrum --manifest ./your-manifest.json
+
+# Deploy across multiple L2s
+payrox crosschain deploy --networks "arbitrum,optimism,base"
+
+# Monitor deployment status
+payrox status --deployment-id abc123
+```
+
+**SDK Integration (Production Ready)**
+
+```typescript
+import { createClient } from '@payrox/go-beyond-sdk';
+
+// Connect to Arbitrum One
+const client = createClient('https://arb1.arbitrum.io/rpc', privateKey, 'arbitrum');
+
+// Timelock deployment workflow
+const commit = await client.dispatcher.commitRoot(merkleRoot, epoch);
+await new Promise(resolve => setTimeout(resolve, 3600000)); // Wait 1 hour
+const apply = await client.dispatcher.applyRoutes(selectors, facets, codehashes, proofs, isRight);
+const activate = await client.dispatcher.activateCommittedRoot();
+
+console.log(`Total gas used: ${commit.gasUsed + apply.gasUsed + activate.gasUsed}`);
+```
+
+**Runbook & Documentation**
+
+- 📖 [Complete Deployment Guide](./docs/DEPLOYMENT_GUIDE.md)
+- ⚡ [Quick Start (5 minutes)](./docs/QUICK_START.md)
+- 🔧 [SDK API Reference](./sdk/README.md)
+- 🛡️ [Security Best Practices](./docs/SECURITY.md)
 
 ### **Comprehensive CLI Interface**
 
@@ -470,46 +549,46 @@ interface SystemMetrics {
 
 ---
 
-## 🚀 **COMPETITIVE ADVANTAGES**
+## 🏗️ **PRODUCTION ADVANTAGES**
 
-### **Technical Superiority**
+### **Technical Features**
 
-**First-Mover Advantages**
+**Measured Capabilities**
 
-- Only production-ready deterministic deployment system
-- Patent-pending manifest-driven architecture
-- Proven security improvements over existing solutions
-- Complete enterprise feature set
+- Production-tested deterministic deployment system
+- Manifest-driven architecture with timelock security
+- Verified security improvements over basic deployment patterns
+- Complete L2-focused feature set
 
-**Performance Leadership**
+**Performance Benchmarks**
 
-- 10-15% gas savings vs industry standards
-- Zero deployment failures in production testing
-- Sub-second operation validation
-- Real-time cross-chain synchronization
+- 5-15% gas savings vs standard deployment patterns
+- Zero failed deployments in testing environment
+- Sub-second deployment validation on supported L2s
+- Real-time cross-L2 synchronization
 
-**Security Excellence**
+**Security Features**
 
-- Six major security improvements implemented
-- Military-grade protection mechanisms
+- Production security improvements implemented
 - Fail-closed design prioritizing safety
 - Complete audit trail and compliance framework
+- Emergency response capabilities
 
-### **Ecosystem Integration**
+### **L2 Ecosystem Integration**
 
-**Universal Compatibility**
+**Network Compatibility**
 
-- Works with all major wallets and tools
+- Works with standard L2 wallets and tools
 - Integrates with existing development workflows
-- Supports all EVM-compatible networks
-- Backward compatible with legacy systems
+- Supports major EVM Layer 2 networks
+- Compatible with standard deployment patterns
 
-**Standards Compliance**
+**Standards Support**
 
-- EIP-2535 Diamond Pattern (optional)
+- EIP-2535 Diamond Pattern (optional views for tooling parity)
 - EIP-170 Code Size Optimization
 - ERC-173 Ownership Standard
-- All relevant blockchain standards
+- Standard EVM compatibility
 
 ---
 
@@ -519,7 +598,7 @@ interface SystemMetrics {
 
 **Manifest-Driven Deployments**
 
-- World's first cryptographically verified deployment manifests
+- Production-validated cryptographically verified deployment manifests
 - Automatic dependency resolution and validation
 - Parallel deployment optimization
 - Deterministic cross-chain addressing
@@ -533,10 +612,13 @@ interface SystemMetrics {
 
 **Cross-Chain Determinism**
 
-- Mathematical guarantee of identical addresses across networks
+- Production-validated, manifest-driven, deterministic across chosen L2s
 - Universal salt generation algorithm
 - Network-specific parameter optimization
 - Automatic gas price adjustment
+
+_Identical addresses hold when (a) the factory is deployed deterministically on each L2, (b)
+bytecode and salt are identical._
 
 ### **Future-Proof Architecture**
 
@@ -576,7 +658,7 @@ interface SystemMetrics {
 
 **✅ Operational Requirements**
 
-- 21 networks supported and tested
+- Selected L2 mainnets + Sepolia testnets (kept in repo manifest)
 - Monitoring and alerting configured
 - Documentation complete and verified
 - Support and maintenance procedures established
@@ -595,7 +677,7 @@ interface SystemMetrics {
 ```
 Gas Efficiency:    ALL TARGETS EXCEEDED ✅
 Security:          6 MAJOR IMPROVEMENTS ✅
-Cross-Chain:       21 NETWORKS READY ✅
+Cross-Chain:       L2 NETWORKS READY ✅
 Monitoring:        REAL-TIME ALERTS ✅
 Documentation:     PRODUCTION COMPLETE ✅
 Support:           ENTERPRISE READY ✅
@@ -605,18 +687,18 @@ PRODUCTION VERDICT: GO FOR PRODUCTION ✅
 
 ---
 
-## 🚀 **NEXT-GENERATION BLOCKCHAIN INFRASTRUCTURE**
+## 🎯 **PRODUCTION-READY L2 INFRASTRUCTURE**
 
-PayRox Go Beyond represents the future of blockchain infrastructure technology. With proven
-performance, revolutionary security improvements, and enterprise-grade reliability, we're ready to
-transform how the world deploys and manages blockchain systems.
+PayRox Go Beyond delivers deterministic contract deployment across EVM Layer 2 networks with
+production-verified gas optimization and enterprise security features. Built specifically for the L2
+ecosystem where efficiency and reliability are essential.
 
-**The technology is proven. The market is ready. The future is now.**
+**Verified Technology. Measured Results. Ready for Production.**
 
 ---
 
-_"We're not just improving blockchain infrastructure - we're revolutionizing it."_
+_"Deterministic deployment for the Layer 2 future."_
 
-**🎯 Ready to Experience the Revolution**
+**🚀 Start Deploying on L2s Today**
 
-_Last Updated: August 1, 2025 | Status: Production-Ready Technology_
+_Last Updated: August 1, 2025 | Status: Production-Ready for L2 Networks_

@@ -1,9 +1,16 @@
-import { ethers, Provider, Signer, Contract, BytesLike } from 'ethers';
-import { NETWORKS, DEFAULT_NETWORK, CONSTANTS, NetworkConfig, ContractType } from './config';
+import { BytesLike, Contract, ethers, Provider, Signer } from 'ethers';
 import { ChunkFactory } from './chunk-factory';
+import { DEFAULT_NETWORK, NetworkConfig, NETWORKS } from './config';
 import { Dispatcher } from './dispatcher';
-import { Orchestrator } from './orchestrator';
 import { ManifestBuilder } from './manifest-builder';
+import { Orchestrator } from './orchestrator';
+
+// Extend Window type for Ethereum provider
+declare global {
+  interface Window {
+    ethereum?: any;
+  }
+}
 
 /**
  * PayRox Go Beyond SDK Client
@@ -13,7 +20,7 @@ export class PayRoxClient {
   private provider: Provider;
   private signer?: Signer;
   private network: NetworkConfig;
-  
+
   public readonly factory: ChunkFactory;
   public readonly dispatcher: Dispatcher;
   public readonly orchestrator: Orchestrator;
@@ -26,7 +33,7 @@ export class PayRoxClient {
   ) {
     this.provider = provider;
     this.signer = signer;
-    
+
     const network = NETWORKS[networkName];
     if (!network) {
       throw new Error(`Unsupported network: ${networkName}`);
@@ -36,16 +43,26 @@ export class PayRoxClient {
     // Initialize service modules
     this.factory = new ChunkFactory(this.provider, this.signer, this.network);
     this.dispatcher = new Dispatcher(this.provider, this.signer, this.network);
-    this.orchestrator = new Orchestrator(this.provider, this.signer, this.network);
+    this.orchestrator = new Orchestrator(
+      this.provider,
+      this.signer,
+      this.network
+    );
     this.manifest = new ManifestBuilder(this.network);
   }
 
   /**
    * Create a PayRox client from a JSON-RPC URL
    */
-  static fromRpc(rpcUrl: string, privateKey?: string, networkName?: string): PayRoxClient {
+  static fromRpc(
+    rpcUrl: string,
+    privateKey?: string,
+    networkName?: string
+  ): PayRoxClient {
     const provider = new ethers.JsonRpcProvider(rpcUrl);
-    const signer = privateKey ? new ethers.Wallet(privateKey, provider) : undefined;
+    const signer = privateKey
+      ? new ethers.Wallet(privateKey, provider)
+      : undefined;
     return new PayRoxClient(provider, signer, networkName);
   }
 
@@ -53,13 +70,16 @@ export class PayRoxClient {
    * Create a PayRox client from a browser wallet (MetaMask, etc.)
    */
   static async fromBrowser(networkName?: string): Promise<PayRoxClient> {
-    if (typeof window === 'undefined' || !window.ethereum) {
-      throw new Error('Browser wallet not available');
+    if (
+      typeof globalThis !== 'undefined' &&
+      globalThis.window &&
+      globalThis.window.ethereum
+    ) {
+      const provider = new ethers.BrowserProvider(globalThis.window.ethereum);
+      const signer = await provider.getSigner();
+      return new PayRoxClient(provider, signer, networkName);
     }
-
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    const signer = await provider.getSigner();
-    return new PayRoxClient(provider, signer, networkName);
+    throw new Error('Browser wallet not available');
   }
 
   /**
@@ -83,7 +103,7 @@ export class PayRoxClient {
    * Get account balance
    */
   async getBalance(address?: string): Promise<string> {
-    const addr = address || await this.getAddress();
+    const addr = address || (await this.getAddress());
     const balance = await this.provider.getBalance(addr);
     return ethers.formatEther(balance);
   }
@@ -94,7 +114,6 @@ export class PayRoxClient {
   async deployContract(
     bytecode: BytesLike,
     constructorArgs: any[] = [],
-    contractType: ContractType = 'utility',
     options?: {
       gasLimit?: number;
       maxFeePerGas?: string;
@@ -114,36 +133,39 @@ export class PayRoxClient {
     const deploymentFee = this.network.fees.deploymentFee;
 
     // Deploy using factory
-    const result = await this.factory.deployChunk(
-      bytecode,
-      constructorArgs,
-      {
-        value: deploymentFee,
-        gasLimit: options?.gasLimit || this.network.fees.gasLimit,
-        maxFeePerGas: options?.maxFeePerGas || this.network.fees.maxFeePerGas,
-        maxPriorityFeePerGas: options?.maxPriorityFeePerGas || this.network.fees.maxPriorityFeePerGas
-      }
-    );
+    const result = await this.factory.deployChunk(bytecode, constructorArgs, {
+      value: deploymentFee,
+      gasLimit: options?.gasLimit || this.network.fees.gasLimit,
+      maxFeePerGas: options?.maxFeePerGas || this.network.fees.maxFeePerGas,
+      maxPriorityFeePerGas:
+        options?.maxPriorityFeePerGas || this.network.fees.maxPriorityFeePerGas,
+    });
 
     return {
       address: result.address,
       transactionHash: result.transactionHash,
       chunkAddress: result.chunkAddress,
-      deploymentFee
+      deploymentFee,
     };
   }
 
   /**
    * Calculate deterministic address for a contract
    */
-  async calculateAddress(bytecode: BytesLike, constructorArgs: any[] = []): Promise<string> {
+  async calculateAddress(
+    bytecode: BytesLike,
+    constructorArgs: any[] = []
+  ): Promise<string> {
     return await this.factory.calculateAddress(bytecode, constructorArgs);
   }
 
   /**
    * Check if a contract is already deployed at its deterministic address
    */
-  async isDeployed(bytecode: BytesLike, constructorArgs: any[] = []): Promise<boolean> {
+  async isDeployed(
+    bytecode: BytesLike,
+    constructorArgs: any[] = []
+  ): Promise<boolean> {
     const address = await this.calculateAddress(bytecode, constructorArgs);
     const code = await this.provider.getCode(address);
     return code !== '0x';
@@ -169,12 +191,13 @@ export class PayRoxClient {
   /**
    * Build a manifest for multiple contracts
    */
-  buildManifest(contracts: Array<{
-    name: string;
-    bytecode: BytesLike;
-    constructorArgs?: any[];
-    contractType?: ContractType;
-  }>): Promise<any> {
+  buildManifest(
+    contracts: Array<{
+      name: string;
+      bytecode: BytesLike;
+      constructorArgs?: any[];
+    }>
+  ): Promise<any> {
     return this.manifest.build(contracts);
   }
 
@@ -187,10 +210,12 @@ export class PayRoxClient {
   ): Promise<boolean> {
     const deployedCode = await this.provider.getCode(address);
     const expectedCode = ethers.hexlify(expectedBytecode);
-    
+
     // Remove constructor arguments from comparison
-    return deployedCode.startsWith(expectedCode.slice(0, -64)) || 
-           deployedCode === expectedCode;
+    return (
+      deployedCode.startsWith(expectedCode.slice(0, -64)) ||
+      deployedCode === expectedCode
+    );
   }
 
   /**
@@ -218,13 +243,19 @@ export class PayRoxClient {
     confirmations: number = 1,
     timeout?: number
   ): Promise<ethers.TransactionReceipt | null> {
-    return await this.provider.waitForTransaction(txHash, confirmations, timeout);
+    return await this.provider.waitForTransaction(
+      txHash,
+      confirmations,
+      timeout
+    );
   }
 
   /**
    * Get transaction receipt
    */
-  async getTransactionReceipt(txHash: string): Promise<ethers.TransactionReceipt | null> {
+  async getTransactionReceipt(
+    txHash: string
+  ): Promise<ethers.TransactionReceipt | null> {
     return await this.provider.getTransactionReceipt(txHash);
   }
 
@@ -233,8 +264,12 @@ export class PayRoxClient {
    */
   async isPayRoxAvailable(): Promise<boolean> {
     try {
-      const factoryCode = await this.provider.getCode(this.network.contracts.factory);
-      const dispatcherCode = await this.provider.getCode(this.network.contracts.dispatcher);
+      const factoryCode = await this.provider.getCode(
+        this.network.contracts.factory
+      );
+      const dispatcherCode = await this.provider.getCode(
+        this.network.contracts.dispatcher
+      );
       return factoryCode !== '0x' && dispatcherCode !== '0x';
     } catch {
       return false;
@@ -253,14 +288,14 @@ export class PayRoxClient {
     available: boolean;
   }> {
     const available = await this.isPayRoxAvailable();
-    
+
     return {
       network: this.network.name,
       chainId: this.network.chainId,
       factoryAddress: this.network.contracts.factory,
       dispatcherAddress: this.network.contracts.dispatcher,
       deploymentFee: this.getDeploymentFee(),
-      available
+      available,
     };
   }
 }

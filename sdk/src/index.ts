@@ -1,4 +1,5 @@
 import { ethers } from 'ethers';
+import { PayRoxClient } from './client';
 import { DeploymentResult, ManifestEntry, PayRoxConfig } from './types';
 
 /**
@@ -279,26 +280,26 @@ export { PayRoxClient } from './client';
 // Service modules
 export { ChunkFactory } from './chunk-factory';
 export { Dispatcher } from './dispatcher';
-export { Orchestrator } from './orchestrator';
 export { ManifestBuilder } from './manifest-builder';
+export { Orchestrator } from './orchestrator';
 
 // Configuration and types
 export {
-  NETWORKS,
-  DEFAULT_NETWORK,
   CONSTANTS,
   CONTRACT_TYPES,
-  type NetworkConfig,
+  DEFAULT_NETWORK,
+  NETWORKS,
   type ContractAddresses,
+  type ContractType,
   type FeeConfig,
-  type ContractType
+  type NetworkConfig,
 } from './config';
 
 // Manifest types
 export type {
+  Manifest,
   ManifestContract,
   ManifestRoute,
-  Manifest
 } from './manifest-builder';
 
 // Utility functions
@@ -324,13 +325,14 @@ export function createClient(
 /**
  * Create a browser client (MetaMask, etc.)
  */
-export async function createBrowserClient(networkName?: string): Promise<PayRoxClient> {
+export async function createBrowserClient(
+  networkName?: string
+): Promise<PayRoxClient> {
   return await PayRoxClient.fromBrowser(networkName);
 }
 
-// Default export
+// Default export - single export to fix duplicate default export error
 export default PayRoxClient;
-export { PayRoxSDK as default };
 
 // Export new manifest utilities
 export {
@@ -346,11 +348,9 @@ export {
 
 // Re-export protocol constants for external tools
 export {
+  FACET_LIMITS,
+  GAS_LIMITS,
   MAX_FACET_SIZE,
-  MAX_FACETS,
+  MAX_FACETS_PER_MANIFEST,
   MAX_SELECTORS_PER_FACET,
-  PROTOCOL_LIMITS,
-  validateFacetCount,
-  validateFacetSize,
-  validateOperationType,
-} from '../../constants/limits';
+} from './constants';

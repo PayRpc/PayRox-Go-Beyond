@@ -1,16 +1,13 @@
 import { ethers } from 'ethers';
-
-// Re-export system constants for SDK consumers
-export {
+import {
+  CONSTANTS,
   FACET_LIMITS,
   GAS_LIMITS,
-  isValidFacetCount,
-  isValidFacetSize,
-  isValidSelectorCount,
   MANIFEST_LIMITS,
-  SYSTEM_CONSTANTS,
-  TEST_LIMITS,
-} from '../../constants/system';
+} from './constants';
+
+// Re-export system constants for SDK consumers
+export { CONSTANTS, FACET_LIMITS, GAS_LIMITS, MANIFEST_LIMITS };
 
 export interface PayRoxConfig {
   factoryAddress: string;

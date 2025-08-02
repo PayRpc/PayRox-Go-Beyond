@@ -6,29 +6,32 @@
 // Core client
 export { PayRoxClient } from './client';
 
-// Service modules  
+// Service modules
 export { ChunkFactory } from './chunk-factory';
 export { Dispatcher } from './dispatcher';
-export { Orchestrator } from './orchestrator';
 export { ManifestBuilder } from './manifest-builder';
+export { Orchestrator } from './orchestrator';
+
+// Development tools
+export { DevTools, createDevTools, quickNetworkCheck } from './dev-tools';
 
 // Configuration and types
 export {
-  NETWORKS,
-  DEFAULT_NETWORK,
   CONSTANTS,
   CONTRACT_TYPES,
-  type NetworkConfig,
+  DEFAULT_NETWORK,
+  NETWORKS,
   type ContractAddresses,
+  type ContractType,
   type FeeConfig,
-  type ContractType
+  type NetworkConfig,
 } from './config';
 
 // Manifest types
 export type {
+  Manifest,
   ManifestContract,
   ManifestRoute,
-  Manifest
 } from './manifest-builder';
 
 // Utility functions
@@ -47,7 +50,7 @@ export function createClient(
 ) {
   // Import here to avoid circular dependency
   const { PayRoxClient } = require('./client');
-  
+
   if (typeof providerOrRpc === 'string') {
     return PayRoxClient.fromRpc(providerOrRpc, privateKey, networkName);
   }
