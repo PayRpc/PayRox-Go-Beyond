@@ -154,8 +154,8 @@ export class DeterministicFactoryDeployer {
     const { ethers } = hre;
 
     try {
-      // Switch to target network
-      await hre.changeNetwork(networkName);
+      // Connect to target network (changeNetwork deprecated in newer Hardhat)
+      console.log(`📡 Deploying to network: ${networkName}`);
       const [deployer] = await ethers.getSigners();
 
       const networkConfig = this.networkManager.getNetworkConfig(networkName);
@@ -167,7 +167,7 @@ export class DeterministicFactoryDeployer {
       const FactoryContract = await ethers.getContractFactory(
         'DeterministicChunkFactory'
       );
-      const deployTransaction = FactoryContract.getDeployTransaction(
+      const deployTransaction = await FactoryContract.getDeployTransaction(
         deployer.address, // admin
         deployer.address, // feeRecipient
         FACTORY_CONFIG.baseFeeWei
@@ -192,7 +192,9 @@ export class DeterministicFactoryDeployer {
       const isAlreadyDeployed = existingCode !== '0x';
 
       // Estimate deployment fee
-      const gasEstimate = await ethers.provider.estimateGas(deployTransaction);
+      const gasEstimate = await ethers.provider.estimateGas(
+        await deployTransaction
+      );
       const gasPrice = (await ethers.provider.getFeeData()).gasPrice || 0n;
       const deploymentFee = gasEstimate * gasPrice;
 
@@ -377,8 +379,8 @@ export class DeterministicFactoryDeployer {
   }> {
     const { ethers } = hre;
 
-    // Switch to target network
-    await hre.changeNetwork(networkName);
+    // Connect to target network (changeNetwork deprecated in newer Hardhat)
+    console.log(`📡 Deploying to network: ${networkName}`);
     const [deployer] = await ethers.getSigners();
 
     console.log(`  👤 Deployer: ${deployer.address}`);
@@ -491,7 +493,7 @@ export async function main(
   params?: any
 ): Promise<string> {
   console.log('🏭 PayRox Go Beyond - Deterministic Factory Deployment');
-  console.log('=' * 65);
+  console.log('='.repeat(65));
 
   const networks = params?.networks || [
     'sepolia',

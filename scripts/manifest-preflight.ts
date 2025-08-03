@@ -136,8 +136,8 @@ export class ManifestPreflightChecker {
     hre: HardhatRuntimeEnvironment
   ): Promise<PreflightValidation> {
     try {
-      // Switch to target network
-      await hre.changeNetwork(networkName);
+      // Connect to target network (changeNetwork deprecated in newer Hardhat)
+      console.log(`📡 Connecting to network: ${networkName}`);
       const { ethers } = hre;
 
       const networkConfig = this.networkManager.getNetworkConfig(networkName);

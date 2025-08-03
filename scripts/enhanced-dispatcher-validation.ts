@@ -103,7 +103,7 @@ async function main() {
     if (valid) {
       console.log('\n3️⃣ Committing manifest...');
 
-      const commitTx = await dispatcher
+      const commitTx = await (dispatcher as any)
         .connect(governance)
         .commitManifest(manifestHash);
       const commitReceipt = await commitTx.wait();
@@ -112,7 +112,7 @@ async function main() {
 
       console.log('\n4️⃣ Applying manifest...');
 
-      const applyTx = await dispatcher
+      const applyTx = await (dispatcher as any)
         .connect(governance)
         .applyCommittedManifest(manifestData);
       const applyReceipt = await applyTx.wait();

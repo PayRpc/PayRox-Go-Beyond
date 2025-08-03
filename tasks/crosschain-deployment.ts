@@ -109,7 +109,7 @@ task(
 
         // Import and use the deployer class for validation only
         const { DeterministicFactoryDeployer } = await import(
-          '../scripts/deploy-deterministic-factory'
+          '../scripts/deploy-deterministic-factory.js'
         );
         const deployer = new DeterministicFactoryDeployer();
 

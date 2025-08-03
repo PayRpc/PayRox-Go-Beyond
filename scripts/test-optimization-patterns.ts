@@ -72,7 +72,7 @@ export async function main(hre: HardhatRuntimeEnvironment) {
   const govDispatcher = dispatcher.connect(governance);
 
   try {
-    const [valid, routeCount] = await govDispatcher.preflightManifest(
+    const [valid, routeCount] = await (govDispatcher as any).preflightManifest(
       manifestHash,
       manifestData
     );
@@ -90,7 +90,7 @@ export async function main(hre: HardhatRuntimeEnvironment) {
   // Step 2: Commit manifest hash (O(1) state operation)
   console.log('\n2️⃣ Testing manifest commitment...');
 
-  const commitTx = await govDispatcher.commitManifest(manifestHash);
+  const commitTx = await (govDispatcher as any).commitManifest(manifestHash);
   const commitReceipt = await commitTx.wait();
   console.log(`   ✅ Manifest committed - Gas used: ${commitReceipt?.gasUsed}`);
 
@@ -102,7 +102,9 @@ export async function main(hre: HardhatRuntimeEnvironment) {
   // Step 3: Apply committed manifest (with cheap assertion)
   console.log('\n3️⃣ Testing manifest application...');
 
-  const applyTx = await govDispatcher.applyCommittedManifest(manifestData);
+  const applyTx = await (govDispatcher as any).applyCommittedManifest(
+    manifestData
+  );
   const applyReceipt = await applyTx.wait();
   console.log(`   ✅ Manifest applied - Gas used: ${applyReceipt?.gasUsed}`);
 
@@ -123,7 +125,9 @@ export async function main(hre: HardhatRuntimeEnvironment) {
   // Step 1: Queue governance rotation
   console.log('\n1️⃣ Testing governance rotation queue...');
 
-  const queueTx = await govDispatcher.queueRotateGovernance(newGovernance);
+  const queueTx = await (govDispatcher as any).queueRotateGovernance(
+    newGovernance
+  );
   await queueTx.wait();
   console.log(`   ✅ Governance rotation queued for: ${newGovernance}`);
 
@@ -138,7 +142,7 @@ export async function main(hre: HardhatRuntimeEnvironment) {
   const guardianDispatcher = dispatcher.connect(guardian);
 
   // Guardian pause
-  const pauseTx = await guardianDispatcher.guardianPause();
+  const pauseTx = await (guardianDispatcher as any).guardianPause();
   await pauseTx.wait();
   console.log(`   ✅ Guardian paused system`);
 
@@ -146,7 +150,7 @@ export async function main(hre: HardhatRuntimeEnvironment) {
   console.log(`   ⏸️ System paused: ${isPaused}`);
 
   // Unpause to continue tests
-  const unpauseTx = await guardianDispatcher.unpause();
+  const unpauseTx = await (guardianDispatcher as any).unpause();
   await unpauseTx.wait();
   console.log(`   ▶️ System unpaused for continued testing`);
 
@@ -177,18 +181,19 @@ export async function main(hre: HardhatRuntimeEnvironment) {
   const operationData = dispatcher.interface.encodeFunctionData('pause');
   const eta = Math.floor(Date.now() / 1000) + 3600; // 1 hour from now
 
-  const queueOpTx = await govDispatcher.queueOperation(operationData, eta);
+  const queueOpTx = await (govDispatcher as any).queueOperation(
+    operationData,
+    eta
+  );
   const queueOpReceipt = await queueOpTx.wait();
   console.log(`   ✅ Operation queued - Gas used: ${queueOpReceipt?.gasUsed}`);
 
   // Extract nonce from event
   const queueEvent = queueOpReceipt?.logs.find(
-    log =>
+    (log: any) =>
       log.topics[0] === ethers.id('OperationQueued(uint256,bytes32,uint64)')
   );
-  const nonce = queueEvent
-    ? ethers.BigNumber.from(queueEvent.topics[1])
-    : ethers.BigNumber.from(0);
+  const nonce = queueEvent ? BigInt(queueEvent.topics[1]) : BigInt(0);
   console.log(`   📋 Operation nonce: ${nonce}`);
 
   // Step 2: Test nonce ordering
