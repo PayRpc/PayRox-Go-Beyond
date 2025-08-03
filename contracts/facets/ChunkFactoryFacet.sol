@@ -50,8 +50,7 @@ contract ChunkFactoryFacet is IChunkFactory {
         override
         returns (address chunk, bytes32 hash)
     {
-        return DeterministicChunkFactory(factoryAddress)
-            .stage{value: msg.value}(data);
+        (chunk, hash) = IChunkFactory(factoryAddress).stage{value: msg.value}(data);
     }
 
     /**
@@ -66,8 +65,7 @@ contract ChunkFactoryFacet is IChunkFactory {
         override
         returns (address[] memory chunks, bytes32[] memory hashes)
     {
-        return DeterministicChunkFactory(factoryAddress)
-            .stageBatch{value: msg.value}(blobs);
+        (chunks, hashes) = IChunkFactory(factoryAddress).stageBatch{value: msg.value}(blobs);
     }
 
     /**
@@ -82,8 +80,7 @@ contract ChunkFactoryFacet is IChunkFactory {
         bytes calldata bytecode,
         bytes calldata constructorArgs
     ) external payable override returns (address deployed) {
-        return DeterministicChunkFactory(factoryAddress)
-            .deployDeterministic{value: msg.value}(salt, bytecode, constructorArgs);
+        deployed = IChunkFactory(factoryAddress).deployDeterministic{value: msg.value}(salt, bytecode, constructorArgs);
     }
 
     /**
@@ -98,8 +95,7 @@ contract ChunkFactoryFacet is IChunkFactory {
         bytes[] calldata bytecodes,
         bytes[] calldata constructorArgs
     ) external payable override returns (address[] memory deployed) {
-        return DeterministicChunkFactory(factoryAddress)
-            .deployDeterministicBatch{value: msg.value}(salts, bytecodes, constructorArgs);
+        deployed = IChunkFactory(factoryAddress).deployDeterministicBatch{value: msg.value}(salts, bytecodes, constructorArgs);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
@@ -118,7 +114,7 @@ contract ChunkFactoryFacet is IChunkFactory {
         override
         returns (address predicted, bytes32 hash)
     {
-        return DeterministicChunkFactory(factoryAddress).predict(data);
+        (predicted, hash) = IChunkFactory(factoryAddress).predict(data);
     }
 
     /**
@@ -133,7 +129,7 @@ contract ChunkFactoryFacet is IChunkFactory {
         override
         returns (address predicted)
     {
-        return DeterministicChunkFactory(factoryAddress).predictAddress(salt, codeHash);
+        return IChunkFactory(factoryAddress).predictAddress(salt, codeHash);
     }
 
     /**
@@ -146,7 +142,7 @@ contract ChunkFactoryFacet is IChunkFactory {
         bytes32[] calldata salts,
         bytes32[] calldata codeHashes
     ) external view override returns (address[] memory predicted) {
-        return DeterministicChunkFactory(factoryAddress)
+        return IChunkFactory(factoryAddress)
             .predictAddressBatch(salts, codeHashes);
     }
 
@@ -156,7 +152,7 @@ contract ChunkFactoryFacet is IChunkFactory {
      * @return True if chunk exists
      */
     function exists(bytes32 hash) external view override returns (bool) {
-        return DeterministicChunkFactory(factoryAddress).exists(hash);
+        return IChunkFactory(factoryAddress).exists(hash);
     }
 
     /**
@@ -165,7 +161,7 @@ contract ChunkFactoryFacet is IChunkFactory {
      * @return True if contract is deployed
      */
     function isDeployed(address target) external view override returns (bool) {
-        return DeterministicChunkFactory(factoryAddress).isDeployed(target);
+        return IChunkFactory(factoryAddress).isDeployed(target);
     }
 
     /**
@@ -193,7 +189,7 @@ contract ChunkFactoryFacet is IChunkFactory {
      * @return fee The deployment fee
      */
     function getDeploymentFee() external view override returns (uint256 fee) {
-        return DeterministicChunkFactory(factoryAddress).getDeploymentFee();
+        return IChunkFactory(factoryAddress).getDeploymentFee();
     }
 
     /**
@@ -201,7 +197,7 @@ contract ChunkFactoryFacet is IChunkFactory {
      * @return count The deployment count
      */
     function getDeploymentCount() external view override returns (uint256 count) {
-        return DeterministicChunkFactory(factoryAddress).getDeploymentCount();
+        return IChunkFactory(factoryAddress).getDeploymentCount();
     }
 
     /**
@@ -210,7 +206,7 @@ contract ChunkFactoryFacet is IChunkFactory {
      * @return tier The user tier
      */
     function getUserTier(address user) external view override returns (uint8 tier) {
-        return DeterministicChunkFactory(factoryAddress).getUserTier(user);
+        return IChunkFactory(factoryAddress).getUserTier(user);
     }
 
     /**
