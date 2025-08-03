@@ -1,6 +1,6 @@
 
 // Fix Script for MerkleRoot Issues
-// Generated: 2025-07-31T04:52:27.791Z
+// Generated: 2025-08-03T15:31:17.373Z
 
 // 1. Fix missing merkleRoot parameter in test calls
 // Add this to failing tests:
@@ -21,5 +21,5 @@ const testManifest = {
   merkleRoot: defaultMerkleRoot
 };
 
-// Total issues found: 39
-// Files analyzed: 323
+// Total issues found: 91
+// Files analyzed: 552
