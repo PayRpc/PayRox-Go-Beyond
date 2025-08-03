@@ -81,8 +81,11 @@ contract DeterministicChunkFactory is IChunkFactory, AccessControl, ReentrancyGu
     function stageMany(bytes[] calldata dataArray) external payable nonReentrant whenNotPaused returns (address[] memory chunks) {
         chunks = new address[](dataArray.length);
 
+        // Collect batch fee once
+        _collectBatchFee(dataArray.length);
+
         for (uint256 i = 0; i < dataArray.length; i++) {
-            (chunks[i], ) = _stageInternal(dataArray[i]);
+            (chunks[i], ) = _stageInternalNoFee(dataArray[i]);
         }
     }
 
@@ -90,8 +93,11 @@ contract DeterministicChunkFactory is IChunkFactory, AccessControl, ReentrancyGu
         chunks = new address[](blobs.length);
         hashes = new bytes32[](blobs.length);
 
+        // Collect batch fee once
+        _collectBatchFee(blobs.length);
+
         for (uint256 i = 0; i < blobs.length; i++) {
-            (chunks[i], hashes[i]) = _stageInternal(blobs[i]);
+            (chunks[i], hashes[i]) = _stageInternalNoFee(blobs[i]);
         }
     }
 
@@ -153,7 +159,15 @@ contract DeterministicChunkFactory is IChunkFactory, AccessControl, ReentrancyGu
 
         assembly {
             deployed := create2(0, add(initCode, 0x20), mload(initCode), salt)
-            if iszero(deployed) { revert(0, 0) }
+            if iszero(deployed) {
+                let size := returndatasize()
+                if size {
+                    let ptr := mload(0x40)
+                    returndatacopy(ptr, 0, size)
+                    revert(ptr, size)
+                }
+                revert(0, 0)
+            }
         }
 
         require(deployed == ChunkFactoryLib.predictAddress(address(this), salt, codeHash), "Deployment address mismatch");
@@ -191,7 +205,15 @@ contract DeterministicChunkFactory is IChunkFactory, AccessControl, ReentrancyGu
             bytes32 currentSalt = salts[i];
             assembly {
                 let result := create2(0, add(initCode, 0x20), mload(initCode), currentSalt)
-                if iszero(result) { revert(0, 0) }
+                if iszero(result) {
+                    let size := returndatasize()
+                    if size {
+                        let ptr := mload(0x40)
+                        returndatacopy(ptr, 0, size)
+                        revert(ptr, size)
+                    }
+                    revert(0, 0)
+                }
                 mstore(add(add(deployed, 0x20), mul(i, 0x20)), result)
             }
 
@@ -333,6 +355,50 @@ contract DeterministicChunkFactory is IChunkFactory, AccessControl, ReentrancyGu
         uint256 tierFee = tierFees[tier];
 
         return tierFee > 0 ? tierFee : baseFeeWei;
+    }
+
+    /// @notice Collect fee for batch operations
+    function _collectBatchFee(uint256 count) internal {
+        if (!feesEnabled) return;
+
+        uint256 totalFee = _getDeploymentFee(msg.sender) * count;
+        require(msg.value >= totalFee, "Insufficient fee for batch");
+
+        if (msg.value > totalFee) {
+            (bool refundSuccess, ) = msg.sender.call{value: msg.value - totalFee}("");
+            require(refundSuccess, "Refund failed");
+        }
+    }
+
+    /// @notice Internal staging without fee collection (for batch operations)
+    function _stageInternalNoFee(bytes calldata data) internal returns (address chunk, bytes32 hash) {
+        bytes memory dataMemory = data;
+        require(ChunkFactoryLib.validateData(dataMemory), "Invalid data");
+
+        bytes32 salt = ChunkFactoryLib.computeSalt(data);
+        hash = keccak256(data);
+
+        if (idempotentMode && chunkOf[hash] != address(0)) {
+            return (chunkOf[hash], hash);
+        }
+
+        bytes memory initCode = ChunkFactoryLib.createInitCode(data);
+        bytes32 initCodeHash = keccak256(initCode);
+
+        address predicted = ChunkFactoryLib.predictAddress(address(this), salt, initCodeHash);
+
+        assembly {
+            chunk := create2(0, add(initCode, 0x20), mload(initCode), salt)
+            if iszero(chunk) { revert(0, 0) }
+        }
+
+        require(chunk == predicted, "Address mismatch");
+
+        chunkOf[hash] = chunk;
+        isDeployedContract[chunk] = true;
+        deploymentCount++;
+
+        emit ChunkStaged(chunk, hash, salt, data.length);
     }
 
     function _verifySystemIntegrity() internal view returns (bool) {
