@@ -1,7 +1,7 @@
 {
-  "version": "1.1",
-  "timestamp": "2025-08-03T08:36:01.216Z",
-  "description": "PayRox Go Beyond Deployed Contracts - Address Synchronized v1.1",
+  "version": "1.0.4",
+  "timestamp": "2025-08-02T21:48:27.613Z",
+  "description": "PayRox Go Beyond Deployed Contracts - Address Synchronized v1.0.4",
   "network": {
     "name": "localhost",
     "chainId": "31337",
@@ -11,7 +11,7 @@
     "core": {
       "factory": {
         "name": "DeterministicChunkFactory",
-        "address": "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
+        "address": "0x59b670e9fA9D0A427751Af201D676719a970857b",
         "abi": "./artifacts/contracts/factory/DeterministicChunkFactory.sol/DeterministicChunkFactory.json",
         "deploymentFile": "./deployments/localhost/factory.json",
         "currentFee": "0.0007 ETH",
@@ -19,7 +19,7 @@
       },
       "dispatcher": {
         "name": "ManifestDispatcher",
-        "address": "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
+        "address": "0x68B1D87F95878fE05B998F19b66F4baba5De1aed",
         "abi": "./artifacts/contracts/dispatcher/ManifestDispatcher.sol/ManifestDispatcher.json",
         "deploymentFile": "./deployments/localhost/dispatcher.json"
       }
@@ -27,19 +27,19 @@
     "orchestrators": {
       "main": {
         "name": "Orchestrator",
-        "address": "0x0165878A594ca255338adfa4d48449f69242Eb8F",
+        "address": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
         "abi": "./artifacts/contracts/orchestrator/Orchestrator.sol/Orchestrator.json",
         "deploymentFile": "./deployments/localhost/orchestrator.json"
       },
       "governance": {
         "name": "GovernanceOrchestrator",
-        "address": "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853",
+        "address": "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
         "abi": "./artifacts/contracts/orchestrator/GovernanceOrchestrator.sol/GovernanceOrchestrator.json",
         "deploymentFile": "./deployments/localhost/governance-orchestrator.json"
       },
       "auditRegistry": {
         "name": "AuditRegistry",
-        "address": "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6",
+        "address": "0x0165878A594ca255338adfa4d48449f69242Eb8F",
         "abi": "./artifacts/contracts/orchestrator/AuditRegistry.sol/AuditRegistry.json",
         "deploymentFile": "./deployments/localhost/audit-registry.json"
       }
@@ -47,7 +47,7 @@
     "facets": {
       "ping": {
         "name": "PingFacet",
-        "address": "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318",
+        "address": "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853",
         "abi": "./artifacts/contracts/facets/PingFacet.sol/PingFacet.json",
         "deploymentFile": "./deployments/localhost/ping-facet.json"
       },
@@ -66,14 +66,12 @@
       "facet-a": {
         "name": "ExampleFacetA",
         "address": "0x4ed7c70F96B99c776995fB64377f0d4aB3B0e1C1",
-        "abi": "./artifacts/contracts/facets/ExampleFacetA.sol/ExampleFacetA.json",
-        "deploymentFile": "./deployments/localhost/facet-a.json"
+        "abi": "./artifacts/contracts/facets/ExampleFacetA.sol/ExampleFacetA.json"
       },
       "facet-b": {
         "name": "ExampleFacetB",
         "address": "0x322813Fd9A801c5507c9de605d63CEA4f2CE6c44",
-        "abi": "./artifacts/contracts/facets/ExampleFacetB.sol/ExampleFacetB.json",
-        "deploymentFile": "./deployments/localhost/facet-b.json"
+        "abi": "./artifacts/contracts/facets/ExampleFacetB.sol/ExampleFacetB.json"
       }
     }
   },
@@ -100,11 +98,5 @@
     "facetSystem": true,
     "governance": true,
     "auditRegistry": true
-  },
-  "syncDetails": {
-    "deploymentsFound": 8,
-    "configsUpdated": 8,
-    "lastSync": "2025-08-03T08:36:01.216Z",
-    "sourceDirectory": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\deployments\\localhost"
   }
 }
