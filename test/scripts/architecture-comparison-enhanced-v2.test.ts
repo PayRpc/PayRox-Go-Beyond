@@ -244,17 +244,17 @@ describe('🏭 Enhanced Architecture Comparison Tool - Comprehensive Test Suite'
       try {
         // Read the file and validate basic TypeScript syntax
         const content = fs.readFileSync(scriptPath, 'utf-8');
-        
+
         // Basic syntax validation
         expect(content).to.include('import');
         expect(content).to.include('export');
         expect(content).to.not.include('SyntaxError');
-        
+
         // Validate brace matching
         const braceCount = (content.match(/\{/g) || []).length;
         const closeBraceCount = (content.match(/\}/g) || []).length;
         expect(braceCount).to.equal(closeBraceCount);
-        
+
         testSuite.incrementTest('pass');
       } catch (error) {
         testSuite.incrementTest('fail');

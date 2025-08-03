@@ -310,20 +310,20 @@ describe('📋 Enhanced Build Manifest Tool - Comprehensive Test Suite', functio
       try {
         // Read the script and validate TypeScript syntax
         const content = fs.readFileSync(scriptPath, 'utf-8');
-        
+
         // Basic TypeScript validation
         expect(content).to.include('import');
         expect(content).to.include('export');
         expect(content).to.not.include('SyntaxError');
-        
+
         // Validate proper structure for manifest operations
         expect(content).to.include('manifest');
-        
+
         // Validate brace matching
         const braceCount = (content.match(/\{/g) || []).length;
         const closeBraceCount = (content.match(/\}/g) || []).length;
         expect(braceCount).to.equal(closeBraceCount);
-        
+
         testSuite.incrementTest('pass');
       } catch (error) {
         testSuite.incrementTest('fail');
@@ -336,15 +336,14 @@ describe('📋 Enhanced Build Manifest Tool - Comprehensive Test Suite', functio
         const packageJsonPath = path.join(__dirname, '../../package.json');
         const packageJson = await fs.readJson(packageJsonPath);
 
-        const manifestDeps = ['fs-extra', 'hardhat', 'ethers', 'crypto'];
+        const manifestDeps = ['fs-extra', 'hardhat', 'ethers'];
         for (const dep of manifestDeps) {
           const hasMainDep =
             packageJson.dependencies && packageJson.dependencies[dep];
           const hasDevDep =
             packageJson.devDependencies && packageJson.devDependencies[dep];
-          const hasNodejsBuiltin = ['crypto'].includes(dep);
 
-          expect(hasMainDep || hasDevDep || hasNodejsBuiltin).to.be.true;
+          expect(hasMainDep || hasDevDep).to.be.true;
         }
         testSuite.incrementTest('pass');
       } catch (error) {

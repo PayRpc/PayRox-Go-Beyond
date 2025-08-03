@@ -1,39 +1,39 @@
+import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
-import { loadFixture, time } from '@nomicfoundation/hardhat-network-helpers';
-import { 
-  ManifestDispatcher,
-  ExampleFacetA,
-  ExampleFacetB
-} from '../typechain-types';
 
 /**
  * FOCUSED MANIFEST DISPATCHER TEST SUITE
- * 
+ *
  * Tests the core functionality and quality aspects of ManifestDispatcher
  * Focuses on working patterns and realistic usage scenarios
  */
 describe('🚀 ManifestDispatcher - Quality & Functionality Tests', function () {
-  
   // Fixtures for consistent test environment
   async function deployDispatcherFixture() {
     const [deployer, governance, guardian, user1] = await ethers.getSigners();
 
     // Deploy ManifestDispatcher with minimal delay for testing
-    const ManifestDispatcherFactory = await ethers.getContractFactory('ManifestDispatcher');
+    const ManifestDispatcherFactory = await ethers.getContractFactory(
+      'ManifestDispatcher'
+    );
     const dispatcher = await ManifestDispatcherFactory.deploy(
       governance.address, // governance
-      guardian.address,   // guardian  
-      0                  // minDelay (0 for testing convenience)
+      guardian.address, // guardian
+      0 // minDelay (0 for testing convenience)
     );
     await dispatcher.waitForDeployment();
 
     // Deploy test facets
-    const ExampleFacetAFactory = await ethers.getContractFactory('ExampleFacetA');
+    const ExampleFacetAFactory = await ethers.getContractFactory(
+      'ExampleFacetA'
+    );
     const facetA = await ExampleFacetAFactory.deploy();
     await facetA.waitForDeployment();
 
-    const ExampleFacetBFactory = await ethers.getContractFactory('ExampleFacetB');
+    const ExampleFacetBFactory = await ethers.getContractFactory(
+      'ExampleFacetB'
+    );
     const facetB = await ExampleFacetBFactory.deploy();
     await facetB.waitForDeployment();
 
@@ -44,7 +44,7 @@ describe('🚀 ManifestDispatcher - Quality & Functionality Tests', function () 
       deployer,
       governance,
       guardian,
-      user1
+      user1,
     };
   }
 
@@ -54,7 +54,9 @@ describe('🚀 ManifestDispatcher - Quality & Functionality Tests', function () 
 
   describe('📦 Deployment & Initialization', function () {
     it('should deploy with correct initial state', async function () {
-      const { dispatcher, governance, guardian } = await loadFixture(deployDispatcherFixture);
+      const { dispatcher, governance, guardian } = await loadFixture(
+        deployDispatcherFixture
+      );
 
       // Check governance state
       const govState = await dispatcher.govState();
@@ -77,27 +79,37 @@ describe('🚀 ManifestDispatcher - Quality & Functionality Tests', function () 
     });
 
     it('should have correct role assignments', async function () {
-      const { dispatcher, governance, guardian } = await loadFixture(deployDispatcherFixture);
+      const { dispatcher, governance, guardian } = await loadFixture(
+        deployDispatcherFixture
+      );
 
       const DEFAULT_ADMIN_ROLE = await dispatcher.DEFAULT_ADMIN_ROLE();
       const EMERGENCY_ROLE = await dispatcher.EMERGENCY_ROLE();
 
       // Governance should have admin role
-      expect(await dispatcher.hasRole(DEFAULT_ADMIN_ROLE, governance.address)).to.be.true;
-      
+      expect(await dispatcher.hasRole(DEFAULT_ADMIN_ROLE, governance.address))
+        .to.be.true;
+
       // Guardian should have emergency role
-      expect(await dispatcher.hasRole(EMERGENCY_ROLE, guardian.address)).to.be.true;
+      expect(await dispatcher.hasRole(EMERGENCY_ROLE, guardian.address)).to.be
+        .true;
 
       console.log('✅ Role assignment validation passed');
     });
 
     it('should reject invalid deployment parameters', async function () {
       const [deployer] = await ethers.getSigners();
-      const ManifestDispatcherFactory = await ethers.getContractFactory('ManifestDispatcher');
+      const ManifestDispatcherFactory = await ethers.getContractFactory(
+        'ManifestDispatcher'
+      );
 
       // Test zero governance address
       await expect(
-        ManifestDispatcherFactory.deploy(ethers.ZeroAddress, deployer.address, 3600)
+        ManifestDispatcherFactory.deploy(
+          ethers.ZeroAddress,
+          deployer.address,
+          3600
+        )
       ).to.be.revertedWithCustomError(ManifestDispatcherFactory, 'ZeroAddress');
 
       console.log('✅ Invalid parameter rejection passed');
@@ -110,7 +122,9 @@ describe('🚀 ManifestDispatcher - Quality & Functionality Tests', function () 
 
   describe('📋 Direct Manifest Management', function () {
     it('should handle direct manifest updates', async function () {
-      const { dispatcher, governance, facetA } = await loadFixture(deployDispatcherFixture);
+      const { dispatcher, governance, facetA } = await loadFixture(
+        deployDispatcherFixture
+      );
 
       const facetAAddress = await facetA.getAddress();
       const selector = ethers.id('executeA(string)').slice(0, 10);
@@ -118,13 +132,15 @@ describe('🚀 ManifestDispatcher - Quality & Functionality Tests', function () 
       // Create manifest data (selector + facet address)
       const manifestData = ethers.concat([
         selector,
-        ethers.zeroPadValue(facetAAddress, 20)
+        ethers.zeroPadValue(facetAAddress, 20),
       ]);
 
       const manifestHash = ethers.keccak256(manifestData);
 
       // Update manifest directly (governance only)
-      const updateTx = await dispatcher.connect(governance).updateManifest(manifestHash, manifestData);
+      const updateTx = await dispatcher
+        .connect(governance)
+        .updateManifest(manifestHash, manifestData);
       await updateTx.wait();
 
       // Verify the route was added
@@ -141,7 +157,9 @@ describe('🚀 ManifestDispatcher - Quality & Functionality Tests', function () 
     });
 
     it('should validate manifest data format', async function () {
-      const { dispatcher, governance } = await loadFixture(deployDispatcherFixture);
+      const { dispatcher, governance } = await loadFixture(
+        deployDispatcherFixture
+      );
 
       // Test invalid manifest data length
       const invalidData = '0x1234'; // Too short
@@ -167,24 +185,21 @@ describe('🚀 ManifestDispatcher - Quality & Functionality Tests', function () 
       const testData = '0x';
 
       // Test unauthorized access
-      await expect(
-        dispatcher.connect(user1).updateManifest(testRoot, testData)
-      ).to.be.reverted; // Should revert with access control error
+      await expect(dispatcher.connect(user1).updateManifest(testRoot, testData))
+        .to.be.reverted; // Should revert with access control error
 
-      await expect(
-        dispatcher.connect(user1).freeze()
-      ).to.be.reverted; // Should revert with access control error
+      await expect(dispatcher.connect(user1).freeze()).to.be.reverted; // Should revert with access control error
 
       console.log('✅ Access control enforcement passed');
     });
 
     it('should allow guardian emergency functions', async function () {
-      const { dispatcher, guardian } = await loadFixture(deployDispatcherFixture);
+      const { dispatcher, guardian } = await loadFixture(
+        deployDispatcherFixture
+      );
 
       // Guardian should be able to pause
-      await expect(
-        dispatcher.connect(guardian).pause()
-      ).to.not.be.reverted;
+      await expect(dispatcher.connect(guardian).pause()).to.not.be.reverted;
 
       expect(await dispatcher.paused()).to.be.true;
 
@@ -202,7 +217,9 @@ describe('🚀 ManifestDispatcher - Quality & Functionality Tests', function () 
 
   describe('⚡ Function Routing', function () {
     it('should route function calls to correct facets', async function () {
-      const { dispatcher, governance, facetA } = await loadFixture(deployDispatcherFixture);
+      const { dispatcher, governance, facetA } = await loadFixture(
+        deployDispatcherFixture
+      );
 
       const facetAAddress = await facetA.getAddress();
       const selector = ethers.id('executeA(string)').slice(0, 10);
@@ -210,20 +227,23 @@ describe('🚀 ManifestDispatcher - Quality & Functionality Tests', function () 
       // Create and apply manifest
       const manifestData = ethers.concat([
         selector,
-        ethers.zeroPadValue(facetAAddress, 20)
+        ethers.zeroPadValue(facetAAddress, 20),
       ]);
       const manifestHash = ethers.keccak256(manifestData);
 
-      await dispatcher.connect(governance).updateManifest(manifestHash, manifestData);
+      await dispatcher
+        .connect(governance)
+        .updateManifest(manifestHash, manifestData);
 
       // Test routing to facetA
       const ExampleFacetA = await ethers.getContractFactory('ExampleFacetA');
-      const dispatcherAsFacetA = ExampleFacetA.attach(await dispatcher.getAddress());
-      
+      const dispatcherAsFacetA = ExampleFacetA.attach(
+        await dispatcher.getAddress()
+      );
+
       // This should work - calling through dispatcher routes to facetA
-      await expect(
-        dispatcherAsFacetA.executeA('test message')
-      ).to.not.be.reverted;
+      await expect(dispatcherAsFacetA.executeA('test message')).to.not.be
+        .reverted;
 
       console.log('✅ Function routing passed');
     });
@@ -237,7 +257,7 @@ describe('🚀 ManifestDispatcher - Quality & Functionality Tests', function () 
       await expect(
         ethers.provider.call({
           to: await dispatcher.getAddress(),
-          data: unknownSelector
+          data: unknownSelector,
         })
       ).to.be.reverted;
 
@@ -251,7 +271,9 @@ describe('🚀 ManifestDispatcher - Quality & Functionality Tests', function () 
 
   describe('🔒 Security & Error Handling', function () {
     it('should handle frozen state correctly', async function () {
-      const { dispatcher, governance } = await loadFixture(deployDispatcherFixture);
+      const { dispatcher, governance } = await loadFixture(
+        deployDispatcherFixture
+      );
 
       // Freeze the dispatcher
       await dispatcher.connect(governance).freeze();
@@ -262,52 +284,62 @@ describe('🚀 ManifestDispatcher - Quality & Functionality Tests', function () 
       // State-changing operations should fail when frozen
       const testData = ethers.concat([
         ethers.id('test()').slice(0, 10),
-        ethers.zeroPadValue(ethers.ZeroAddress, 20)
+        ethers.zeroPadValue(ethers.ZeroAddress, 20),
       ]);
 
       await expect(
-        dispatcher.connect(governance).updateManifest(ethers.keccak256(testData), testData)
+        dispatcher
+          .connect(governance)
+          .updateManifest(ethers.keccak256(testData), testData)
       ).to.be.revertedWithCustomError(dispatcher, 'FrozenError');
 
       console.log('✅ Frozen state handling passed');
     });
 
     it('should validate facet addresses', async function () {
-      const { dispatcher, governance } = await loadFixture(deployDispatcherFixture);
+      const { dispatcher, governance } = await loadFixture(
+        deployDispatcherFixture
+      );
 
       const selector = ethers.id('test()').slice(0, 10);
 
       // Test zero address rejection
       const invalidManifestData = ethers.concat([
         selector,
-        ethers.zeroPadValue(ethers.ZeroAddress, 20)
+        ethers.zeroPadValue(ethers.ZeroAddress, 20),
       ]);
 
       await expect(
-        dispatcher.connect(governance).updateManifest(
-          ethers.keccak256(invalidManifestData), 
-          invalidManifestData
-        )
+        dispatcher
+          .connect(governance)
+          .updateManifest(
+            ethers.keccak256(invalidManifestData),
+            invalidManifestData
+          )
       ).to.be.revertedWithCustomError(dispatcher, 'ZeroCodeFacet');
 
       console.log('✅ Facet address validation passed');
     });
 
     it('should enforce pausable pattern', async function () {
-      const { dispatcher, guardian, governance } = await loadFixture(deployDispatcherFixture);
+      const { dispatcher, guardian, governance } = await loadFixture(
+        deployDispatcherFixture
+      );
 
       // Pause the contract
       await dispatcher.connect(guardian).pause();
-      
+
       const testData = ethers.concat([
         ethers.id('test()').slice(0, 10),
-        ethers.zeroPadValue(ethers.ZeroAddress, 20)
+        ethers.zeroPadValue(ethers.ZeroAddress, 20),
       ]);
 
       // Critical functions should be paused
       await expect(
-        dispatcher.connect(governance).updateManifest(ethers.keccak256(testData), testData)
-      ).to.be.revertedWith('Pausable: paused');
+        dispatcher
+          .connect(governance)
+          .updateManifest(ethers.keccak256(testData), testData)
+      ).to.be.revertedWithCustomError(dispatcher, 'EnforcedPause');
 
       console.log('✅ Pausable pattern enforcement passed');
     });
@@ -319,24 +351,30 @@ describe('🚀 ManifestDispatcher - Quality & Functionality Tests', function () 
 
   describe('⚡ Gas Optimization', function () {
     it('should have efficient gas usage for manifest updates', async function () {
-      const { dispatcher, governance, facetA } = await loadFixture(deployDispatcherFixture);
+      const { dispatcher, governance, facetA } = await loadFixture(
+        deployDispatcherFixture
+      );
 
       const facetAAddress = await facetA.getAddress();
       const selector = ethers.id('executeA(string)').slice(0, 10);
 
       const manifestData = ethers.concat([
         selector,
-        ethers.zeroPadValue(facetAAddress, 20)
+        ethers.zeroPadValue(facetAAddress, 20),
       ]);
       const manifestHash = ethers.keccak256(manifestData);
 
       // Test manifest update gas usage
-      const updateTx = await dispatcher.connect(governance).updateManifest(manifestHash, manifestData);
+      const updateTx = await dispatcher
+        .connect(governance)
+        .updateManifest(manifestHash, manifestData);
       const receipt = await updateTx.wait();
-      
+
       expect(receipt?.gasUsed).to.be.below(200_000); // Should be under 200k gas
 
-      console.log(`✅ Gas optimization passed - Manifest update: ${receipt?.gasUsed} gas`);
+      console.log(
+        `✅ Gas optimization passed - Manifest update: ${receipt?.gasUsed} gas`
+      );
     });
   });
 
@@ -346,7 +384,9 @@ describe('🚀 ManifestDispatcher - Quality & Functionality Tests', function () 
 
   describe('🔗 Integration', function () {
     it('should provide Diamond EIP-2535 compatibility interface', async function () {
-      const { dispatcher, governance, facetA } = await loadFixture(deployDispatcherFixture);
+      const { dispatcher, governance, facetA } = await loadFixture(
+        deployDispatcherFixture
+      );
 
       const facetAAddress = await facetA.getAddress();
       const selector = ethers.id('executeA(string)').slice(0, 10);
@@ -354,18 +394,19 @@ describe('🚀 ManifestDispatcher - Quality & Functionality Tests', function () 
       // Add a route via manifest
       const manifestData = ethers.concat([
         selector,
-        ethers.zeroPadValue(facetAAddress, 20)
+        ethers.zeroPadValue(facetAAddress, 20),
       ]);
-      await dispatcher.connect(governance).updateManifest(
-        ethers.keccak256(manifestData), 
-        manifestData
-      );
+      await dispatcher
+        .connect(governance)
+        .updateManifest(ethers.keccak256(manifestData), manifestData);
 
       // Test Diamond Loupe interface
       const facetAddresses = await dispatcher.facetAddresses();
       expect(facetAddresses).to.include(facetAAddress);
 
-      const facetFunctionSelectors = await dispatcher.facetFunctionSelectors(facetAAddress);
+      const facetFunctionSelectors = await dispatcher.facetFunctionSelectors(
+        facetAAddress
+      );
       expect(facetFunctionSelectors).to.include(selector);
 
       const facetAddress = await dispatcher.facetAddress(selector);
@@ -378,7 +419,9 @@ describe('🚀 ManifestDispatcher - Quality & Functionality Tests', function () 
     });
 
     it('should maintain isolated facet storage', async function () {
-      const { dispatcher, governance, facetA } = await loadFixture(deployDispatcherFixture);
+      const { dispatcher, governance, facetA } = await loadFixture(
+        deployDispatcherFixture
+      );
 
       const facetAAddress = await facetA.getAddress();
       const selectorA = ethers.id('storeData(uint256)').slice(0, 10);
@@ -389,18 +432,19 @@ describe('🚀 ManifestDispatcher - Quality & Functionality Tests', function () 
         selectorA,
         ethers.zeroPadValue(facetAAddress, 20),
         selectorGetA,
-        ethers.zeroPadValue(facetAAddress, 20)
+        ethers.zeroPadValue(facetAAddress, 20),
       ]);
 
-      await dispatcher.connect(governance).updateManifest(
-        ethers.keccak256(manifestData), 
-        manifestData
-      );
+      await dispatcher
+        .connect(governance)
+        .updateManifest(ethers.keccak256(manifestData), manifestData);
 
       // Store data through dispatcher
       const ExampleFacetA = await ethers.getContractFactory('ExampleFacetA');
-      const dispatcherAsFacetA = ExampleFacetA.attach(await dispatcher.getAddress());
-      
+      const dispatcherAsFacetA = ExampleFacetA.attach(
+        await dispatcher.getAddress()
+      );
+
       await dispatcherAsFacetA.storeData(123);
 
       // Verify data is stored in facet's isolated storage
@@ -416,7 +460,9 @@ describe('🚀 ManifestDispatcher - Quality & Functionality Tests', function () 
   // ═══════════════════════════════════════════════════════════════════════════
 
   after(function () {
-    console.log('\n═══════════════════════════════════════════════════════════');
+    console.log(
+      '\n═══════════════════════════════════════════════════════════'
+    );
     console.log('🎯 MANIFEST DISPATCHER - QUALITY ASSESSMENT COMPLETE');
     console.log('═══════════════════════════════════════════════════════════');
     console.log('✅ Core Functionality: WORKING');

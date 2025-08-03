@@ -295,13 +295,15 @@ describe('ChunkFactoryFacet - Enhanced Test Suite', function () {
 
     it('Should validate bytecode sizes correctly', async function () {
       await measurePerformance('validate-bytecode-size', async () => {
+        // Test valid bytecode
         const factoryValid = await factory.validateBytecodeSize(TEST_BYTECODE);
         const facetValid = await facet.validateBytecodeSize(TEST_BYTECODE);
 
         expect(facetValid).to.equal(factoryValid);
+        expect(factoryValid).to.be.true; // Small bytecode should be valid
 
-        // Test oversized bytecode
-        const oversizedBytecode = '0x' + '00'.repeat(25000); // 25KB
+        // Test oversized bytecode (EIP-3860 init-code limit is 49,152 bytes)
+        const oversizedBytecode = '0x' + '00'.repeat(50000); // 50KB - exceeds limit
         const factoryOversized = await factory.validateBytecodeSize(
           oversizedBytecode
         );
@@ -310,6 +312,7 @@ describe('ChunkFactoryFacet - Enhanced Test Suite', function () {
         );
 
         expect(facetOversized).to.equal(factoryOversized);
+        expect(factoryOversized).to.be.false; // Oversized should be invalid
         return null;
       });
     });
@@ -431,7 +434,10 @@ describe('ChunkFactoryFacet - Enhanced Test Suite', function () {
         // Only admin should be able to set tier fees
         await expect(
           facet.connect(unauthorized).setTierFee(1, TEST_DEPLOYMENT_FEE)
-        ).to.be.reverted;
+        ).to.be.revertedWithCustomError(
+          factory,
+          'AccessControlUnauthorizedAccount'
+        );
 
         // Admin should succeed
         await facet.connect(deployer).setTierFee(1, TEST_DEPLOYMENT_FEE);
@@ -443,7 +449,12 @@ describe('ChunkFactoryFacet - Enhanced Test Suite', function () {
     it('Should proxy pause/unpause correctly', async function () {
       await measurePerformance('pause-unpause', async () => {
         // Only admin should be able to pause
-        await expect(facet.connect(unauthorized).pause()).to.be.reverted;
+        await expect(
+          facet.connect(unauthorized).pause()
+        ).to.be.revertedWithCustomError(
+          factory,
+          'AccessControlUnauthorizedAccount'
+        );
 
         // Admin should succeed
         await facet.connect(deployer).pause();
@@ -497,11 +508,9 @@ describe('ChunkFactoryFacet - Enhanced Test Suite', function () {
 
         // Second deployment with same salt should fail
         await expect(
-          facet
-            .connect(user1)
-            .deployDeterministic(salt, TEST_BYTECODE, '0x', {
-              value: TEST_DEPLOYMENT_FEE,
-            })
+          facet.connect(user1).deployDeterministic(salt, TEST_BYTECODE, '0x', {
+            value: TEST_DEPLOYMENT_FEE,
+          })
         ).to.be.reverted;
 
         return null;
@@ -513,7 +522,8 @@ describe('ChunkFactoryFacet - Enhanced Test Suite', function () {
         await factory.setTierFee(0, TEST_DEPLOYMENT_FEE);
 
         const salt = generateRandomSalt();
-        const invalidBytecode = '0xinvalid';
+        // Use valid hex but empty bytecode (which is invalid for deployment)
+        const invalidBytecode = '0x'; // Empty bytecode is invalid for deployment
 
         await expect(
           facet
