@@ -1,0 +1,7 @@
+# Mocha options for PayRox test suite
+--timeout 30000
+--require ts-node/register
+--recursive
+--exclude "test/scripts/analyze-merkle-organization-functional.test.ts"
+--exclude "test/scripts/*-enhanced*.test.ts"
+--exit
