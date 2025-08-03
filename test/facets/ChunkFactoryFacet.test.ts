@@ -26,12 +26,16 @@ describe('ChunkFactoryFacet - Enhanced Test Suite', function () {
   let facetAddress: string;
   let dispatcherAddress: string;
 
-  const TEST_DEPLOYMENT_FEE = ethers.parseEther('0.001');
+  // Production-aligned fee structure
+  const FACTORY_BASE_FEE = ethers.parseEther('0.0007'); // Factory deployment fee
+  const PLATFORM_FEE = ethers.parseEther('0.0002'); // PayRox platform fee
+  const TEST_DEPLOYMENT_FEE = FACTORY_BASE_FEE; // Use factory fee for tests
+
   const TEST_CHUNK_DATA = ethers.toUtf8Bytes(
     'Test chunk data for CREATE2 deployment'
   );
   const TEST_BYTECODE =
-    '0x608060405234801561001057600080fd5b5060008055348015601c57600080fd5b50603e80602a6000396000f3fe6080604052600080fdfea264697066735822122001234567890123456789012345678901234567890123456789012345678901234564736f6c63430008140033';
+    '0x6080604052348015600f57600080fd5b50600a8060206000396000f3fe6080604052600080fd';
 
   // Test performance tracking
   interface TestMetrics {
@@ -411,7 +415,7 @@ describe('ChunkFactoryFacet - Enhanced Test Suite', function () {
           salt,
           TEST_BYTECODE,
           '0x', // No constructor args
-          { value: TEST_DEPLOYMENT_FEE }
+          { value: TEST_DEPLOYMENT_FEE, gasLimit: 1000000 }
         );
         const receipt = await tx.wait();
 
