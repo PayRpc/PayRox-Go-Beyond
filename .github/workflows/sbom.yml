@@ -17,7 +17,7 @@ on:
         options:
           - hardhat
           - localhost
-          - testnet
+          - sepolia
           - mainnet
 
 jobs:
@@ -60,7 +60,7 @@ jobs:
           elif [ "${{ github.event_name }}" = "release" ]; then
             NETWORK="mainnet"
           elif [ "${{ github.ref }}" = "refs/heads/main" ]; then
-            NETWORK="testnet"
+            NETWORK="sepolia"
           else
             NETWORK="hardhat"
           fi
