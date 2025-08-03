@@ -75,6 +75,27 @@ contract DeterministicChunkFactory is IChunkFactory, AccessControl, ReentrancyGu
     // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
 
     function stage(bytes calldata data) external payable nonReentrant whenNotPaused returns (address chunk, bytes32 hash) {
+        return _stageInternal(data);
+    }
+
+    function stageMany(bytes[] calldata dataArray) external payable nonReentrant whenNotPaused returns (address[] memory chunks) {
+        chunks = new address[](dataArray.length);
+
+        for (uint256 i = 0; i < dataArray.length; i++) {
+            (chunks[i], ) = _stageInternal(dataArray[i]);
+        }
+    }
+
+    function stageBatch(bytes[] calldata blobs) external payable nonReentrant whenNotPaused returns (address[] memory chunks, bytes32[] memory hashes) {
+        chunks = new address[](blobs.length);
+        hashes = new bytes32[](blobs.length);
+
+        for (uint256 i = 0; i < blobs.length; i++) {
+            (chunks[i], hashes[i]) = _stageInternal(blobs[i]);
+        }
+    }
+
+    function _stageInternal(bytes calldata data) internal returns (address chunk, bytes32 hash) {
         bytes memory dataMemory = data;
         require(ChunkFactoryLib.validateData(dataMemory), "Invalid data");
 
@@ -104,24 +125,6 @@ contract DeterministicChunkFactory is IChunkFactory, AccessControl, ReentrancyGu
         deploymentCount++;
 
         emit ChunkStaged(chunk, hash, salt, data.length);
-    }
-
-    function stageMany(bytes[] calldata dataArray) external payable nonReentrant whenNotPaused returns (address[] memory chunks) {
-        chunks = new address[](dataArray.length);
-
-        for (uint256 i = 0; i < dataArray.length; i++) {
-            // Recursive call to maintain fee collection per chunk
-            (chunks[i], ) = this.stage{value: msg.value / dataArray.length}(dataArray[i]);
-        }
-    }
-
-    function stageBatch(bytes[] calldata blobs) external payable nonReentrant whenNotPaused returns (address[] memory chunks, bytes32[] memory hashes) {
-        chunks = new address[](blobs.length);
-        hashes = new bytes32[](blobs.length);
-
-        for (uint256 i = 0; i < blobs.length; i++) {
-            (chunks[i], hashes[i]) = this.stage{value: msg.value / blobs.length}(blobs[i]);
-        }
     }
 
     function deployDeterministic(

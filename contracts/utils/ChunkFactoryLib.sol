@@ -67,32 +67,44 @@ library ChunkFactoryLib {
     /// @param data The data to wrap in init code
     /// @return initCode The complete init code for CREATE2
     function createInitCode(bytes calldata data) internal pure returns (bytes memory initCode) {
-        // Build init code: constructor pushes data to memory, then returns it
-        // Format: [creation code][runtime code]
-        // Runtime code: 0x60006000fd (PUSH1 0x00; PUSH1 0x00; REVERT) + data
+        // Create init code that deploys a simple contract containing the data
+        // The deployed contract just contains the raw data
 
-        bytes memory runtimeCode = abi.encodePacked(
-            hex"60006000fd", // Revert prologue
-            data
-        );
+        bytes memory runtimeCode = data;
+        uint256 runtimeSize = runtimeCode.length;
 
-        // Creation code that returns the runtime code
-        initCode = abi.encodePacked(
-            // PUSH size
-            _encodeDataSize(runtimeCode.length),
-            // PUSH offset (0)
-            hex"6000",
-            // CODECOPY
-            hex"39",
-            // PUSH size
-            _encodeDataSize(runtimeCode.length),
-            // PUSH offset (0)
-            hex"6000",
-            // RETURN
-            hex"f3",
-            // Runtime code
-            runtimeCode
-        );
+        bytes memory creationCode;
+        uint256 creationCodeSize;
+
+        if (runtimeSize <= 0xff) {
+            // Creation code size is 7 bytes for PUSH1 variant
+            creationCodeSize = 7;
+            creationCode = abi.encodePacked(
+                hex"60", uint8(runtimeSize),    // PUSH1 size
+                hex"80",                        // DUP1 (copy size to stack)
+                hex"60", uint8(creationCodeSize), // PUSH1 creationCodeSize (offset where runtime starts)
+                hex"6000",                      // PUSH1 0 (destOffset)
+                hex"39",                        // CODECOPY
+                hex"6000",                      // PUSH1 0
+                hex"f3"                         // RETURN
+            );
+        } else if (runtimeSize <= 0xffff) {
+            // Creation code size is 9 bytes for PUSH2 variant
+            creationCodeSize = 9;
+            creationCode = abi.encodePacked(
+                hex"61", uint16(runtimeSize),   // PUSH2 size
+                hex"80",                        // DUP1
+                hex"61", uint16(creationCodeSize), // PUSH2 creationCodeSize
+                hex"6000",                      // PUSH1 0
+                hex"39",                        // CODECOPY
+                hex"6000",                      // PUSH1 0
+                hex"f3"                         // RETURN
+            );
+        } else {
+            revert("Data too large");
+        }
+
+        initCode = abi.encodePacked(creationCode, runtimeCode);
     }
 
     /// @notice Reads data from a deployed chunk contract (optimized assembly version)
