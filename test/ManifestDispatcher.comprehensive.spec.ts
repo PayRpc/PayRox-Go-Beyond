@@ -28,24 +28,24 @@ describe('🚀 ManifestDispatcher - Comprehensive Quality Suite', function () {
     const ManifestDispatcherFactory = await ethers.getContractFactory(
       'ManifestDispatcher'
     );
-    const dispatcher = (await ManifestDispatcherFactory.deploy(
+    const dispatcher = await ManifestDispatcherFactory.deploy(
       governance.address, // governance
       guardian.address, // guardian
       3600 // minDelay (1 hour for production safety)
-    )) as ManifestDispatcher;
+    ) as unknown as ManifestDispatcher;
     await dispatcher.waitForDeployment();
 
     // Deploy test facets
     const ExampleFacetAFactory = await ethers.getContractFactory(
       'ExampleFacetA'
     );
-    const facetA = (await ExampleFacetAFactory.deploy()) as ExampleFacetA;
+    const facetA = await ExampleFacetAFactory.deploy() as unknown as ExampleFacetA;
     await facetA.waitForDeployment();
 
     const ExampleFacetBFactory = await ethers.getContractFactory(
       'ExampleFacetB'
     );
-    const facetB = (await ExampleFacetBFactory.deploy()) as ExampleFacetB;
+    const facetB = await ExampleFacetBFactory.deploy() as unknown as ExampleFacetB;
     await facetB.waitForDeployment();
 
     // Deploy OrderedMerkle utility for manifest verification

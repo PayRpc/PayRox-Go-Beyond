@@ -216,18 +216,9 @@ jobs:
       - name: Validate environment variables
         run: |
           echo "🔍 Validating deployment environment..."
-          if [[ -z "$TESTNET_RPC_URL" || "$TESTNET_RPC_URL" == "http://localhost:8545" ]]; then
-            echo "❌ Invalid or placeholder TESTNET_RPC_URL"
-            exit 1
-          fi
-          if [[ -z "$DEPLOYER_PRIVATE_KEY" || "$DEPLOYER_PRIVATE_KEY" == "0x0000000000000000000000000000000000000000000000000000000000000000" ]]; then
-            echo "❌ Invalid or placeholder DEPLOYER_PRIVATE_KEY"
-            exit 1
-          fi
-          echo "✅ Environment validation passed"
-        env:
-          TESTNET_RPC_URL: ${{ secrets.TESTNET_RPC_URL }}
-          DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
+          echo "⚠️ Testnet deployment is currently disabled"
+          echo "This step would validate TESTNET_RPC_URL and DEPLOYER_PRIVATE_KEY"
+          exit 0
 
       - name: Pre-deployment checks
         run: |
@@ -239,13 +230,9 @@ jobs:
 
       - name: Deploy to testnet
         run: |
-          echo "🚀 Deploying to testnet..."
-          npm run deploy:testnet
-          echo "✅ Testnet deployment completed"
-        env:
-          TESTNET_RPC_URL: ${{ secrets.TESTNET_RPC_URL }}
-          DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
-          ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
+          echo "🚀 Testnet deployment is currently disabled"
+          echo "This step would deploy to testnet"
+          exit 0
 
       - name: Post-deployment verification
         run: |
@@ -280,18 +267,9 @@ jobs:
       - name: Validate mainnet environment
         run: |
           echo "🔍 Validating mainnet deployment environment..."
-          if [[ -z "$MAINNET_RPC_URL" || "$MAINNET_RPC_URL" == *"placeholder"* ]]; then
-            echo "❌ Invalid or placeholder MAINNET_RPC_URL"
-            exit 1
-          fi
-          if [[ -z "$DEPLOYER_PRIVATE_KEY" || "$DEPLOYER_PRIVATE_KEY" == "0x0000000000000000000000000000000000000000000000000000000000000000" ]]; then
-            echo "❌ Invalid or placeholder DEPLOYER_PRIVATE_KEY"
-            exit 1
-          fi
-          echo "✅ Mainnet environment validation passed"
-        env:
-          MAINNET_RPC_URL: ${{ secrets.MAINNET_RPC_URL }}
-          DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
+          echo "⚠️ Mainnet deployment is currently disabled"
+          echo "This step would validate MAINNET_RPC_URL and DEPLOYER_PRIVATE_KEY"
+          exit 0
 
       - name: Pre-deployment security checks
         run: |
@@ -303,23 +281,15 @@ jobs:
 
       - name: Deploy to mainnet
         run: |
-          echo "🚀 Deploying to mainnet..."
-          npm run deploy:mainnet
-          echo "✅ Mainnet deployment completed"
-        env:
-          MAINNET_RPC_URL: ${{ secrets.MAINNET_RPC_URL }}
-          DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
-          ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
+          echo "🚀 Mainnet deployment is currently disabled"
+          echo "This step would deploy to mainnet"
+          exit 0
 
       - name: Verify contracts on Etherscan
         run: |
-          echo "🔍 Verifying contracts on Etherscan..."
-          npm run verify || {
-            echo "⚠️ Contract verification failed"
-            exit 0
-          }
-        env:
-          ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
+          echo "🔍 Contract verification is currently disabled"
+          echo "This step would verify contracts on Etherscan"
+          exit 0
         continue-on-error: true
 
       - name: Post-deployment verification
