@@ -24,7 +24,16 @@
     "./tasks/**/*",
     "./hardhat.config.ts",
     "./src/**/*",
-    "./typechain-types/**/*"
+    "./typechain-types/**/*",
+    "./cli/src/**/*",
+    "./sdk/src/**/*"
   ],
-  "exclude": ["node_modules", "dist", "artifacts", "cache", "coverage"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "artifacts",
+    "cache",
+    "coverage",
+    "tools/ai-assistant/frontend"
+  ]
 }
