@@ -1,6 +1,5 @@
 import { ethers } from 'hardhat';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
-import { ManifestDispatcher } from '../typechain-types';
 
 /**
  * Enhanced epoch checker for PayRox ManifestDispatcher with CLI optimization
@@ -17,7 +16,7 @@ export interface EpochInfo {
   blockNumber: number;
   dispatcherAddress: string;
   networkName: string;
-  chainId: number;
+  chainId: bigint;
 }
 
 export interface CheckEpochOptions {
@@ -154,10 +153,7 @@ export async function checkEpoch(
 
     // Create contract instance with timeout
     const dispatcher = await Promise.race([
-      ethers.getContractAt(
-        'ManifestDispatcher',
-        dispatcherAddress
-      ) as Promise<ManifestDispatcher>,
+      ethers.getContractAt('ManifestDispatcher', dispatcherAddress),
       new Promise<never>((_, reject) =>
         setTimeout(
           () =>
@@ -225,7 +221,7 @@ export async function checkEpoch(
  * @param verbose Enable verbose logging
  */
 async function validateEpochState(
-  dispatcher: ManifestDispatcher,
+  dispatcher: any,
   activeEpoch: bigint,
   verbose: boolean = false
 ): Promise<void> {
