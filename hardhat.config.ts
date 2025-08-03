@@ -16,7 +16,7 @@ import './tasks/sbom';
 dotenv.config();
 
 const config: HardhatUserConfig = {
-  defaultNetwork: process.env.DEFAULT_NETWORK || 'hardhat',
+  defaultNetwork: 'hardhat', // Always use hardhat as default for development
   solidity: {
     version: '0.8.30', // Keep current version - works perfectly
     settings: {
