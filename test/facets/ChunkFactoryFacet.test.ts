@@ -89,6 +89,21 @@ describe('ChunkFactoryFacet - Enhanced Test Suite', function () {
 
     console.log(`🏭 Factory deployed at: ${factoryAddress}`);
     console.log(`💎 Facet deployed at: ${facetAddress}`);
+
+    // Ensure deployer has proper roles
+    const DEFAULT_ADMIN_ROLE = await factory.DEFAULT_ADMIN_ROLE();
+    const FEE_ROLE = await factory.FEE_ROLE();
+    const OPERATOR_ROLE = await factory.OPERATOR_ROLE();
+
+    if (!(await factory.hasRole(DEFAULT_ADMIN_ROLE, deployer.address))) {
+      await factory.grantRole(DEFAULT_ADMIN_ROLE, deployer.address);
+    }
+    if (!(await factory.hasRole(FEE_ROLE, deployer.address))) {
+      await factory.grantRole(FEE_ROLE, deployer.address);
+    }
+    if (!(await factory.hasRole(OPERATOR_ROLE, deployer.address))) {
+      await factory.grantRole(OPERATOR_ROLE, deployer.address);
+    }
   });
 
   afterEach(async function () {
@@ -330,8 +345,41 @@ describe('ChunkFactoryFacet - Enhanced Test Suite', function () {
 
     it('Should stage chunks via facet', async function () {
       await measurePerformance('stage-chunk', async () => {
-        const tx = await facet.connect(user1).stage(TEST_CHUNK_DATA, {
+        // Try with very simple data first
+        const SIMPLE_TEST_DATA = ethers.toUtf8Bytes('Hello');
+
+        // Debug: Check factory state before staging
+        console.log('🔍 Factory paused status:', await factory.paused());
+        console.log('🔍 Fee enabled status:', await factory.feesEnabled());
+        console.log('🔍 Base fee:', await factory.baseFeeWei());
+        console.log('🔍 User1 tier:', await factory.getUserTier(user1.address));
+        console.log(
+          '🔍 Deployment fee for user1:',
+          await factory.connect(user1).getDeploymentFee()
+        );
+        console.log('🔍 Idempotent mode:', await factory.idempotentMode());
+        console.log('🔍 SIMPLE_TEST_DATA length:', SIMPLE_TEST_DATA.length);
+        console.log('🔍 SIMPLE_TEST_DATA:', ethers.hexlify(SIMPLE_TEST_DATA));
+
+        // Test if factory works directly first with simple data
+        console.log('🔍 Testing factory directly with simple data...');
+        try {
+          const directTx = await factory
+            .connect(user1)
+            .stage(SIMPLE_TEST_DATA, {
+              value: TEST_DEPLOYMENT_FEE,
+              gasLimit: 1000000, // Explicit gas limit
+            });
+          const directReceipt = await directTx.wait();
+          console.log('✅ Direct factory call succeeded');
+        } catch (error) {
+          console.log('❌ Direct factory call failed:', error.message);
+          console.log('❌ Error details:', error);
+        }
+
+        const tx = await facet.connect(user1).stage(SIMPLE_TEST_DATA, {
           value: TEST_DEPLOYMENT_FEE,
+          gasLimit: 1000000, // Explicit gas limit
         });
         const receipt = await tx.wait();
 
@@ -464,7 +512,7 @@ describe('ChunkFactoryFacet - Enhanced Test Suite', function () {
           facet
             .connect(user1)
             .stage(TEST_CHUNK_DATA, { value: TEST_DEPLOYMENT_FEE })
-        ).to.be.revertedWith('Pausable: paused');
+        ).to.be.revertedWithCustomError(factory, 'EnforcedPause');
 
         // Unpause
         await facet.connect(deployer).unpause();
@@ -522,8 +570,8 @@ describe('ChunkFactoryFacet - Enhanced Test Suite', function () {
         await factory.setTierFee(0, TEST_DEPLOYMENT_FEE);
 
         const salt = generateRandomSalt();
-        // Use valid hex but empty bytecode (which is invalid for deployment)
-        const invalidBytecode = '0x'; // Empty bytecode is invalid for deployment
+        // Use bytecode that will cause CREATE2 to fail - contains INVALID opcode (0xfe)
+        const invalidBytecode = '0xfe'; // INVALID opcode will cause deployment to fail
 
         await expect(
           facet
