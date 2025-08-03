@@ -1,0 +1,9 @@
+{
+  "Timestamp": "2025-08-03T01:46:54Z",
+  "Success": true,
+  "Duration": 7.7668702,
+  "Networks": [
+    "sepolia",
+    "base-sepolia"
+  ]
+}

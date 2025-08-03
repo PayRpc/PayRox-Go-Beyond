@@ -48,22 +48,22 @@ export default [
       '@typescript-eslint/no-explicit-any': 'off', // Allow any for flexibility
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/no-non-null-assertion': 'off', // Allow non-null assertions
-      
+
       // General rules
       'no-console': 'off', // Allow console.log in scripts
       'prefer-const': 'off', // More lenient
       'no-var': 'error',
-      'eqeqeq': 'off', // More lenient
-      'curly': 'off', // Disable curly brace requirements
-      
+      eqeqeq: 'off', // More lenient
+      curly: 'off', // Disable curly brace requirements
+
       // Code style
-      'indent': 'off', // Let prettier handle this
-      'quotes': 'off', // Let prettier handle this
-      'semi': 'off', // Let prettier handle this
+      indent: 'off', // Let prettier handle this
+      quotes: 'off', // Let prettier handle this
+      semi: 'off', // Let prettier handle this
       'comma-trailing': 'off',
-      
+
       // Allow unused parameters in function signatures
-      'no-unused-vars': ['warn', { 'argsIgnorePattern': '^_' }],
+      'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
     },
   },
   {
@@ -89,22 +89,33 @@ export default [
       },
     },
     rules: {
-      'no-unused-vars': ['warn', { 'argsIgnorePattern': '^_' }],
+      'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
       'no-undef': 'off', // More lenient for JS files
       'no-console': 'off',
     },
   },
   {
-    files: ['hardhat.config.ts', 'scripts/**/*.ts', 'test/**/*.ts', 'tasks/**/*.ts'],
+    files: [
+      'hardhat.config.ts',
+      'scripts/**/*.ts',
+      'test/**/*.ts',
+      'tasks/**/*.ts',
+    ],
     rules: {
       '@typescript-eslint/no-explicit-any': 'off', // More lenient for infrastructure files
       '@typescript-eslint/no-unused-vars': 'off', // More lenient for scripts and tests
       'no-unused-vars': 'off',
-      'curly': 'off',
+      curly: 'off',
     },
   },
   {
-    files: ['**/*dist/**/*.js', '**/dist/**/*.js', 'cli/dist/**/*.js', 'sdk/dist/**/*.js', 'plugins/dist/**/*.js'],
+    files: [
+      '**/*dist/**/*.js',
+      '**/dist/**/*.js',
+      'cli/dist/**/*.js',
+      'sdk/dist/**/*.js',
+      'plugins/dist/**/*.js',
+    ],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: 'module', // ESM modules for dist files
@@ -126,7 +137,12 @@ export default [
     },
   },
   {
-    files: ['constants/**/*.d.ts', 'sdk/**/*.d.ts', 'plugins/**/*.d.ts', 'tools/**/*.d.ts'],
+    files: [
+      'constants/**/*.d.ts',
+      'sdk/**/*.d.ts',
+      'plugins/**/*.d.ts',
+      'tools/**/*.d.ts',
+    ],
     rules: {
       'no-unused-vars': 'off', // Allow unused vars in type definitions
       '@typescript-eslint/no-unused-vars': 'off',
@@ -138,11 +154,22 @@ export default [
       'artifacts/',
       'cache/',
       'coverage/',
+      '**/coverage/',
+      '**/*.coverage/',
       'typechain-types/',
       'dist/',
       'build/',
+      '**/dist/',
+      '**/build/',
+      '**/*.min.js',
+      '**/*.bundle.js',
       'tools/ai-assistant/backend/.crash-backups/',
       'tools/ai-assistant/frontend/src/contracts/types.ts', // Syntax error file
+      'cli/coverage/',
+      'cli/dist/',
+      '**/prettify.js',
+      '**/prettify.css',
+      '**/lcov-report/',
     ],
   },
 ];

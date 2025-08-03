@@ -52,6 +52,12 @@ contract DeterministicChunkFactory is IChunkFactory, AccessControl, ReentrancyGu
         uint256 _baseFeeWei,
         bool _feesEnabled
     ) {
+        // Validate constructor arguments
+        if (_feeRecipient == address(0)) revert ZeroAddress();
+        if (_manifestDispatcher == address(0)) revert ZeroAddress();
+        if (_manifestHash == bytes32(0)) revert InvalidConstructorArgs();
+        if (_factoryBytecodeHash == bytes32(0)) revert InvalidConstructorArgs();
+
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(OPERATOR_ROLE, msg.sender);
         _grantRole(FEE_ROLE, msg.sender);

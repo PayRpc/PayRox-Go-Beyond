@@ -110,4 +110,5 @@ interface IChunkFactory {
     error InvalidTier(uint8 tier);
     error ZeroAddress();
     error FeeTransferFailed();
+    error ManifestHashMismatch(bytes32 expected, bytes32 actual);
 }

@@ -321,7 +321,7 @@ function createPredictCommand(): Command {
                 )
               );
             }
-          } catch (networkError) {
+          } catch (_networkError) {
             console.log(chalk.red(`❌ ${networkName}: Configuration error`));
           }
         }
@@ -365,7 +365,7 @@ function createHealthCommand(): Command {
           try {
             const config = getNetworkConfig(networkName);
             networkConfigs.push(config);
-          } catch (configError) {
+          } catch (_configError) {
             console.log(
               chalk.red(`❌ Failed to load config for ${networkName}`)
             );
