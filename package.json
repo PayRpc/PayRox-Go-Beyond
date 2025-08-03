@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "A comprehensive blockchain deployment and orchestration framework",
   "main": "index.js",
+  "bin": {
+    "check-epoch": "./bin/check-epoch.js"
+  },
   "scripts": {
     "compile": "hardhat compile",
     "test": "hardhat test",
@@ -12,9 +15,18 @@
     "test:facet-size": "hardhat test test/facet-size-cap.spec.ts",
     "test:orchestrator": "hardhat test test/orchestrator-comprehensive.spec.ts",
     "test:route-proof": "hardhat run scripts/route-proof-selfcheck.ts --network hardhat",
+    "test:create2": "hardhat test test/scripts/create2-utility-enhanced.test.ts",
+    "test:io": "hardhat test test/scripts/io-utility-enhanced.test.ts",
+    "test:epoch": "hardhat test test/scripts/check-epoch-enhanced.test.ts",
+    "test:utilities": "npm run test:create2 && npm run test:io && npm run test:epoch",
     "deploy:sepolia": "npm run pre-deploy:sepolia && hardhat run scripts/deploy.ts --network sepolia",
     "deploy:mainnet": "npm run pre-deploy:mainnet && hardhat run scripts/deploy.ts --network mainnet",
     "deploy:ecosystem": "hardhat run scripts/deploy-complete-ecosystem.ts --network localhost && npm run contracts:bundle",
+    "epoch:check": "hardhat run scripts/check-epoch.ts",
+    "epoch:check:verbose": "hardhat run scripts/check-epoch.ts -- --verbose",
+    "epoch:check:json": "hardhat run scripts/check-epoch.ts -- --json",
+    "epoch:check:sepolia": "hardhat run scripts/check-epoch.ts --network sepolia -- --verbose",
+    "epoch:check:mainnet": "hardhat run scripts/check-epoch.ts --network mainnet -- --verbose",
     "contracts:bundle": "node scripts/generate-contract-bundle.js",
     "contracts:update": "npm run compile && npm run contracts:bundle",
     "contracts:sync": "node scripts/sync-configurations.js",
@@ -32,7 +44,7 @@
     "release": "hardhat oneclick-release",
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
-    "quality:check": "npm run lint && npm run test:comprehensive && npm run coverage && npm run size",
+    "quality:check": "npm run lint && npm run test:comprehensive && npm run test:utilities && npm run coverage && npm run size",
     "typechain": "hardhat typechain",
     "clean": "hardhat clean",
     "coverage": "hardhat coverage",
@@ -81,15 +93,17 @@
     "@types/inquirer": "^9.0.8",
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^24.1.0",
+    "@types/sinon": "^17.0.4",
     "@typescript-eslint/eslint-plugin": "^8.38.0",
     "@typescript-eslint/parser": "^8.38.0",
     "eslint": "^9.32.0",
     "hardhat": "^2.26.1",
     "hardhat-contract-sizer": "^2.10.0",
     "js-yaml": "^4.1.0",
+    "sinon": "^21.0.0",
     "solidity-coverage": "^0.8.16",
     "ts-node": "^10.9.2",
-    "typescript": "^5.8.3"
+    "typescript": "^5.9.2"
   },
   "dependencies": {
     "@openzeppelin/contracts": "^5.4.0",
@@ -99,8 +113,9 @@
     "dotenv": "^17.2.1",
     "ethers": "^6.15.0",
     "fs-extra": "^11.3.0",
-    "inquirer": "^8.2.6",
+    "inquirer": "^12.9.0",
     "merkletreejs": "^0.5.2",
-    "ora": "^8.2.0"
+    "ora": "^8.2.0",
+    "yargs": "^17.7.2"
   }
 }
