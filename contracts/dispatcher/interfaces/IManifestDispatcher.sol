@@ -70,7 +70,7 @@ interface IManifestDispatcher is IAccessControl {
      */
     function applyRoutes(
         bytes4[] calldata selectors,
-        address[] calldata facets,
+        address[] calldata facetList,
         bytes32[] calldata codehashes,
         bytes32[][] calldata proofs,
         bool[][] calldata isRight

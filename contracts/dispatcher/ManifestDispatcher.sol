@@ -10,14 +10,14 @@ import {OrderedMerkle} from "../utils/OrderedMerkle.sol";
 
 /**
  * @title ManifestDispatcher
- * @notice Enterprise-grade dispatcher with Diamond upgradeability, MEV resistance,
- *         and manifest security. Optimized for Layer 2 efficiency.
- * @dev Streamlined implementation focused on core functionality:
- * - Diamond Standard (EIP-2535) proxy pattern
- * - Manifest-based route management with cryptographic verification
- * - Timelock governance with guardian controls
- * - Gas-optimized fallback routing with security checks
- * - Batch operations with duplicate protection
+ * @notice NON-STANDARD Diamond: Manifest-based modular routing with isolated facet storage
+ * @dev PayRox Go Beyond implements a unique architecture that differs from EIP-2535:
+ * - NO shared storage between facets (each facet has isolated storage)
+ * - NO diamond cuts (immutable after deployment and freeze)
+ * - Manifest-based route verification using Merkle proofs
+ * - Content-addressed CREATE2 deployment for deterministic addressing
+ * - Limited diamond compatibility for ecosystem tooling only
+ * - Cryptographic verification of all route changes
  */
 contract ManifestDispatcher is
     IManifestDispatcher,
@@ -70,7 +70,7 @@ contract ManifestDispatcher is
     }
     GovernanceState public govState;
 
-    // Diamond compatibility - simplified
+    // NON-STANDARD Diamond: Manifest-based routing (not EIP-2535 diamond cuts)
     mapping(bytes4 => IManifestDispatcher.Route) private _routes;
     mapping(bytes4 => bool) public registeredSelectors;
     mapping(address => bytes4[]) public facetSelectors;
@@ -226,7 +226,7 @@ contract ManifestDispatcher is
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
-    // DIAMOND PROXY CORE
+    // NON-STANDARD DIAMOND: MANIFEST-BASED ROUTING CORE
     // ═══════════════════════════════════════════════════════════════════════════
     fallback() external payable whenNotPaused {
         bytes4 selector = msg.sig;
@@ -255,7 +255,7 @@ contract ManifestDispatcher is
     receive() external payable {}
 
     // ═══════════════════════════════════════════════════════════════════════════
-    // DIAMOND LOUPE INTERFACE
+    // NON-STANDARD DIAMOND: LIMITED COMPATIBILITY INTERFACE
     // ═══════════════════════════════════════════════════════════════════════════
     function facetAddresses() external view override returns (address[] memory) { return facetAddressList; }
     function facetFunctionSelectors(address facet) external view override returns (bytes4[] memory) { return facetSelectors[facet]; }
@@ -284,11 +284,11 @@ contract ManifestDispatcher is
         emit RootCommitted(newRoot, newEpoch);
     }
 
-    function _applyRoutes(bytes4[] calldata selectors, address[] calldata facets, bytes32[] calldata codehashes, bytes32[][] calldata proofs, bool[][] calldata isRight) internal whenNotFrozen {
+    function _applyRoutes(bytes4[] calldata selectors, address[] calldata facetList, bytes32[] calldata codehashes, bytes32[][] calldata proofs, bool[][] calldata isRight) internal whenNotFrozen {
         ManifestState storage ms = manifestState;
         if (ms.frozen) revert FrozenError();
         if (ms.committedRoot == bytes32(0)) revert NoPendingRoot();
-        if (selectors.length != facets.length || facets.length != codehashes.length) revert LenMismatch();
+        if (selectors.length != facetList.length || facetList.length != codehashes.length) revert LenMismatch();
         if (selectors.length > MAX_BATCH_SIZE) revert BatchTooLarge(selectors.length);
 
         for (uint256 i = 0; i < selectors.length; i++) {
@@ -298,9 +298,9 @@ contract ManifestDispatcher is
         }
 
         for (uint256 i = 0; i < selectors.length; i++) {
-            bytes32 leaf = OrderedMerkle.leafOfSelectorRoute(selectors[i], facets[i], codehashes[i]);
+            bytes32 leaf = OrderedMerkle.leafOfSelectorRoute(selectors[i], facetList[i], codehashes[i]);
             if (!OrderedMerkle.verify(proofs[i], isRight[i], ms.committedRoot, leaf)) revert InvalidProof();
-            _updateRoute(selectors[i], facets[i], codehashes[i]);
+            _updateRoute(selectors[i], facetList[i], codehashes[i]);
         }
         emit ManifestVersionUpdated(ms.manifestVersion, ms.manifestVersion + 1);
         ms.manifestVersion++;
@@ -652,7 +652,7 @@ contract ManifestDispatcher is
     /// from interface: applyRoutes(...)
     function applyRoutes(
         bytes4[] calldata selectors,
-        address[] calldata facets,
+        address[] calldata facetList,
         bytes32[] calldata codehashes,
         bytes32[][] calldata proofs,
         bool[][] calldata isRight
@@ -663,7 +663,7 @@ contract ManifestDispatcher is
         whenNotPaused
         nonReentrant
     {
-        _applyRoutes(selectors, facets, codehashes, proofs, isRight);
+        _applyRoutes(selectors, facetList, codehashes, proofs, isRight);
     }
 
     /// from interface: updateManifest(bytes32,bytes)
