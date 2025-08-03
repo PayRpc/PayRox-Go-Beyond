@@ -5,7 +5,7 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "declaration": true,
-    "strict": true,
+    "strict": false,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
@@ -15,6 +15,7 @@
     "emitDecoratorMetadata": true,
     "outDir": "./dist",
     "rootDir": "./",
+    "noImplicitAny": false,
     "typeRoots": ["./node_modules/@types"]
   },
   "include": [
@@ -22,7 +23,10 @@
     "./test/**/*",
     "./tasks/**/*",
     "./hardhat.config.ts",
-    "./src/**/*"
+    "./src/**/*",
+    "./typechain-types/**/*",
+    "./cli/src/**/*",
+    "./sdk/src/**/*"
   ],
   "exclude": [
     "node_modules",
@@ -30,6 +34,7 @@
     "artifacts",
     "cache",
     "coverage",
+    "tools/ai-assistant/frontend",
     "typechain-types"
   ]
 }

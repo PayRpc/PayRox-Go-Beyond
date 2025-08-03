@@ -173,7 +173,8 @@
 
     // Problems
     "problems.decorations.enabled": true,
-    "problems.showCurrentInStatus": true
+    "problems.showCurrentInStatus": true,
+    "githubPullRequests.ignoredPullRequestBranches": ["main"]
   },
   "extensions": {
     "recommendations": [
