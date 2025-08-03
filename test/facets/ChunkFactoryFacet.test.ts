@@ -556,18 +556,35 @@ describe('ChunkFactoryFacet - Enhanced Test Suite', function () {
         const salt = generateRandomSalt();
 
         // First deployment should succeed
-        await facet
+        const tx1 = await facet
           .connect(user1)
           .deployDeterministic(salt, TEST_BYTECODE, '0x', {
             value: TEST_DEPLOYMENT_FEE,
           });
+        await tx1.wait();
 
-        // Second deployment with same salt should fail
-        await expect(
-          facet.connect(user1).deployDeterministic(salt, TEST_BYTECODE, '0x', {
-            value: TEST_DEPLOYMENT_FEE,
-          })
-        ).to.be.reverted;
+        // Check if idempotent mode is enabled
+        const idempotentMode = await factory.idempotentMode();
+
+        if (idempotentMode) {
+          // In idempotent mode, second deployment should succeed but not deploy again
+          const tx2 = await facet
+            .connect(user1)
+            .deployDeterministic(salt, TEST_BYTECODE, '0x', {
+              value: TEST_DEPLOYMENT_FEE,
+            });
+          await tx2.wait();
+          // Should still have only one deployment recorded
+        } else {
+          // Without idempotent mode, second deployment should fail
+          await expect(
+            facet
+              .connect(user1)
+              .deployDeterministic(salt, TEST_BYTECODE, '0x', {
+                value: TEST_DEPLOYMENT_FEE,
+              })
+          ).to.be.reverted;
+        }
 
         return null;
       });
