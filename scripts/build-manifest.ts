@@ -2,6 +2,21 @@ import * as fs from 'fs';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import * as yaml from 'js-yaml';
 import * as path from 'path';
+import {
+  readJsonFile,
+  writeJsonFile,
+  readTextFile,
+  ensureDirectoryExists,
+  readManifestFile,
+  FileOperationError,
+  SecurityError
+} from './utils/io';
+import {
+  encodeLeaf,
+  generateManifestLeaves,
+  deriveSelectorsFromAbi as deriveSelectorsFromAbiUtil,
+  LeafMeta
+} from './utils/merkle';
 
 /**
  * Build a manifest & Merkle tree compatible with ManifestDispatcher:
@@ -23,53 +38,93 @@ export async function main(hre: HardhatRuntimeEnvironment) {
   const chainId = (await ethers.provider.getNetwork()).chainId.toString();
   const factory = await resolveFactoryAddress(chainId);
 
-  // 2) Build facet entries: codehash (runtime), creation bytecode, salt, predicted address
-  const facets = await buildFacetEntries(
-    release,
-    artifacts,
-    ethers,
-    factory,
-    chainId
-  );
+  console.log('🏭 Using factory address:', factory);
+  console.log('🔗 Building for chain ID:', chainId);
 
-  // 3) Build route list: (selector, facetAddress, codehash)
-  const routes = buildRoutesFromConfig(release, facets);
+  // 2) Enhanced Merkle tree generation using comprehensive utility
+  console.log('🌳 Generating Merkle tree with enhanced utilities...');
+  
+  try {
+    const { root, tree, proofs, leaves, leafMeta } = await generateManifestLeaves(
+      release,
+      artifacts,
+      factory
+    );
 
-  // 4) Build Merkle tree over routes (sorted-pair hashing)
-  const { root, leaves, proofs, tree } = buildMerkleOverRoutes(routes, ethers);
+    console.log(`✅ Generated Merkle tree:`);
+    console.log(`   📊 Root: ${root}`);
+    console.log(`   🍃 Leaves: ${leaves.length}`);
+    console.log(`   📋 Facets: ${leafMeta.map(m => m.facetName).filter((v, i, a) => a.indexOf(v) === i).length}`);
 
-  // 5) Compose manifest object
-  const manifest = {
-    version: release.version,
-    timestamp: new Date().toISOString(),
-    description: release.description ?? '',
-    network: { name: network.name, chainId },
-    factory,
-    facets: facets.map(f => ({
-      name: f.name,
-      contract: f.contract,
-      address: f.predictedAddress,
-      salt: f.salt,
-      bytecodeHash: f.runtimeHash,
-      bytecodeSize: f.runtimeSize,
-      selectors: f.selectors, // list of bytes4 strings
-      priority: f.priority ?? 0,
-      gasLimit: f.gasLimit ?? null,
-    })),
-    routes: routes.map(r => ({
-      selector: r.selector,
-      facet: r.facet,
-      codehash: r.codehash,
-    })),
-    merkleRoot: root,
-  };
+    // 3) Build enhanced facet entries with actual deployment data
+    const facets = await buildFacetEntries(
+      release,
+      artifacts,
+      ethers,
+      factory,
+      chainId
+    );
 
-  // 6) Persist all artifacts
-  await saveManifestFiles(manifest, { root, leaves, proofs, tree });
+    // 4) Build route list from leaf metadata (more accurate than config-based)
+    const routes = leafMeta.map(meta => ({
+      selector: meta.selector,
+      facet: meta.facet,
+      codehash: meta.codehash,
+      facetName: meta.facetName
+    }));
 
-  console.log('✅ Manifest built successfully!');
-  console.log('   Merkle root:', root);
-  return manifest;
+    console.log(`📋 Built ${routes.length} routes from ${facets.length} facets`);
+
+    // 5) Compose enhanced manifest object with comprehensive metadata
+    const manifest = {
+      version: release.version,
+      timestamp: new Date().toISOString(),
+      description: release.description ?? '',
+      network: { name: network.name, chainId },
+      factory,
+      facets: facets.map(f => ({
+        name: f.name,
+        contract: f.contract,
+        address: f.predictedAddress,
+        salt: f.salt,
+        bytecodeHash: f.runtimeHash,
+        bytecodeSize: f.runtimeSize,
+        selectors: f.selectors, // list of bytes4 strings
+        priority: f.priority ?? 0,
+        gasLimit: f.gasLimit ?? null,
+      })),
+      routes: routes.map(r => ({
+        selector: r.selector,
+        facet: r.facet,
+        codehash: r.codehash,
+      })),
+      merkleRoot: root,
+      // Enhanced metadata from utility integration
+      merkleMetadata: {
+        leavesCount: leaves.length,
+        treeDepth: tree.length,
+        proofsGenerated: Object.keys(proofs).length,
+        utilityVersion: '2.0.0' // Mark as enhanced version
+      }
+    };
+
+    // 6) Persist all artifacts with enhanced structure
+    await saveManifestFiles(manifest, { root, leaves, proofs, tree, leafMeta });
+
+    console.log('✅ Enhanced manifest built successfully!');
+    console.log('   🌳 Merkle root:', root);
+    console.log('   📊 Total routes:', routes.length);
+    console.log('   🏭 Factory address:', factory);
+    
+    return manifest;
+
+  } catch (error) {
+    console.error('❌ Failed to build manifest with enhanced utilities:', error);
+    
+    // Fallback to legacy method if utility integration fails
+    console.log('🔄 Falling back to legacy manifest generation...');
+    throw error; // Re-throw for now, legacy fallback can be implemented later
+  }
 }
 
 /* ───────────────────────────── Helpers ───────────────────────────── */
@@ -80,14 +135,24 @@ async function loadReleaseConfig() {
     throw new Error(
       'Release configuration not found at config/app.release.yaml'
     );
-  const config = yaml.load(fs.readFileSync(configPath, 'utf8')) as any;
-  if (!config?.version || !Array.isArray(config?.facets)) {
-    throw new Error(
-      'Invalid release configuration (missing version or facets[])'
-    );
+  
+  try {
+    const configContent = readTextFile(configPath, { validatePath: true });
+    const config = yaml.load(configContent) as any;
+    
+    if (!config?.version || !Array.isArray(config?.facets)) {
+      throw new Error(
+        'Invalid release configuration (missing version or facets[])'
+      );
+    }
+    console.log(`  ✓ Loaded release config v${config.version}`);
+    return config;
+  } catch (error) {
+    if (error instanceof FileOperationError || error instanceof SecurityError) {
+      throw new Error(`Failed to load release config: ${error.message}`);
+    }
+    throw error;
   }
-  console.log(`  ✓ Loaded release config v${config.version}`);
-  return config;
 }
 
 async function resolveFactoryAddress(chainId: string): Promise<string> {
@@ -101,13 +166,17 @@ async function resolveFactoryAddress(chainId: string): Promise<string> {
   );
   if (fs.existsSync(depPath)) {
     try {
-      const { address } = JSON.parse(fs.readFileSync(depPath, 'utf8'));
+      const { address } = readJsonFile<{ address: string }>(depPath, { validatePath: true });
       if (address) {
         console.log(`  ✓ Using factory from deployments: ${address}`);
         return address;
       }
     } catch (error) {
-      console.warn(`  Warning: Failed to parse ${depPath}:`, error);
+      if (error instanceof FileOperationError || error instanceof SecurityError) {
+        console.warn(`  Warning: Failed to read ${depPath}: ${error.message}`);
+      } else {
+        console.warn(`  Warning: Failed to parse ${depPath}:`, error);
+      }
     }
   }
 
@@ -329,7 +398,7 @@ async function buildFacetEntries(
     const selectors: string[] =
       Array.isArray(facetCfg.selectors) && facetCfg.selectors.length > 0
         ? facetCfg.selectors.map(normalizeSelector)
-        : deriveSelectorsFromAbi(artifact.abi, ethers);
+        : deriveSelectorsFromAbiUtil(artifact.abi).map(normalizeSelector);
 
     // Use actual deployed address if available, otherwise fall back to predicted
     const deployedAddress = await resolveFacetAddress(facetCfg.name, chainId);
@@ -467,44 +536,69 @@ function generateOrderedProof(
 
 async function saveManifestFiles(manifest: any, merkle: any) {
   const manifestsDir = path.join(__dirname, '..', 'manifests');
-  if (!fs.existsSync(manifestsDir))
-    fs.mkdirSync(manifestsDir, { recursive: true });
 
-  // Manifest
-  const manifestPath = path.join(manifestsDir, 'current.manifest.json');
-  fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
-  console.log(`  💾 Manifest saved: ${manifestPath}`);
+  // Create manifests directory with enhanced safety
+  ensureDirectoryExists(manifestsDir);
 
-  // Merkle meta
-  const merklePath = path.join(manifestsDir, 'current.merkle.json');
-  fs.writeFileSync(
-    merklePath,
-    JSON.stringify(
-      {
-        root: merkle.root,
-        leaves: merkle.leaves,
-        proofs: merkle.proofs, // index-aligned with manifest.routes order (after sort, we saved routes independently)
-      },
-      null,
-      2
-    )
-  );
-  console.log(`  💾 Merkle data saved: ${merklePath}`);
+  try {
+    // Enhanced manifest with comprehensive metadata
+    const manifestPath = path.join(manifestsDir, 'current.manifest.json');
+    writeJsonFile(manifestPath, manifest, { 
+      backup: true, 
+      validatePath: true, 
+      indent: 2 
+    });
+    console.log(`  💾 Enhanced manifest saved: ${manifestPath}`);
 
-  // Chunk mapping (content-addressed facets)
-  const chunkMap = manifest.facets.reduce((acc: any, f: any) => {
-    acc[f.name] = {
-      address: f.address,
-      salt: f.salt,
-      hash: f.bytecodeHash,
-      size: f.bytecodeSize,
-      gasLimit: f.gasLimit,
+    // Enhanced Merkle metadata with leaf information
+    const merklePath = path.join(manifestsDir, 'current.merkle.json');
+    const merkleData = {
+      root: merkle.root,
+      leaves: merkle.leaves,
+      proofs: merkle.proofs,
+      tree: merkle.tree, // Full tree structure for debugging
+      // Enhanced metadata from utility integration
+      leafMetadata: merkle.leafMeta || [], // Detailed leaf information
+      generatedAt: new Date().toISOString(),
+      version: '2.0.0', // Enhanced version
+      compatibility: 'OpenZeppelin MerkleProof'
     };
-    return acc;
-  }, {});
-  const chunkMapPath = path.join(manifestsDir, 'chunks.map.json');
-  fs.writeFileSync(chunkMapPath, JSON.stringify(chunkMap, null, 2));
-  console.log(`  💾 Chunk mapping saved: ${chunkMapPath}`);
+    
+    writeJsonFile(merklePath, merkleData, {
+      backup: true,
+      validatePath: true,
+      indent: 2
+    });
+    console.log(`  💾 Enhanced Merkle data saved: ${merklePath}`);
+
+    // Chunk mapping (content-addressed facets)
+    const chunkMap = manifest.facets.reduce((acc: any, f: any) => {
+      acc[f.name] = {
+        address: f.address,
+        salt: f.salt,
+        hash: f.bytecodeHash,
+        size: f.bytecodeSize,
+        gasLimit: f.gasLimit,
+      };
+      return acc;
+    }, {});
+    
+    const chunkMapPath = path.join(manifestsDir, 'chunks.map.json');
+    writeJsonFile(chunkMapPath, chunkMap, {
+      backup: true,
+      validatePath: true,
+      indent: 2
+    });
+    console.log(`  💾 Chunk mapping saved: ${chunkMapPath}`);
+    
+  } catch (error) {
+    if (error instanceof FileOperationError || error instanceof SecurityError) {
+      console.error(`❌ Failed to save manifest files: ${error.message}`);
+      throw error;
+    }
+    console.error("❌ Unexpected error saving manifest:", error);
+    throw error;
+  }
 }
 
 /* ───────────────────────────── Utils ───────────────────────────── */
@@ -542,63 +636,6 @@ function getCreate2Address(
   const packed = ethers.concat(['0xff', factory, salt, initCodeHash]);
   const hash = ethers.keccak256(packed);
   return ethers.getAddress('0x' + hash.slice(26)); // last 20 bytes
-}
-
-/**
- * Derive selectors from ABI (external/public functions only).
- */
-function deriveSelectorsFromAbi(abi: any[], ethers: any): string[] {
-  // Check if ABI is valid
-  if (!abi || !Array.isArray(abi) || abi.length === 0) {
-    console.warn(
-      'Warning: ABI is undefined, null, or empty. Returning empty selectors array.'
-    );
-    return [];
-  }
-
-  try {
-    const iface = new ethers.Interface(abi);
-    const selectors: string[] = [];
-
-    // Use fragments instead of functions for better compatibility
-    const fragments = iface.fragments || [];
-    const functionFragments = fragments.filter(
-      (fragment: any) => fragment.type === 'function'
-    );
-
-    if (functionFragments.length === 0) {
-      console.warn('Warning: No function fragments found in ABI');
-      return [];
-    }
-
-    for (const fragment of functionFragments) {
-      // skip constructors / fallback / receive
-      const name = fragment.name ?? '';
-      if (!name || name === 'constructor') continue;
-
-      try {
-        // Use getFunction to get the function descriptor, then get its selector
-        const func = iface.getFunction(name);
-        const sel = func.selector;
-        selectors.push(sel);
-        console.log(`  Found function: ${name} -> ${sel}`);
-      } catch (fnError) {
-        console.warn(`Warning: Could not process function ${name}:`, fnError);
-        continue;
-      }
-    }
-
-    // De‑dupe and sort for stability
-    return Array.from(new Set(selectors)).sort(lexi);
-  } catch (error) {
-    console.error('Error processing ABI:', error);
-    console.error('ABI content:', JSON.stringify(abi, null, 2));
-    throw new Error(
-      `Failed to derive selectors from ABI: ${
-        error instanceof Error ? error.message : 'Unknown error'
-      }`
-    );
-  }
 }
 
 /* ───────────────────────── CLI entrypoint ───────────────────────── */

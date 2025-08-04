@@ -1,6 +1,14 @@
 import * as fs from 'fs';
 import { ethers } from 'hardhat';
 import * as path from 'path';
+import {
+  writeJsonFile,
+  readJsonFile,
+  ensureDirectoryExists,
+  saveDeploymentArtifact,
+  FileOperationError,
+  SecurityError
+} from './utils/io';
 
 interface DeploymentInfo {
   contractName: string;
@@ -18,23 +26,40 @@ async function saveDeploymentInfo(
   info: DeploymentInfo
 ): Promise<void> {
   const deploymentsDir = path.join(process.cwd(), 'deployments', networkName);
-  if (!fs.existsSync(deploymentsDir)) {
-    fs.mkdirSync(deploymentsDir, { recursive: true });
+  ensureDirectoryExists(deploymentsDir);
+
+  try {
+    // Use enhanced deployment artifact format
+    const deploymentArtifact = {
+      address: info.address,
+      transactionHash: info.transactionHash || '',
+      blockNumber: 0, // Will be filled by the calling function
+      gasUsed: undefined,
+      deployer: info.deployer,
+      timestamp: Date.now(),
+      contractName: info.contractName,
+      network: info.network,
+      constructorArguments: info.constructorArguments
+    };
+
+    const filePath = path.join(
+      deploymentsDir,
+      `${info.contractName.toLowerCase()}.json`
+    );
+    
+    saveDeploymentArtifact(filePath, deploymentArtifact);
+    console.log(`   📄 Saved deployment info: ${filePath}`);
+  } catch (error) {
+    if (error instanceof FileOperationError || error instanceof SecurityError) {
+      console.error(`❌ Failed to save deployment info: ${error.message}`);
+      throw error;
+    }
+    throw new FileOperationError(
+      `Unexpected error saving deployment: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      'save_deployment',
+      `${info.contractName.toLowerCase()}.json`
+    );
   }
-
-  // Convert BigInt values to strings for JSON serialization
-  const serializableInfo = JSON.parse(
-    JSON.stringify(info, (key, value) =>
-      typeof value === 'bigint' ? value.toString() : value
-    )
-  );
-
-  const filePath = path.join(
-    deploymentsDir,
-    `${info.contractName.toLowerCase()}.json`
-  );
-  fs.writeFileSync(filePath, JSON.stringify(serializableInfo, null, 2));
-  console.log(`   📄 Saved deployment info: ${filePath}`);
 }
 
 async function saveAuditRecord(
@@ -50,28 +75,38 @@ async function saveAuditRecord(
   }
 ): Promise<void> {
   const auditDir = path.join(process.cwd(), 'deployments', networkName);
-  if (!fs.existsSync(auditDir)) {
-    fs.mkdirSync(auditDir, { recursive: true });
+  ensureDirectoryExists(auditDir);
+
+  try {
+    const auditRecord = {
+      auditType: 'DEPLOYMENT_MANIFEST',
+      ...auditInfo,
+      auditRequiredMessage: '🔍 Check if Audit Required',
+      verificationSteps: [
+        '1. Verify manifest hash matches deployed contracts',
+        '2. Review all function selectors for security',
+        '3. Validate facet addresses and permissions',
+        '4. Confirm factory and dispatcher configuration',
+      ],
+    };
+
+    const auditFile = path.join(auditDir, 'audit-record.json');
+    writeJsonFile(auditFile, auditRecord, { backup: true });
+    console.log(`   📋 Audit record saved: ${auditFile}`);
+    console.log(
+      `   🔍 Check if Audit Required - Manifest hash: ${auditInfo.manifestHash}`
+    );
+  } catch (error) {
+    if (error instanceof FileOperationError || error instanceof SecurityError) {
+      console.error(`❌ Failed to save audit record: ${error.message}`);
+      throw error;
+    }
+    throw new FileOperationError(
+      `Unexpected error saving audit record: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      'save_audit',
+      'audit-record.json'
+    );
   }
-
-  const auditRecord = {
-    auditType: 'DEPLOYMENT_MANIFEST',
-    ...auditInfo,
-    auditRequiredMessage: '🔍 Check if Audit Required',
-    verificationSteps: [
-      '1. Verify manifest hash matches deployed contracts',
-      '2. Review all function selectors for security',
-      '3. Validate facet addresses and permissions',
-      '4. Confirm factory and dispatcher configuration',
-    ],
-  };
-
-  const auditFile = path.join(auditDir, 'audit-record.json');
-  fs.writeFileSync(auditFile, JSON.stringify(auditRecord, null, 2));
-  console.log(`   📋 Audit record saved: ${auditFile}`);
-  console.log(
-    `   🔍 Check if Audit Required - Manifest hash: ${auditInfo.manifestHash}`
-  );
 }
 
 async function runScript(
@@ -142,10 +177,22 @@ async function main() {
     const FactoryContract = await ethers.getContractFactory(
       'DeterministicChunkFactory'
     );
+    
+    // Prepare constructor arguments
+    const feeRecipient = deployer.address;
+    const manifestDispatcher = deployer.address; // Use deployer as placeholder, will be updated later
+    const manifestHash = ethers.keccak256(ethers.toUtf8Bytes("initial-manifest-hash"));
+    const factoryBytecodeHash = ethers.keccak256(FactoryContract.bytecode);
+    const baseFeeWei = ethers.parseEther('0.0007'); // 0.0007 ETH
+    const feesEnabled = true;
+    
     const factory = await FactoryContract.deploy(
-      deployer.address, // admin
-      deployer.address, // feeRecipient
-      ethers.parseEther('0.0007') // baseFeeWei (0.0007 ETH)
+      feeRecipient,
+      manifestDispatcher,
+      manifestHash,
+      factoryBytecodeHash,
+      baseFeeWei,
+      feesEnabled
     );
     await factory.waitForDeployment();
 
@@ -161,10 +208,13 @@ async function main() {
       timestamp: new Date().toISOString(),
       transactionHash: factory.deploymentTransaction()?.hash,
       constructorArguments: [
-        deployer.address,
-        deployer.address,
-        '1000000000000000',
-      ], // 0.001 ETH in wei
+        feeRecipient,
+        manifestDispatcher,
+        manifestHash,
+        factoryBytecodeHash,
+        baseFeeWei.toString(),
+        feesEnabled
+      ],
     });
 
     // Step 3: Deploy ManifestDispatcher
@@ -174,8 +224,9 @@ async function main() {
       'ManifestDispatcher'
     );
     const dispatcher = await DispatcherContract.deploy(
-      deployer.address, // admin
-      3600 // activationDelay (1 hour in seconds)
+      deployer.address, // governance
+      deployer.address, // guardian
+      3600 // minDelay (1 hour in seconds)
     );
     await dispatcher.waitForDeployment();
 
@@ -240,7 +291,7 @@ async function main() {
           'current.merkle.json'
         );
         if (fs.existsSync(merkleFile)) {
-          const merkleData = JSON.parse(fs.readFileSync(merkleFile, 'utf8'));
+          const merkleData = readJsonFile<{ root: string }>(merkleFile, { validatePath: true });
           const manifestHash = merkleData.root;
           console.log(`\n🔍 Manifest Audit Information:`);
           console.log(`   📊 Manifest Hash: ${manifestHash}`);
@@ -259,7 +310,11 @@ async function main() {
           });
         }
       } catch (error) {
-        console.warn(`⚠️ Could not read manifest hash:`, error);
+        if (error instanceof FileOperationError || error instanceof SecurityError) {
+          console.warn(`⚠️ Could not read manifest hash: ${error.message}`);
+        } else {
+          console.warn(`⚠️ Unexpected error reading manifest:`, error);
+        }
       }
     }
 
@@ -300,7 +355,7 @@ async function main() {
         'current.merkle.json'
       );
       if (fs.existsSync(merkleFile)) {
-        const merkleData = JSON.parse(fs.readFileSync(merkleFile, 'utf8'));
+        const merkleData = readJsonFile<{ root: string }>(merkleFile, { validatePath: true });
         console.log(`📊 Manifest Hash: ${merkleData.root}`);
         console.log(`🔍 Check if Audit Required - Hash: ${merkleData.root}`);
       }

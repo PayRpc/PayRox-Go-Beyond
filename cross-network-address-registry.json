@@ -1,0 +1,214 @@
+{
+  "timestamp": "2025-08-04T00:36:30.714Z",
+  "version": "1.0.0",
+  "config": {
+    "deployer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    "content": "PayRoxUniversalContract",
+    "version": "1.0.0",
+    "crossChainNonce": 1000,
+    "contractBytecode": "0x608060405234801561001057600080fd5b50336000806101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff160217905550610150806100606000396000f3fe"
+  },
+  "universalSalt": "0x25fdc48aa8440249c45b8a804c59fdc318cbc5c4658de572d9c3818e8a96abba",
+  "bytecodeHash": "0x21a7f22eeb85656a5b85152416c26028df530e94a2c4082679af826e3cd2c66f",
+  "networks": [
+    {
+      "network": "Ethereum Mainnet",
+      "chainId": 1,
+      "factoryAddress": "0x742d35cc6641c2dcef174097d589e3c6f1a4e5c0",
+      "explorerUrl": "https://etherscan.io",
+      "status": "production",
+      "predictedAddress": "0x04bE3652000b24840d907f9f793bB7124ad386D0"
+    },
+    {
+      "network": "Polygon",
+      "chainId": 137,
+      "factoryAddress": "0x742d35cc6641c2dcef174097d589e3c6f1a4e5c0",
+      "explorerUrl": "https://polygonscan.com",
+      "status": "production",
+      "predictedAddress": "0x04bE3652000b24840d907f9f793bB7124ad386D0"
+    },
+    {
+      "network": "Arbitrum One",
+      "chainId": 42161,
+      "factoryAddress": "0x742d35cc6641c2dcef174097d589e3c6f1a4e5c0",
+      "explorerUrl": "https://arbiscan.io",
+      "status": "production",
+      "predictedAddress": "0x04bE3652000b24840d907f9f793bB7124ad386D0"
+    },
+    {
+      "network": "Optimism",
+      "chainId": 10,
+      "factoryAddress": "0x742d35cc6641c2dcef174097d589e3c6f1a4e5c0",
+      "explorerUrl": "https://optimistic.etherscan.io",
+      "status": "production",
+      "predictedAddress": "0x04bE3652000b24840d907f9f793bB7124ad386D0"
+    },
+    {
+      "network": "Base",
+      "chainId": 8453,
+      "factoryAddress": "0x742d35cc6641c2dcef174097d589e3c6f1a4e5c0",
+      "explorerUrl": "https://basescan.org",
+      "status": "production",
+      "predictedAddress": "0x04bE3652000b24840d907f9f793bB7124ad386D0"
+    },
+    {
+      "network": "BNB Smart Chain",
+      "chainId": 56,
+      "factoryAddress": "0x742d35cc6641c2dcef174097d589e3c6f1a4e5c0",
+      "explorerUrl": "https://bscscan.com",
+      "status": "production",
+      "predictedAddress": "0x04bE3652000b24840d907f9f793bB7124ad386D0"
+    },
+    {
+      "network": "Avalanche C-Chain",
+      "chainId": 43114,
+      "factoryAddress": "0x742d35cc6641c2dcef174097d589e3c6f1a4e5c0",
+      "explorerUrl": "https://snowtrace.io",
+      "status": "production",
+      "predictedAddress": "0x04bE3652000b24840d907f9f793bB7124ad386D0"
+    },
+    {
+      "network": "Fantom Opera",
+      "chainId": 250,
+      "factoryAddress": "0x742d35cc6641c2dcef174097d589e3c6f1a4e5c0",
+      "explorerUrl": "https://ftmscan.com",
+      "status": "production",
+      "predictedAddress": "0x04bE3652000b24840d907f9f793bB7124ad386D0"
+    },
+    {
+      "network": "Gnosis Chain",
+      "chainId": 100,
+      "factoryAddress": "0x742d35cc6641c2dcef174097d589e3c6f1a4e5c0",
+      "explorerUrl": "https://gnosisscan.io",
+      "status": "production",
+      "predictedAddress": "0x04bE3652000b24840d907f9f793bB7124ad386D0"
+    },
+    {
+      "network": "Celo",
+      "chainId": 42220,
+      "factoryAddress": "0x742d35cc6641c2dcef174097d589e3c6f1a4e5c0",
+      "explorerUrl": "https://celoscan.io",
+      "status": "production",
+      "predictedAddress": "0x04bE3652000b24840d907f9f793bB7124ad386D0"
+    },
+    {
+      "network": "Moonbeam",
+      "chainId": 1284,
+      "factoryAddress": "0x742d35cc6641c2dcef174097d589e3c6f1a4e5c0",
+      "explorerUrl": "https://moonbeam.moonscan.io",
+      "status": "production",
+      "predictedAddress": "0x04bE3652000b24840d907f9f793bB7124ad386D0"
+    },
+    {
+      "network": "Cronos",
+      "chainId": 25,
+      "factoryAddress": "0x742d35cc6641c2dcef174097d589e3c6f1a4e5c0",
+      "explorerUrl": "https://cronoscan.com",
+      "status": "production",
+      "predictedAddress": "0x04bE3652000b24840d907f9f793bB7124ad386D0"
+    },
+    {
+      "network": "Aurora",
+      "chainId": 1313161554,
+      "factoryAddress": "0x742d35cc6641c2dcef174097d589e3c6f1a4e5c0",
+      "explorerUrl": "https://aurorascan.dev",
+      "status": "production",
+      "predictedAddress": "0x04bE3652000b24840d907f9f793bB7124ad386D0"
+    },
+    {
+      "network": "Metis Andromeda",
+      "chainId": 1088,
+      "factoryAddress": "0x742d35cc6641c2dcef174097d589e3c6f1a4e5c0",
+      "explorerUrl": "https://andromeda-explorer.metis.io",
+      "status": "production",
+      "predictedAddress": "0x04bE3652000b24840d907f9f793bB7124ad386D0"
+    },
+    {
+      "network": "Boba Network",
+      "chainId": 288,
+      "factoryAddress": "0x742d35cc6641c2dcef174097d589e3c6f1a4e5c0",
+      "explorerUrl": "https://bobascan.com",
+      "status": "production",
+      "predictedAddress": "0x04bE3652000b24840d907f9f793bB7124ad386D0"
+    },
+    {
+      "network": "Moonriver",
+      "chainId": 1285,
+      "factoryAddress": "0x742d35cc6641c2dcef174097d589e3c6f1a4e5c0",
+      "explorerUrl": "https://moonriver.moonscan.io",
+      "status": "production",
+      "predictedAddress": "0x04bE3652000b24840d907f9f793bB7124ad386D0"
+    },
+    {
+      "network": "Fuse",
+      "chainId": 122,
+      "factoryAddress": "0x742d35cc6641c2dcef174097d589e3c6f1a4e5c0",
+      "explorerUrl": "https://explorer.fuse.io",
+      "status": "production",
+      "predictedAddress": "0x04bE3652000b24840d907f9f793bB7124ad386D0"
+    },
+    {
+      "network": "Harmony One",
+      "chainId": 1666600000,
+      "factoryAddress": "0x742d35cc6641c2dcef174097d589e3c6f1a4e5c0",
+      "explorerUrl": "https://explorer.harmony.one",
+      "status": "production",
+      "predictedAddress": "0x04bE3652000b24840d907f9f793bB7124ad386D0"
+    },
+    {
+      "network": "Ethereum Sepolia",
+      "chainId": 11155111,
+      "factoryAddress": "0x742d35cc6641c2dcef174097d589e3c6f1a4e5c0",
+      "explorerUrl": "https://sepolia.etherscan.io",
+      "status": "testnet",
+      "predictedAddress": "0x04bE3652000b24840d907f9f793bB7124ad386D0"
+    },
+    {
+      "network": "Polygon Mumbai",
+      "chainId": 80001,
+      "factoryAddress": "0x742d35cc6641c2dcef174097d589e3c6f1a4e5c0",
+      "explorerUrl": "https://mumbai.polygonscan.com",
+      "status": "testnet",
+      "predictedAddress": "0x04bE3652000b24840d907f9f793bB7124ad386D0"
+    },
+    {
+      "network": "Arbitrum Sepolia",
+      "chainId": 421614,
+      "factoryAddress": "0x742d35cc6641c2dcef174097d589e3c6f1a4e5c0",
+      "explorerUrl": "https://sepolia.arbiscan.io",
+      "status": "testnet",
+      "predictedAddress": "0x04bE3652000b24840d907f9f793bB7124ad386D0"
+    },
+    {
+      "network": "Base Sepolia",
+      "chainId": 84532,
+      "factoryAddress": "0x742d35cc6641c2dcef174097d589e3c6f1a4e5c0",
+      "explorerUrl": "https://sepolia.basescan.org",
+      "status": "testnet",
+      "predictedAddress": "0x04bE3652000b24840d907f9f793bB7124ad386D0"
+    },
+    {
+      "network": "Optimism Sepolia",
+      "chainId": 11155420,
+      "factoryAddress": "0x742d35cc6641c2dcef174097d589e3c6f1a4e5c0",
+      "explorerUrl": "https://sepolia-optimism.etherscan.io",
+      "status": "testnet",
+      "predictedAddress": "0x04bE3652000b24840d907f9f793bB7124ad386D0"
+    },
+    {
+      "network": "Hardhat Local",
+      "chainId": 31337,
+      "factoryAddress": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+      "explorerUrl": "http://localhost:8545",
+      "status": "local",
+      "predictedAddress": "0xc73A9f9976B948Bc8166729761c247E0AA61a73a"
+    }
+  ],
+  "statistics": {
+    "totalNetworks": 24,
+    "productionNetworks": 18,
+    "testNetworks": 5,
+    "localNetworks": 1,
+    "consistency": true
+  }
+}
