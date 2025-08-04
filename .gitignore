@@ -3,6 +3,9 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
 
 # Production builds
 dist/
@@ -113,10 +116,12 @@ env/
 *.bak
 *.orig
 
-# Crash backups (keep structure but not actual backups)
-tools/ai-assistant/backend/.crash-backups/*backup
-tools/ai-assistant/backend/.crash-backups/*/
-!tools/ai-assistant/backend/.crash-backups/.gitkeep
+# Crash backups (keep structure but ignore actual backups)
+.crash-backups/
+*/.crash-backups/*backup
+*/.crash-backups/*/
+!.crash-backups/.gitkeep
+!*/.crash-backups/.gitkeep
 
 # Deployment artifacts
 deployments/*/
@@ -131,3 +136,64 @@ test-coverage.xml
 ganache-db/
 .ganache/
 .hardhat_network_manifest.json
+
+# PayRox Go Beyond specific patterns
+verify-*.mjs
+verify-*.js
+test-*.mjs
+test-*.js
+library-status-report.mjs
+
+# Documentation and status reports (keep structure, ignore temp files)
+*_ANALYSIS.md
+*_REPORT.md
+*_SUCCESS.md
+*_COMPLETE.md
+*_SUMMARY.md
+*_STATUS.md
+*_ENHANCEMENT*.md
+*_INTEGRATION*.md
+*_READY*.md
+!README.md
+!docs/*.md
+
+# Platform specific executables
+*.bat
+*.ps1
+*.sh
+!deploy-complete-system.bat
+!deploy-complete-system.ps1
+!deploy-complete-system.sh
+!simulate-ci.ps1
+!simulate-ci.sh
+
+# Demo and test files
+demo-sequence.ts
+test-real-deployment.ts
+test-crosschain-extended.ts
+cross-network-address-registry.json
+
+# Generated portal files
+developer-portal.html
+launch-portal.js
+platform-helper.js
+prove-crosschain.js
+
+# JSON reports and indices
+production-index.json
+*.report.json
+
+# Solidity compiler cache
+.solc/
+.solc-version
+
+# TypeScript compiled output specific to PayRox
+dist/
+typechain-types/
+
+# VS Code workspace files
+*.code-workspace
+
+# Enhanced test suites
+test-*-enhanced.*
+test-enhanced-*.*

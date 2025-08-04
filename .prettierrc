@@ -7,28 +7,68 @@
   "useTabs": false,
   "quoteProps": "as-needed",
   "bracketSpacing": true,
+  "bracketSameLine": false,
   "arrowParens": "avoid",
   "endOfLine": "lf",
+  "embeddedLanguageFormatting": "auto",
+  "htmlWhitespaceSensitivity": "css",
+  "insertPragma": false,
+  "jsxBracketSameLine": false,
+  "jsxSingleQuote": true,
+  "proseWrap": "preserve",
+  "requirePragma": false,
+  "vueIndentScriptAndStyle": false,
   "overrides": [
     {
       "files": "*.sol",
       "options": {
         "printWidth": 120,
         "tabWidth": 4,
-        "singleQuote": false
+        "singleQuote": false,
+        "bracketSpacing": true,
+        "bracketSameLine": false
       }
     },
     {
       "files": "*.json",
       "options": {
-        "tabWidth": 2
+        "tabWidth": 2,
+        "trailingComma": "none"
       }
     },
     {
       "files": "*.md",
       "options": {
         "printWidth": 100,
-        "proseWrap": "always"
+        "proseWrap": "always",
+        "tabWidth": 2
+      }
+    },
+    {
+      "files": ["*.yml", "*.yaml"],
+      "options": {
+        "tabWidth": 2,
+        "singleQuote": false,
+        "bracketSpacing": true
+      }
+    },
+    {
+      "files": "*.tsx",
+      "options": {
+        "jsxSingleQuote": true,
+        "jsxBracketSameLine": false
+      }
+    },
+    {
+      "files": "*.ts",
+      "options": {
+        "parser": "typescript"
+      }
+    },
+    {
+      "files": "*.mjs",
+      "options": {
+        "parser": "babel"
       }
     }
   ]
