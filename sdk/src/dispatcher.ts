@@ -19,15 +19,44 @@ export class Dispatcher {
     this.signer = signer;
     this.network = network;
 
-    // ManifestDispatcher ABI (essential functions)
+    // ManifestDispatcher ABI (updated to match actual contract)
     const abi = [
-      'function updateManifest(bytes32 merkleRoot, string calldata ipfsHash) external',
-      'function getCurrentRoot() external view returns (bytes32)',
-      'function getRoute(bytes4 selector) external view returns (address facet, bool exists)',
-      'function batchCall(bytes[] calldata calls) external returns (bytes[] memory results)',
-      'function fallback() external payable',
-      'event ManifestUpdated(bytes32 indexed oldRoot, bytes32 indexed newRoot, string ipfsHash)',
-      'event RouteCall(bytes4 indexed selector, address indexed facet, address indexed caller)',
+      // Core routing functions
+      'function getRoute(bytes4 selector) external view returns (address facet)',
+      'function getRouteCount() external view returns (uint256)',
+      'function routeCall(bytes calldata data) external payable returns (bytes memory)',
+      
+      // Manifest management
+      'function updateManifest(bytes32 manifestHash, bytes calldata manifestData) external',
+      'function commitRoot(bytes32 newRoot, uint64 newEpoch) external',
+      'function applyRoutes(bytes4[] calldata selectors, address[] calldata facetList, bytes32[] calldata codehashes, bytes32[][] calldata proofs, bool[][] calldata isRight) external',
+      'function activateCommittedRoot() external',
+      
+      // State and information
+      'function currentRoot() external view returns (bytes32)',
+      'function getManifestVersion() external view returns (uint64)',
+      'function verifyManifest(bytes32 manifestHash) external view returns (bool valid, bytes32 currentHash)',
+      'function getManifestInfo() external view returns (tuple(bytes32 hash, uint64 version, uint256 timestamp, uint256 selectorCount))',
+      
+      // Diamond Loupe interface
+      'function facets() external view returns (tuple(address facetAddress, bytes4[] functionSelectors)[] memory facets_)',
+      'function facetFunctionSelectors(address _facet) external view returns (bytes4[] memory facetFunctionSelectors_)',
+      'function facetAddresses() external view returns (address[] memory facetAddresses_)',
+      'function facetAddress(bytes4 _functionSelector) external view returns (address facetAddress_)',
+      
+      // Access control and security
+      'function hasRole(bytes32 role, address account) external view returns (bool)',
+      'function grantRole(bytes32 role, address account) external',
+      'function revokeRole(bytes32 role, address account) external',
+      'function pause() external',
+      'function unpause() external',
+      'function paused() external view returns (bool)',
+      
+      // Events
+      'event ManifestUpdated(bytes32 indexed oldRoot, bytes32 indexed newRoot, uint64 version)',
+      'event RouteApplied(bytes4 indexed selector, address indexed facet, bytes32 indexed proof)',
+      'event RootCommitted(bytes32 indexed root, uint64 indexed epoch, uint256 timestamp)',
+      'event CallRouted(bytes4 indexed selector, address indexed facet, address indexed caller, uint256 value)',
     ];
 
     this.contract = new ethers.Contract(
@@ -38,11 +67,11 @@ export class Dispatcher {
   }
 
   /**
-   * Update the manifest with new routing information
+   * Update the manifest with new routing information (updated for ManifestDispatcher)
    */
   async updateManifest(
-    merkleRoot: string,
-    ipfsHash: string,
+    manifestHash: string,
+    manifestData: string,
     options?: {
       gasLimit?: number;
       maxFeePerGas?: string;
@@ -53,7 +82,7 @@ export class Dispatcher {
       throw new Error('Signer required for manifest update');
     }
 
-    const tx = await this.contract.updateManifest(merkleRoot, ipfsHash, {
+    const tx = await this.contract.updateManifest(manifestHash, manifestData, {
       gasLimit: options?.gasLimit || this.network.fees.gasLimit,
       maxFeePerGas: options?.maxFeePerGas,
       maxPriorityFeePerGas: options?.maxPriorityFeePerGas,
@@ -67,18 +96,21 @@ export class Dispatcher {
    * Get the current manifest root
    */
   async getCurrentRoot(): Promise<string> {
-    return await this.contract.getCurrentRoot();
+    return await this.contract.currentRoot();
   }
 
   /**
-   * Get routing information for a function selector
+   * Get routing information for a function selector (updated for ManifestDispatcher)
    */
   async getRoute(selector: string): Promise<{
     facet: string;
     exists: boolean;
   }> {
-    const [facet, exists] = await this.contract.getRoute(selector);
-    return { facet, exists };
+    const facet = await this.contract.getRoute(selector);
+    return {
+      facet,
+      exists: facet !== ethers.ZeroAddress,
+    };
   }
 
   /**
@@ -220,6 +252,66 @@ export class Dispatcher {
   }
 
   /**
+   * Get manifest information
+   */
+  async getManifestInfo(): Promise<{
+    hash: string;
+    version: number;
+    timestamp: number;
+    selectorCount: number;
+  }> {
+    const info = await this.contract.getManifestInfo();
+    return {
+      hash: info.hash,
+      version: Number(info.version),
+      timestamp: Number(info.timestamp),
+      selectorCount: Number(info.selectorCount),
+    };
+  }
+
+  /**
+   * Verify manifest hash
+   */
+  async verifyManifest(manifestHash: string): Promise<{
+    valid: boolean;
+    currentHash: string;
+  }> {
+    const [valid, currentHash] = await this.contract.verifyManifest(manifestHash);
+    return { valid, currentHash };
+  }
+
+  /**
+   * Get all facets (Diamond Loupe interface)
+   */
+  async getFacets(): Promise<Array<{
+    facetAddress: string;
+    functionSelectors: string[];
+  }>> {
+    return await this.contract.facets();
+  }
+
+  /**
+   * Get facet addresses
+   */
+  async getFacetAddresses(): Promise<string[]> {
+    return await this.contract.facetAddresses();
+  }
+
+  /**
+   * Get function selectors for a facet
+   */
+  async getFacetFunctionSelectors(facetAddress: string): Promise<string[]> {
+    return await this.contract.facetFunctionSelectors(facetAddress);
+  }
+
+  /**
+   * Get facet address for a function selector
+   */
+  async getFacetAddress(selector: string): Promise<string> {
+    return await this.contract.facetAddress(selector);
+  }
+
+  /**
    * Get dispatcher contract instance
    */
   getContract(): ethers.Contract {
@@ -230,7 +322,7 @@ export class Dispatcher {
    * Listen for manifest update events
    */
   onManifestUpdated(
-    callback: (oldRoot: string, newRoot: string, ipfsHash: string) => void
+    callback: (_oldRoot: string, _newRoot: string, _ipfsHash: string) => void
   ): void {
     this.contract.on('ManifestUpdated', (oldRoot, newRoot, ipfsHash) => {
       callback(oldRoot, newRoot, ipfsHash);
@@ -241,7 +333,7 @@ export class Dispatcher {
    * Listen for route call events
    */
   onRouteCall(
-    callback: (selector: string, facet: string, caller: string) => void
+    callback: (_selector: string, _facet: string, _caller: string) => void
   ): void {
     this.contract.on('RouteCall', (selector, facet, caller) => {
       callback(selector, facet, caller);
