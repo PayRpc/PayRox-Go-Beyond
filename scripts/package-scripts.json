@@ -1,0 +1,52 @@
+{
+  "name": "payrox-go-beyond",
+  "scripts": {
+    "next-steps:init": "npx ts-node scripts/next-steps.ts init",
+    "next-steps:create-facet": "npx ts-node scripts/next-steps.ts create-facet",
+    "next-steps:deploy-multi": "npx ts-node scripts/next-steps.ts deploy-multi",
+    "next-steps:verify": "npx ts-node scripts/next-steps.ts verify",
+    "next-steps:monitor": "npx ts-node scripts/next-steps.ts monitor",
+    "next-steps:status": "npx ts-node scripts/next-steps.ts status",
+    
+    "deploy:cross-network": "npx ts-node scripts/deploy-cross-network.ts",
+    "deploy:all-networks": "npx ts-node scripts/deploy-cross-network.ts all",
+    "deploy:specific": "npx ts-node scripts/deploy-cross-network.ts networks",
+    "verify:cross-network": "npx ts-node scripts/deploy-cross-network.ts verify",
+    
+    "create:facet": "npx ts-node scripts/next-steps.ts create-facet",
+    "deploy:multi-network": "npx ts-node scripts/next-steps.ts deploy-multi",
+    "verify:deployment": "npx ts-node scripts/next-steps.ts verify",
+    "report:system-status": "npx ts-node scripts/next-steps.ts status",
+    "setup:monitoring": "npx ts-node scripts/next-steps.ts monitor",
+    
+    "test:facets": "npx hardhat test test/facets/**/*.test.ts",
+    "test:cross-network": "npm run verify:cross-network",
+    "test:comprehensive": "npm run test && npm run test:facets && npm run verify:deployment",
+    
+    "audit:facets": "npx hardhat run scripts/audit-facets.ts",
+    "audit:security": "npm audit && npx hardhat run scripts/security-check.ts",
+    
+    "start:dashboard": "cd tools/monitoring && npm start",
+    "dev:dashboard": "cd tools/monitoring && npm run dev",
+    
+    "build:production": "npm run compile && npm run next-steps:verify",
+    "deploy:production": "npm run build:production && npm run deploy:all-networks",
+    
+    "report:cross-network": "npx ts-node scripts/generate-cross-network-report.ts",
+    "report:deployment": "npx ts-node scripts/generate-deployment-report.ts",
+    
+    "setup:indexing": "npx ts-node scripts/setup-event-indexing.ts",
+    "setup:alerts": "npx ts-node scripts/setup-alerting.ts",
+    
+    "clean:deployments": "rm -rf deployments/* && rm -rf reports/*",
+    "clean:cache": "npx hardhat clean && rm -rf cache artifacts",
+    "clean:all": "npm run clean:deployments && npm run clean:cache"
+  },
+  
+  "devDependencies": {
+    "commander": "^11.0.0",
+    "inquirer": "^9.2.0",
+    "chalk": "^5.3.0",
+    "@types/inquirer": "^9.0.0"
+  }
+}
