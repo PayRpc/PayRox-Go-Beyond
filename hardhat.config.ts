@@ -11,6 +11,7 @@ import './tasks/payrox';
 import './tasks/payrox-ops';
 import './tasks/payrox-release';
 import './tasks/payrox-roles';
+import './tasks/routes';
 import './tasks/sbom';
 
 dotenv.config();

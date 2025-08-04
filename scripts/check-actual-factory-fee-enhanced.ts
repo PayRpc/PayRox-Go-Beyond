@@ -495,26 +495,28 @@ class EnhancedFactoryFeeAnalyzer {
    * Performance metrics collection and analysis
    */
   private async collectPerformanceMetrics(
-    factory: any
+    _factory: any
   ): Promise<PerformanceMetrics> {
     try {
       // Would collect deployment statistics, gas usage, etc.
-      return {
+      const metrics: PerformanceMetrics = {
         averageGasUsed: 150000, // Example data
         deploymentSuccess: 98.5,
         averageFeeCollected: '0.001',
         costEfficiencyScore: 85,
         networkUtilization: 65,
       };
+      return metrics;
     } catch (error: any) {
       this.logDebug(`Performance metrics collection failed: ${error.message}`);
-      return {
+      const fallbackMetrics: PerformanceMetrics = {
         averageGasUsed: 0,
         deploymentSuccess: 0,
         averageFeeCollected: '0',
         costEfficiencyScore: 0,
         networkUtilization: 0,
       };
+      return fallbackMetrics;
     }
   }
 
