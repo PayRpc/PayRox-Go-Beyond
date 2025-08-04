@@ -115,7 +115,7 @@ async function previewMultiNetworkDeployment() {
   previews.slice(0, 5).forEach(preview => {
     const networkSlug = preview.network.toLowerCase();
     console.log(`# ${preview.network} (${preview.estimatedCostUSD})`);
-    console.log(`npx hardhat run scripts/deploy-complete-system.ts --network ${networkSlug}`);
+    console.log(`npx hardhat run scripts/deploy-go-beyond.ts --network ${networkSlug}`);
     console.log('');
   });
 

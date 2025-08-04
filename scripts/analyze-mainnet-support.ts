@@ -176,7 +176,7 @@ async function analyzeMainnetSupport() {
   console.log('# Deploy on ANY mainnet with optimized fees:');
   mainnets.slice(0, 5).forEach(network => {
     const networkSlug = network.name.toLowerCase();
-    console.log(`npx hardhat run scripts/deploy-complete-system.ts --network ${networkSlug}`);
+    console.log(`npx hardhat run scripts/deploy-go-beyond.ts --network ${networkSlug}`);
   });
   console.log('# ... and more!');
   console.log('');

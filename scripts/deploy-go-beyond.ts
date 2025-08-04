@@ -1,5 +1,6 @@
 import * as fs from 'fs';
-import { ethers } from 'hardhat';
+import { ethers } from 'ethers';
+import hre from 'hardhat';
 import * as path from 'path';
 import {
   writeJsonFile,
@@ -254,11 +255,11 @@ async function runScript(
 }
 
 async function main() {
-  console.log('🚀 PayRox Go Beyond - Complete System Deployment');
-  console.log('================================================');
+  console.log('🚀 PayRox Go Beyond - Deploy Go Beyond System');
+  console.log('==============================================');
 
-  const [deployer] = await ethers.getSigners();
-  const network = await ethers.provider.getNetwork();
+  const [deployer] = await hre.ethers.getSigners();
+  const network = await hre.ethers.provider.getNetwork();
   const networkName = network.name === 'unknown' ? 'localhost' : network.name;
   const chainId = Number(network.chainId);
 
@@ -266,13 +267,13 @@ async function main() {
   console.log(`📡 Network: ${networkName} (Chain ID: ${chainId})`);
   console.log(
     `💰 Balance: ${ethers.formatEther(
-      await ethers.provider.getBalance(deployer.address)
+      await hre.ethers.provider.getBalance(deployer.address)
     )} ETH`
   );
 
   // 🌐 Get network-specific fee configuration
   console.log(`\n🔧 Calculating network-specific fees...`);
-  const networkFeeConfig = await calculateDynamicFees(networkName, ethers.provider);
+  const networkFeeConfig = await calculateDynamicFees(networkName, hre.ethers.provider);
   console.log(getFeeSummary(networkFeeConfig));
 
   try {
@@ -305,7 +306,7 @@ async function main() {
     // Step 2: Deploy Factory and Dispatcher (Combined) - DETERMINISTIC
     console.log(`\n🏭 Deploying DeterministicChunkFactory with CREATE2...`);
 
-    const FactoryContract = await ethers.getContractFactory(
+    const FactoryContract = await hre.ethers.getContractFactory(
       'DeterministicChunkFactory'
     );
     
@@ -360,7 +361,7 @@ async function main() {
     // Step 3: Deploy ManifestDispatcher - DETERMINISTIC
     console.log(`\n🗂️ Deploying ManifestDispatcher with CREATE2...`);
 
-    const DispatcherContract = await ethers.getContractFactory(
+    const DispatcherContract = await hre.ethers.getContractFactory(
       'ManifestDispatcher'
     );
     
@@ -495,8 +496,8 @@ async function main() {
     }
 
     // Success Summary
-    console.log(`\n🎉 DEPLOYMENT COMPLETE!`);
-    console.log(`=======================`);
+    console.log(`\n🎉 DEPLOY GO BEYOND COMPLETE!`);
+    console.log(`=============================`);
     console.log(``);
     console.log(`🏭 Factory: ${factoryAddress}`);
     console.log(`🗂️ Dispatcher: ${dispatcherAddress}`);
