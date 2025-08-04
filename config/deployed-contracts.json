@@ -51,6 +51,12 @@
         "abi": "./artifacts/contracts/facets/PingFacet.sol/PingFacet.json",
         "deploymentFile": "./deployments/localhost/ping-facet.json"
       },
+      "chunkFactory": {
+        "name": "ChunkFactoryFacet",
+        "address": "0xCD8a1C3ba11CF5ECfa6267617243239504a98d90",
+        "abi": "./artifacts/contracts/facets/ChunkFactoryFacet.sol/ChunkFactoryFacet.json",
+        "deploymentFile": "./deployments/localhost/chunk-factory-facet.json"
+      },
       "exampleA": {
         "name": "ExampleFacetA",
         "address": null,

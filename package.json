@@ -95,6 +95,10 @@
     "next-steps:monitor": "npx ts-node scripts/next-steps.ts monitor",
     "next-steps:status": "npx ts-node scripts/next-steps.ts status",
     
+    "_comment_facet_integration": "=== FACET INTEGRATION ===",
+    "test:chunk-factory-integration": "hardhat run scripts/test-chunk-factory-integration.ts --network localhost",
+    "deploy:chunk-factory-facet": "hardhat run scripts/deploy-chunk-factory-facet.ts --network localhost",
+    
     "_comment_cross_network": "=== CROSS-NETWORK DEPLOYMENT ===",
     "deploy:cross-network": "npx ts-node scripts/deploy-cross-network.ts",
     "deploy:all-networks": "npx ts-node scripts/deploy-cross-network.ts all",

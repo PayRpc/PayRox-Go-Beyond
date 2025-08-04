@@ -8,7 +8,8 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
-import { ethers } from 'hardhat';
+import { ethers } from 'ethers';
+import hre from 'hardhat';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -24,7 +25,7 @@ const NEXT_STEPS_CONFIG = {
     'fuji', 'fantom-testnet', 'bsc-testnet', 'linea-goerli', 'localhost'
   ],
   facetTemplates: [
-    'BasicFacet', 'GovernanceFacet', 'DeFiFacet', 'NFTFacet', 'OracleFacet',
+    'BasicFacet', 'ChunkFactoryFacet', 'GovernanceFacet', 'DeFiFacet', 'NFTFacet', 'OracleFacet',
     'CrossChainFacet', 'MultisigFacet', 'VotingFacet', 'TreasuryFacet'
   ]
 } as const;

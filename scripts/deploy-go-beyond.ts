@@ -423,6 +423,16 @@ async function main() {
       );
     }
 
+    // Step 5.1: Deploy ChunkFactoryFacet (Hot-swappable Factory Logic)
+    console.log(`\n💎 Deploying ChunkFactoryFacet...`);
+    if (!(await runScript('deploy-chunk-factory-facet.ts', networkName))) {
+      console.warn(
+        `⚠️ ChunkFactoryFacet deployment failed, continuing with core system...`
+      );
+    } else {
+      console.log(`✅ ChunkFactoryFacet provides hot-swappable factory logic via Diamond pattern`);
+    }
+
     // Step 5.5: Deploy Orchestrator Contracts
     console.log(`\n🎯 Deploying Orchestrator Contracts...`);
     if (!(await runScript('deploy-orchestrators.ts', networkName))) {

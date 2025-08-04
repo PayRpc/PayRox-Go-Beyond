@@ -81,11 +81,29 @@ export async function deployChunkFactoryFacet(
       logger.info('🔍 Searching for existing DeterministicChunkFactory...');
 
       try {
-        const deploymentPath = `./deployments/${config.networkName}/DeterministicChunkFactory.json`;
-        const deploymentData = await fs.readFile(deploymentPath, 'utf8');
-        const deployment = JSON.parse(deploymentData);
-        factoryAddress = deployment.address;
-        logger.info(`✅ Found factory at: ${factoryAddress}`);
+        // Try multiple possible factory deployment files
+        const possiblePaths = [
+          `./deployments/${config.networkName}/DeterministicChunkFactory.json`,
+          `./deployments/${config.networkName}/factory.json`
+        ];
+        
+        let factoryDeployment;
+        for (const deploymentPath of possiblePaths) {
+          try {
+            const deploymentData = await fs.readFile(deploymentPath, 'utf8');
+            factoryDeployment = JSON.parse(deploymentData);
+            factoryAddress = factoryDeployment.address;
+            logger.info(`✅ Found factory at: ${factoryAddress} (from ${deploymentPath})`);
+            break;
+          } catch {
+            // Try next path
+            continue;
+          }
+        }
+        
+        if (!factoryAddress) {
+          throw new Error('Factory deployment file not found');
+        }
       } catch {
         throw new Error(
           'DeterministicChunkFactory not found. Deploy it first or provide address.'
