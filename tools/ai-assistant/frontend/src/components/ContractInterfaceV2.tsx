@@ -439,56 +439,57 @@ const ContractInterface: React.FC = () => {
       </div>
 
       <div className="card">
-          <h3>📊 Function Call History</h3>
-          {functionCalls.length === 0 ? (
-            <div className="empty-state">
-              <p>No function calls yet. Select a contract and function to get started.</p>
-            </div>
-          ) : (
-            <div className="history-list">
-              {functionCalls.map(call => (
-                <div key={call.id} className={`history-item ${call.error ? 'error' : 'success'}`}>
-                  <div className="call-header">
-                    <span className="call-signature">
-                      {call.contractName}.{call.functionName}
-                    </span>
-                    <span className="call-time">
-                      {call.timestamp.toLocaleTimeString()}
-                    </span>
-                    {call.loading && <span className="loading-indicator">⏳</span>}
-                  </div>
-
-                  {call.parameters.length > 0 && (
-                    <div className="call-params">
-                      <strong>Parameters:</strong> [{call.parameters.join(', ')}]
-                    </div>
-                  )}
-
-                  {call.result && (
-                    <div className="call-result">
-                      <strong>Result:</strong>
-                      <pre>{call.result}</pre>
-                    </div>
-                  )}
-
-                  {call.transactionHash && (
-                    <div className="call-transaction">
-                      <strong>Transaction:</strong> {call.transactionHash}
-                      {call.gasUsed && <span> (Gas: {call.gasUsed})</span>}
-                    </div>
-                  )}
-
-                  {call.error && (
-                    <div className="call-error">
-                      <strong>Error:</strong> {call.error}
-                    </div>
-                  )}
+        <h3>📊 Function Call History</h3>
+        {functionCalls.length === 0 ? (
+          <div className="empty-state">
+            <p>No function calls yet. Select a contract and function to get started.</p>
+          </div>
+        ) : (
+          <div className="history-list">
+            {functionCalls.map(call => (
+              <div key={call.id} className={`history-item ${call.error ? 'error' : 'success'}`}>
+                <div className="call-header">
+                  <span className="call-signature">
+                    {call.contractName}.{call.functionName}
+                  </span>
+                  <span className="call-time">
+                    {call.timestamp.toLocaleTimeString()}
+                  </span>
+                  {call.loading && <span className="loading-indicator">⏳</span>}
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
 
+                {call.parameters.length > 0 && (
+                  <div className="call-params">
+                    <strong>Parameters:</strong> [{call.parameters.join(', ')}]
+                  </div>
+                )}
+
+                {call.result && (
+                  <div className="call-result">
+                    <strong>Result:</strong>
+                    <pre>{call.result}</pre>
+                  </div>
+                )}
+
+                {call.transactionHash && (
+                  <div className="call-transaction">
+                    <strong>Transaction:</strong> {call.transactionHash}
+                    {call.gasUsed && <span> (Gas: {call.gasUsed})</span>}
+                  </div>
+                )}
+
+                {call.error && (
+                  <div className="call-error">
+                    <strong>Error:</strong> {call.error}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="card">
         <div className="contracts-overview">
           <h3>🏗️ Available Contracts ({Object.keys(contracts).length})</h3>
           <div className="contracts-grid">

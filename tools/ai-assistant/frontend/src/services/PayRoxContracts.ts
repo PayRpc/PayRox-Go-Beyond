@@ -150,7 +150,7 @@ export class PayRoxContractsService {
       // Update contract instances with signer
       for (const contractInfo of this.contracts.values()) {
         if (contractInfo.instance) {
-          contractInfo.instance = contractInfo.instance.connect(this.signer);
+          contractInfo.instance = contractInfo.instance.connect(this.signer) as any;
         }
       }
       
