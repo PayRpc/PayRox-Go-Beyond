@@ -5,7 +5,7 @@
  * gas prices, and typical transaction costs for optimal user experience.
  */
 
-import { ethers } from 'hardhat';
+import { ethers } from 'ethers';
 
 export interface NetworkFeeConfig {
   network: string;
@@ -191,6 +191,86 @@ export const NETWORK_FEE_CONFIGS: Record<string, NetworkFeeConfig> = {
     },
     feeTier: 'low',
     description: 'Sepolia testnet - minimal fees for testing'
+  },
+
+  // Fantom - High tier (DeFi focused)
+  fantom: {
+    network: 'fantom',
+    chainId: 250,
+    baseFeeETH: '0.0003',     // ~$0.75 - DeFi performance
+    baseFeeWei: ethers.parseEther('0.0003').toString(),
+    platformFeeETH: '0.00007',
+    platformFeeWei: ethers.parseEther('0.00007').toString(),
+    totalFeeETH: '0.00037',
+    totalFeeWei: ethers.parseEther('0.00037').toString(),
+    gasPrice: { typical: '50', fast: '100' },
+    economicContext: {
+      nativeCoinUSD: 0.30,
+      avgTransactionCostUSD: 1.5,
+      competitiveFactor: 0.6
+    },
+    feeTier: 'medium',
+    description: 'Fantom - fast DeFi-focused blockchain'
+  },
+
+  // Polygon zkEVM - Medium tier (L2 efficiency with zk-proofs)
+  'polygon-zkevm': {
+    network: 'polygon-zkevm',
+    chainId: 1101,
+    baseFeeETH: '0.0001',     // ~$0.25 - zkEVM efficiency
+    baseFeeWei: ethers.parseEther('0.0001').toString(),
+    platformFeeETH: '0.00002',
+    platformFeeWei: ethers.parseEther('0.00002').toString(),
+    totalFeeETH: '0.00012',
+    totalFeeWei: ethers.parseEther('0.00012').toString(),
+    gasPrice: { typical: '1', fast: '5' },
+    economicContext: {
+      nativeCoinUSD: 2500,
+      avgTransactionCostUSD: 0.25,
+      competitiveFactor: 0.4
+    },
+    feeTier: 'medium',
+    description: 'Polygon zkEVM - zero-knowledge Layer 2'
+  },
+
+  // opBNB - Low tier (ultra-low cost scaling)
+  opbnb: {
+    network: 'opbnb',
+    chainId: 204,
+    baseFeeETH: '0.000005',   // ~$0.0125 - ultra-cheap
+    baseFeeWei: ethers.parseEther('0.000005').toString(),
+    platformFeeETH: '0.000001',
+    platformFeeWei: ethers.parseEther('0.000001').toString(),
+    totalFeeETH: '0.000006',
+    totalFeeWei: ethers.parseEther('0.000006').toString(),
+    gasPrice: { typical: '0.001', fast: '0.005' },
+    economicContext: {
+      nativeCoinUSD: 250,
+      avgTransactionCostUSD: 0.001,
+      competitiveFactor: 0.2
+    },
+    feeTier: 'low',
+    description: 'opBNB - ultra-low cost BSC Layer 2'
+  },
+
+  // Sei Network - High tier (trading focused)
+  sei: {
+    network: 'sei',
+    chainId: 1329,
+    baseFeeETH: '0.0004',     // ~$1.00 - trading performance
+    baseFeeWei: ethers.parseEther('0.0004').toString(),
+    platformFeeETH: '0.00008',
+    platformFeeWei: ethers.parseEther('0.00008').toString(),
+    totalFeeETH: '0.00048',
+    totalFeeWei: ethers.parseEther('0.00048').toString(),
+    gasPrice: { typical: '10', fast: '25' },
+    economicContext: {
+      nativeCoinUSD: 0.12,
+      avgTransactionCostUSD: 0.5,
+      competitiveFactor: 0.8
+    },
+    feeTier: 'high',
+    description: 'Sei Network - high-performance trading chain'
   },
 
   // Localhost/Hardhat - Minimal tier (development)
