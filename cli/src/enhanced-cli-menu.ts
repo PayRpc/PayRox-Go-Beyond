@@ -9,7 +9,8 @@ import { Command } from 'commander';
 import inquirer from 'inquirer';
 import chalk from 'chalk';
 import fs from 'fs';
-import path from 'path';
+import { MockAIServices } from './mock-ai-services';
+import { PayRoxIntegratedAI } from './payrox-integration';
 
 interface CLIOptions {
   network?: string;
@@ -18,17 +19,12 @@ interface CLIOptions {
   aiEnabled?: boolean;
 }
 
-interface AnalysisResult {
-  score: number;
-  issues: number;
-  optimizations: number;
-  facetSuggestions: number;
-}
-
 export class EnhancedPayRoxCLI {
   private options: CLIOptions = {};
+  private payRoxAI: PayRoxIntegratedAI;
   
   constructor() {
+    this.payRoxAI = new PayRoxIntegratedAI();
     this.setupCommands();
   }
 
@@ -255,8 +251,8 @@ export class EnhancedPayRoxCLI {
   }
 
   private async handleAIAnalysis(): Promise<void> {
-    console.log(chalk.cyan('🤖 AI Contract Analysis'));
-    console.log('─'.repeat(50));
+    console.log(chalk.cyan('🤖 AI Contract Analysis with PayRox Integration'));
+    console.log('─'.repeat(60));
     
     const { contractPath } = await inquirer.prompt([
       {
@@ -271,24 +267,87 @@ export class EnhancedPayRoxCLI {
       }
     ]);
 
-    console.log(chalk.yellow('🔍 Analyzing contract...'));
+    console.log(chalk.yellow('🔍 Analyzing contract with PayRox AI integration...'));
     
-    // Simulate AI analysis
-    await this.simulateProgress('Analysis', 3000);
-    
-    const result: AnalysisResult = {
-      score: 85,
-      issues: 2,
-      optimizations: 5,
-      facetSuggestions: 3
-    };
-    
-    console.log(chalk.green('✅ Analysis complete!'));
-    console.log();
-    console.log(`${chalk.blue('Score:')} ${result.score}/100`);
-    console.log(`${chalk.yellow('Security Issues:')} ${result.issues}`);
-    console.log(`${chalk.cyan('Optimization Opportunities:')} ${result.optimizations}`);
-    console.log(`${chalk.magenta('Facet Suggestions:')} ${result.facetSuggestions}`);
+    try {
+      // Read the actual contract file
+      const sourceCode = fs.readFileSync(contractPath, 'utf8');
+      const contractName = contractPath.split('/').pop()?.replace('.sol', '') || 'Unknown';
+      
+      // Use PayRox integrated analysis
+      const analysis = await this.payRoxAI.analyzeContractWithPayRox(sourceCode, contractName);
+      
+      console.log(chalk.green('✅ PayRox Analysis Complete!'));
+      console.log();
+      
+      // Display standard analysis
+      console.log(chalk.blue('📊 Standard Analysis:'));
+      console.log(`   Score: ${analysis.standardAnalysis.score}/100`);
+      console.log(`   Issues: ${analysis.standardAnalysis.issues}`);
+      console.log(`   Optimizations: ${analysis.standardAnalysis.optimizations}`);
+      console.log();
+      
+      // Display PayRox integration analysis
+      console.log(chalk.cyan('🚀 PayRox Integration Analysis:'));
+      
+      // Factory compatibility
+      if (analysis.payRoxIntegration.canUseDeterministicFactory) {
+        console.log(chalk.green('   ✅ Compatible with DeterministicChunkFactory'));
+        if (analysis.payRoxIntegration.predictedAddress) {
+          console.log(chalk.blue(`   📍 Predicted Address: ${analysis.payRoxIntegration.predictedAddress}`));
+        }
+        console.log(chalk.yellow(`   ⛽ Estimated Gas with Factory: ${analysis.payRoxIntegration.gasEstimateWithFactory.toLocaleString()}`));
+      } else {
+        console.log(chalk.red('   ❌ Not compatible with DeterministicChunkFactory'));
+        console.log(chalk.yellow('   💡 Consider splitting into smaller chunks or using direct deployment'));
+      }
+      
+      // Manifest compatibility
+      if (analysis.payRoxIntegration.manifestCompatibility) {
+        console.log(chalk.green('   ✅ Compatible with ManifestDispatcher'));
+      } else {
+        console.log(chalk.yellow('   ⚠️ Limited ManifestDispatcher compatibility'));
+      }
+      
+      // Security checks
+      console.log(chalk.blue('\n�️ PayRox Security Checks:'));
+      const security = analysis.payRoxIntegration.securityChecks;
+      
+      const factoryColor = security.factoryIntegration === 'safe' ? chalk.green : 
+                          security.factoryIntegration === 'warning' ? chalk.yellow : chalk.red;
+      console.log(`   Factory Integration: ${factoryColor(security.factoryIntegration.toUpperCase())}`);
+      
+      console.log(`   Manifest Validation: ${security.manifestValidation ? chalk.green('✅ PASSED') : chalk.red('❌ FAILED')}`);
+      console.log(`   Hash Verification: ${security.hashVerification ? chalk.green('✅ VERIFIED') : chalk.red('❌ FAILED')}`);
+      
+      // Facet suggestions
+      if (analysis.payRoxIntegration.suggestedFacets.length > 0) {
+        console.log(chalk.blue('\n💎 Suggested Facet Architecture:'));
+        analysis.payRoxIntegration.suggestedFacets.forEach(facet => {
+          console.log(`   • ${chalk.cyan(facet.name)}: ${facet.functions.join(', ')}`);
+          console.log(`     Strategy: ${facet.deploymentStrategy}`);
+          if (facet.predictedAddress) {
+            console.log(`     Address: ${facet.predictedAddress}`);
+          }
+        });
+      }
+      
+      // PayRox system status
+      console.log(chalk.blue('\n🌐 PayRox System Status:'));
+      const deployedContracts = this.payRoxAI.getDeployedContracts();
+      if (deployedContracts) {
+        console.log(`   Network: ${chalk.green(deployedContracts.network.name)} (Chain ID: ${deployedContracts.network.chainId})`);
+        console.log(`   Factory: ${chalk.green(deployedContracts.contracts.core.factory.address)}`);
+        console.log(`   Dispatcher: ${chalk.green(deployedContracts.contracts.core.dispatcher.address)}`);
+      } else {
+        console.log(chalk.yellow('   ⚠️ PayRox contracts not deployed on current network'));
+      }
+      
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.log(chalk.red(`❌ Analysis failed: ${errorMessage}`));
+      console.log(chalk.yellow('💡 Try checking your contract syntax and PayRox configuration'));
+    }
   }
 
   private async handleAISimulation(): Promise<void> {
@@ -317,14 +376,28 @@ export class EnhancedPayRoxCLI {
       }
     ]);
 
-    console.log(chalk.yellow(`🎭 Simulating ${facetName} on ${network}...`));
+    console.log(chalk.yellow(`🎭 Simulating ${facetName} deployment on ${network}...`));
     
-    await this.simulateProgress('Simulation', 2500);
-    
-    console.log(chalk.green('✅ Simulation successful!'));
-    console.log(`${chalk.blue('Gas Used:')} 245,678`);
-    console.log(`${chalk.blue('Deployment Address:')} 0x742d35Cc6aF4D3...`);
-    console.log(`${chalk.blue('Transaction Hash:')} 0x89F3B52...`);
+    try {
+      const result = await MockAIServices.simulateFacet(facetName, network);
+      
+      if (result.success) {
+        console.log(chalk.green('✅ Simulation successful!'));
+        console.log(`${chalk.blue('💰 Gas Used:')} ${result.gasUsed.toLocaleString()}`);
+        console.log(`${chalk.blue('📍 Deployment Address:')} ${result.deploymentAddress}`);
+        
+        if (result.warnings.length > 0) {
+          console.log(chalk.yellow('\n⚠️ Warnings:'));
+          result.warnings.forEach(warning => console.log(`   • ${warning}`));
+        }
+      } else {
+        console.log(chalk.red('❌ Simulation failed!'));
+        console.log(chalk.red('🚨 Errors:'));
+        result.errors.forEach(error => console.log(`   • ${error}`));
+      }
+    } catch (error) {
+      console.log(chalk.red(`❌ Simulation failed: ${error instanceof Error ? error.message : 'Unknown error'}`));
+    }
   }
 
   private async handleGasOptimization(): Promise<void> {
@@ -342,17 +415,25 @@ export class EnhancedPayRoxCLI {
 
     console.log(chalk.yellow('⚡ Analyzing gas optimization opportunities...'));
     
-    await this.simulateProgress('Optimization Analysis', 2000);
-    
-    console.log(chalk.green('✅ Optimization analysis complete!'));
-    console.log();
-    console.log(chalk.blue('🔧 Optimization Opportunities:'));
-    console.log('   • Pack struct variables: 15% gas savings');
-    console.log('   • Use calldata instead of memory: 8% savings');
-    console.log('   • Optimize loop operations: 12% savings');
-    console.log('   • Remove redundant storage reads: 5% savings');
-    console.log();
-    console.log(chalk.green('💰 Total Estimated Savings: 40%'));
+    try {
+      const sourceCode = fs.readFileSync(contractPath, 'utf8');
+      const optimizations = await MockAIServices.optimizeGas(sourceCode);
+      
+      console.log(chalk.green('✅ Optimization analysis complete!'));
+      console.log();
+      console.log(chalk.blue('🔧 Optimization Opportunities:'));
+      
+      let totalSavings = 0;
+      optimizations.forEach(opt => {
+        console.log(`   • ${opt.description}: ${opt.savings}% gas savings`);
+        totalSavings += opt.savings;
+      });
+      
+      console.log();
+      console.log(chalk.green(`💰 Total Estimated Savings: ${totalSavings}%`));
+    } catch (error) {
+      console.log(chalk.red(`❌ Optimization failed: ${error instanceof Error ? error.message : 'Unknown error'}`));
+    }
   }
 
   private async handleContractRefactoring(): Promise<void> {
@@ -380,19 +461,37 @@ export class EnhancedPayRoxCLI {
 
     console.log(chalk.yellow(`🔧 Refactoring to ${strategy} pattern...`));
     
-    await this.simulateProgress('Refactoring', 4000);
-    
-    console.log(chalk.green('✅ Refactoring plan generated!'));
-    console.log();
-    console.log(chalk.blue('📋 Refactor Plan:'));
-    console.log('   • AdminFacet: Administrative functions');
-    console.log('   • UserFacet: User interaction functions');
-    console.log('   • StorageFacet: Data management functions');
-    console.log();
-    console.log(chalk.green('✨ Benefits:'));
-    console.log('   • Reduced contract size by 60%');
-    console.log('   • Improved upgradeability');
-    console.log('   • Better code organization');
+    try {
+      const sourceCode = fs.readFileSync(contractPath, 'utf8');
+      const plan = await MockAIServices.generateRefactorPlan(sourceCode, strategy);
+      
+      console.log(chalk.green('✅ Refactoring plan generated!'));
+      console.log();
+      console.log(chalk.blue('📋 Refactor Plan:'));
+      plan.facets.forEach((facet: any) => {
+        console.log(`   • ${facet.name}: ${facet.description}`);
+        console.log(`     Functions: ${facet.functions.join(', ')}`);
+      });
+      
+      console.log();
+      console.log(chalk.green('✨ Benefits:'));
+      plan.benefits.forEach((benefit: string) => {
+        console.log(`   • ${benefit}`);
+      });
+      
+      if (plan.risks.length > 0) {
+        console.log();
+        console.log(chalk.yellow('⚠️ Risks to Consider:'));
+        plan.risks.forEach((risk: string) => {
+          console.log(`   • ${risk}`);
+        });
+      }
+      
+      console.log();
+      console.log(chalk.cyan(`💰 Estimated Gas Savings: ${plan.estimatedGasSavings}%`));
+    } catch (error) {
+      console.log(chalk.red(`❌ Refactoring failed: ${error instanceof Error ? error.message : 'Unknown error'}`));
+    }
   }
 
   private async handleSecurityScan(): Promise<void> {
@@ -410,16 +509,38 @@ export class EnhancedPayRoxCLI {
 
     console.log(chalk.yellow('🛡️ Running comprehensive security scan...'));
     
-    await this.simulateProgress('Security Scan', 3500);
-    
-    console.log(chalk.green('✅ Security scan complete!'));
-    console.log();
-    console.log(chalk.blue('🔍 Security Report:'));
-    console.log(chalk.red('   🚨 High: Potential reentrancy vulnerability in withdraw()'));
-    console.log(chalk.yellow('   ⚠️ Medium: Missing input validation in setAdmin()'));
-    console.log(chalk.green('   ✅ Low: Consider using SafeMath for older Solidity'));
-    console.log();
-    console.log(chalk.blue('🏆 Security Score: 75/100'));
+    try {
+      const sourceCode = fs.readFileSync(contractPath, 'utf8');
+      const issues = await MockAIServices.securityScan(sourceCode);
+      
+      console.log(chalk.green('✅ Security scan complete!'));
+      console.log();
+      
+      if (issues.length === 0) {
+        console.log(chalk.green('🎉 No security issues found!'));
+        console.log(chalk.blue('🏆 Security Score: 100/100'));
+      } else {
+        console.log(chalk.blue('� Security Report:'));
+        
+        const criticalIssues = issues.filter(issue => issue.severity.toLowerCase() === 'critical').length;
+        const highIssues = issues.filter(issue => issue.severity.toLowerCase() === 'high').length;
+        const mediumIssues = issues.filter(issue => issue.severity.toLowerCase() === 'medium').length;
+        const lowIssues = issues.filter(issue => issue.severity.toLowerCase() === 'low').length;
+        
+        issues.forEach(issue => {
+          const severityColor = issue.severity.toLowerCase() === 'high' ? chalk.red : 
+                               issue.severity.toLowerCase() === 'medium' ? chalk.yellow : chalk.green;
+          console.log(`   ${severityColor(`🚨 ${issue.severity.toUpperCase()}:`)} ${issue.description}`);
+          console.log(`      💡 Fix: ${issue.fix}`);
+        });
+        
+        const score = Math.max(0, 100 - (criticalIssues * 30 + highIssues * 20 + mediumIssues * 10 + lowIssues * 5));
+        console.log();
+        console.log(chalk.blue(`🏆 Security Score: ${score}/100`));
+      }
+    } catch (error) {
+      console.log(chalk.red(`❌ Security scan failed: ${error instanceof Error ? error.message : 'Unknown error'}`));
+    }
   }
 
   private async handleSingleDeployment(): Promise<void> {
