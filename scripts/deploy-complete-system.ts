@@ -16,6 +16,12 @@ import {
   generateDispatcherSalt,
   validateDeploymentConfig
 } from './utils/create2';
+import {
+  getNetworkFeeConfig,
+  calculateDynamicFees,
+  getFeeSummary,
+  NetworkFeeConfig
+} from './utils/network-fees';
 
 interface DeploymentInfo {
   contractName: string;
@@ -254,14 +260,20 @@ async function main() {
   const [deployer] = await ethers.getSigners();
   const network = await ethers.provider.getNetwork();
   const networkName = network.name === 'unknown' ? 'localhost' : network.name;
+  const chainId = Number(network.chainId);
 
   console.log(`👤 Deployer: ${deployer.address}`);
-  console.log(`📡 Network: ${networkName} (Chain ID: ${network.chainId})`);
+  console.log(`📡 Network: ${networkName} (Chain ID: ${chainId})`);
   console.log(
     `💰 Balance: ${ethers.formatEther(
       await ethers.provider.getBalance(deployer.address)
     )} ETH`
   );
+
+  // 🌐 Get network-specific fee configuration
+  console.log(`\n🔧 Calculating network-specific fees...`);
+  const networkFeeConfig = await calculateDynamicFees(networkName, ethers.provider);
+  console.log(getFeeSummary(networkFeeConfig));
 
   try {
     // Step 1: Compile contracts
@@ -297,13 +309,16 @@ async function main() {
       'DeterministicChunkFactory'
     );
     
-    // Prepare constructor arguments
+    // 💰 Use network-specific fees
     const feeRecipient = deployer.address;
     const manifestDispatcher = deployer.address; // Use deployer as placeholder, will be updated later
     const manifestHash = ethers.keccak256(ethers.toUtf8Bytes("initial-manifest-hash"));
     const factoryBytecodeHash = ethers.keccak256(FactoryContract.bytecode);
-    const baseFeeWei = ethers.parseEther('0.0007'); // 0.0007 ETH
+    const baseFeeWei = BigInt(networkFeeConfig.baseFeeWei); // Network-specific fee
     const feesEnabled = true;
+    
+    console.log(`   💰 Using network-optimized base fee: ${networkFeeConfig.baseFeeETH} ETH`);
+    console.log(`   🏷️ Fee tier: ${networkFeeConfig.feeTier.toUpperCase()}`);
     
     const factoryArgs = [
       feeRecipient,
@@ -493,6 +508,14 @@ async function main() {
     console.log(`   📍 Dispatcher Predicted: ${dispatcherPredicted}`);
     console.log(`   ✅ These salts will generate SAME addresses on ALL networks!`);
     console.log(`   🎯 Use these salts for CREATE2 deployment on other chains`);
+    console.log(``);
+    console.log(`💰 NETWORK FEE CONFIGURATION:`);
+    console.log(`   🌐 Network: ${networkFeeConfig.network} (${networkFeeConfig.feeTier} tier)`);
+    console.log(`   💎 Base Fee: ${networkFeeConfig.baseFeeETH} ETH`);
+    console.log(`   🚀 Platform Fee: ${networkFeeConfig.platformFeeETH} ETH`);
+    console.log(`   💰 Total Fee: ${networkFeeConfig.totalFeeETH} ETH`);
+    console.log(`   ⛽ Gas Price: ${networkFeeConfig.gasPrice.typical} gwei`);
+    console.log(`   📊 Economic Context: ${networkFeeConfig.description}`);
 
     // Display manifest hash prominently if available
     try {
@@ -538,7 +561,8 @@ async function main() {
     console.log(`   • Dispatcher Salt: ${dispatcherSalt}`);
     console.log(`   • Version: ${CROSS_NETWORK_CONFIG.PAYROX_VERSION}`);
     console.log(`   • Nonce: ${CROSS_NETWORK_CONFIG.CROSS_CHAIN_NONCE}`);
-    console.log(`   • Run this script on any network for same addresses!`);
+    console.log(`   💰 Fees are automatically adjusted per network!`);
+    console.log(`   🎯 Run this script on any network for same addresses!`);
 
     return {
       factory: factoryAddress,
@@ -551,6 +575,10 @@ async function main() {
       factoryPredictedAddress: factoryPredicted,
       dispatcherPredictedAddress: dispatcherPredicted,
       crossNetworkConfig: CROSS_NETWORK_CONFIG,
+      // Network-specific fee information
+      networkFeeConfig,
+      feeTier: networkFeeConfig.feeTier,
+      optimizedForNetwork: true
     };
   } catch (error) {
     console.error('\n❌ DEPLOYMENT FAILED!');
