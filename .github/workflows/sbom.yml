@@ -50,6 +50,8 @@ jobs:
           npm run compile
 
       - name: Generate SBOM
+        timeout-minutes: 10
+        continue-on-error: false
         run: |
           # Create reports directory
           mkdir -p reports
@@ -67,11 +69,11 @@ jobs:
 
           echo "🔧 Generating SBOM for network: $NETWORK"
 
-          # Check if SBOM task exists
-          if npx hardhat help | grep -q "sbom"; then
-            npx hardhat sbom --network $NETWORK --verbose
+          # Generate SBOM with error handling
+          if npx hardhat sbom --network $NETWORK --verbose; then
+            echo "✅ SBOM generated successfully"
           else
-            echo "⚠️ SBOM task not available, generating basic SBOM..."
+            echo "⚠️ SBOM generation failed, creating fallback SBOM..."
             # Generate basic SBOM using package.json and compiled contracts
             node -e "
               const fs = require('fs');
