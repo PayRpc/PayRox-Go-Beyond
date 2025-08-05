@@ -155,7 +155,6 @@ async function main() {
     
     // Use the AI service for custom batch deployment
     const customBatch = await aiService.deployBatch([
-      { contractName: "PingFacet" },
       { contractName: "ExampleFacetB" }
     ], { stopOnError: false });
     

@@ -756,7 +756,6 @@ Enhanced development toolchain for rapid testing and validation:
    - `FACET_ADDRESS`: Use existing facet or deploy new one
    - `FN_SIG`: Configure function signature (default: "ping()")
    - `MANIFEST_PATH`: Output file path
-2. **Automated Deployment**: Deploy minimal PingFacet for testing
 3. **EXTCODEHASH Computation**: Real-time codehash verification from deployed bytecode
 4. **Single-Route Manifests**: Generate minimal manifests for isolated testing
 5. **Merkle Tree Generation**: Proper leaf construction with ordered-pair hashing
@@ -824,14 +823,12 @@ capabilities.
 
 **Smoke Test Facets**:
 
-- **PingFacet**: `contracts/facets/PingFacet.sol` - Minimal testing facet with `ping()` function
 - **Purpose**: Provides deterministic test target for EXTCODEHASH verification
 - **Usage**: Deployed for smoke tests, demonstrates proper facet behavior
 
 **Development Workflows**:
 
 ```bash
-# Create smoke manifest with deployed PingFacet
 npx hardhat run scripts/create-smoke-manifest.ts --network hardhat
 
 # Verify Merkle proof consistency

@@ -97,15 +97,7 @@ export class PayRoxAIDeploymentService {
           gasEstimate: 1200000,
           deploymentPattern: "STANDARD"
         },
-        "PingFacet": {
-          path: "contracts/facets/PingFacet.sol",
-          fullyQualified: "contracts/facets/PingFacet.sol:PingFacet",
-          type: "facet",
-          priority: 70,
-          gasEstimate: 800000,
-          deploymentPattern: "STANDARD"
-        }
-      },
+        },
 
       // TerraStake System - DEMO PREFERRED (AI learned preference)
       terraStake: {

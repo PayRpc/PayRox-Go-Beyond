@@ -54,7 +54,7 @@ const ContractInterface: React.FC = () => {
     'Orchestrator': 'Orchestrator',
     'GovernanceOrchestrator': 'Orchestrator',
     'AuditRegistry': 'Orchestrator',
-    'PingFacet': 'Facet',
+    : 'Facet',
     'ExampleFacetA': 'Facet',
     'ExampleFacetB': 'Facet'
   };

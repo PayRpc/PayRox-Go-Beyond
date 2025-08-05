@@ -44,12 +44,6 @@
       "address": "0x0165878A594ca255338adfa4d48449f69242Eb8F",
       "hasABI": true,
       "timestamp": "2025-08-03T00:52:30.328Z"
-    },
-    "ping-facet": {
-      "name": "PingFacet",
-      "address": "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318",
-      "hasABI": true,
-      "timestamp": "2025-08-03T00:52:30.497Z"
     }
   },
   "syncSource": "automated-sync-script"
