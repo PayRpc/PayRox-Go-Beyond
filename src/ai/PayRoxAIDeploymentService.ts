@@ -15,6 +15,33 @@ import * as path from "path";
  * - Zero lookup time for common contracts
  */
 export class PayRoxAIDeploymentService {
+
+  /**
+   * PayRox Architecture Knowledge Base
+   * CRITICAL: PayRox is NOT an EIP-2535 Diamond - it's a Manifest-Router Architecture
+   */
+  private readonly ARCHITECTURE_KNOWLEDGE = {
+    pattern: "MANIFEST_ROUTER", // NOT Diamond
+    description: "Ordered-pair Merkle manifests with cryptographic route verification",
+    key_features: [
+      "EXTCODEHASH gates before every DELEGATECALL",
+      "Emergency forbiddenSelectors override",
+      "Immutable routes after deployment freeze",
+      "Isolated per-facet storage (no shared Diamond storage)",
+      "Content-addressed CREATE2 deployment",
+      "Role-based governance (COMMIT_ROLE, APPLY_ROLE, EMERGENCY_ROLE)"
+    ],
+    NOT_diamond_features: [
+      "No shared storage between facets",
+      "No runtime Diamond cuts",
+      "No true EIP-2535 compliance",
+      "IDiamondLoupe only for ecosystem tooling compatibility"
+    ],
+    routing_mechanism: "Merkle-proof validated routing",
+    security_model: "Cryptographic manifest verification + emergency controls",
+    upgrade_pattern: "Manifest commit → apply → activate workflow"
+  };
+
   private static instance: PayRoxAIDeploymentService;
   private projectRoot: string;
   private deploymentCache: Map<string, CachedDeployment> = new Map();
@@ -71,7 +98,7 @@ export class PayRoxAIDeploymentService {
         }
       },
 
-      // PayRox Diamond Facets - Production paths
+      // PayRox Manifest-Router Facets - Production paths
       facets: {
         "ExampleFacetA": {
           path: "contracts/facets/ExampleFacetA.sol",
@@ -299,8 +326,8 @@ export class PayRoxAIDeploymentService {
       totalGasUsed += BigInt(result.gasUsed);
     }
 
-    // Phase 2: Diamond Facets
-    console.log("\n💎 Phase 2: Diamond Facets");
+    // Phase 2: Manifest-Router Facets
+    console.log("\n�️ Phase 2: Manifest-Router Facets");
     for (const contract of deploymentPlan.facetContracts) {
       const result = await this.deployInstant(contract.contractName, contract.constructorArgs || []);
       results[contract.contractName] = result;

@@ -207,6 +207,77 @@ The contracts in the PayRox system **exactly match** the described Diamond archi
 
 **Result**: The PayRox Go Beyond system successfully implements a **hybrid Diamond architecture** that combines EIP-2535 standards with PayRox-specific optimizations for security, gas efficiency, and upgrade safety.
 
+
+
+## IMPORTANT ARCHITECTURE CLARIFICATION (Updated August 2025)
+
+### **PayRox is NOT an EIP-2535 Diamond - It's a Manifest-Router Architecture**
+
+Based on comprehensive analysis and the 2025-07-30 snapshot, the PayRox system implements a unique **Manifest-Router Architecture** that differs significantly from EIP-2535 Diamond:
+
+#### **Key Architectural Differences:**
+
+**❌ NOT Diamond Pattern:**
+- No shared storage between facets (each facet has isolated storage)
+- No diamond cuts (immutable after deployment and freeze) 
+- No true EIP-2535 compliance
+- Uses IDiamondLoupe only for ecosystem tooling compatibility
+
+**✅ Manifest-Router Pattern:**
+- **Ordered-pair Merkle manifests** (commit → apply → activate)
+- **EXTCODEHASH gate** before every DELEGATECALL
+- **Emergency forbiddenSelectors override** (audit-visible; reversible only via new epoch)
+- **Content-addressed CREATE2 deployment** for deterministic addressing
+- **Cryptographic verification** of all route changes
+
+#### **Current Facet Architecture (6 Core + 3 TerraStake):**
+
+| Facet | Size | Purpose | Storage Namespace |
+|-------|------|---------|-------------------|
+| **ChunkFactoryFacet** | 24.0KB | External contract helper (read-only) | payrox.facets.chunkfactory.v1 |
+| **ExampleFacetA** | ~8KB | Message handling | payrox.facets.exampleA.v1 |
+| **ExampleFacetB** | ~10KB | Governance with EIP-712 | payrox.facets.exampleB.v1 |
+| **TerraStakeCoreFacet** | 8.1KB | Core staking logic | payrox.facets.terrastake.core.v1 |
+| **TerraStakeTokenFacet** | 12.5KB | Token management | payrox.facets.terrastake.token.v1 |
+| **TerraStakeInsuranceFacet** | 10.5KB | Insurance system | payrox.terrastake.insurance.v1 |
+
+**Total: ~109.9KB** (well under EIP-170 limit of 245.8KB)
+
+#### **Architecture Benefits:**
+
+**🛡️ Security Advantages:**
+- **Storage Isolation**: Zero cross-facet storage collisions
+- **Immutable Routes**: No runtime modification after freeze
+- **Cryptographic Verification**: Merkle proof validation for all changes
+- **Emergency Controls**: forbiddenSelectors override with audit trail
+
+**⚡ Performance Benefits:**
+- **L2 Optimized**: Gas-efficient routing with EXTCODEHASH gates
+- **Deterministic Deployment**: CREATE2 content-addressing
+- **Minimal Overhead**: Direct DELEGATECALL without Diamond Cut complexity
+
+**🔧 Governance Features:**
+- **Role Separation**: COMMIT_ROLE, APPLY_ROLE, EMERGENCY_ROLE, DEFAULT_ADMIN_ROLE
+- **Ordered Activation**: Manifest commit → apply → activate workflow
+- **Audit Visibility**: All changes tracked and reversible via new epoch
+
+#### **Why This Matters:**
+
+1. **More Secure**: Immutable routes prevent runtime manipulation
+2. **Better Performance**: No Diamond Cut overhead, direct routing
+3. **Cleaner Architecture**: Purpose-built for PayRox requirements
+4. **Future-Proof**: Manifest-based evolution vs runtime upgrades
+
+### **Correction to Previous Analysis:**
+
+The earlier sections describing "Diamond Pattern implementation" should be understood as:
+- **Manifest-Router Pattern** with Diamond-compatible interfaces for tooling
+- **Isolated facet architecture** without shared Diamond storage
+- **Enhanced security model** beyond standard Diamond implementations
+
+This architecture represents a **next-generation approach** to modular smart contract systems that improves upon Diamond patterns while maintaining ecosystem compatibility.
+
+
 ## Test Suite Implementation
 
 ### **Comprehensive Integration Tests Created**

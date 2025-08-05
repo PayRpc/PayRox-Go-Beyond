@@ -47,6 +47,8 @@
     "remove:pingfacet": "hardhat run scripts/remove-pingfacet-manual.ts --network hardhat",
     "update:ecosystem": "hardhat run scripts/complete-ecosystem-update.ts --network hardhat",
     "validate:ecosystem": "hardhat run scripts/final-ecosystem-validation.ts --network hardhat",
+    "update:architecture": "hardhat run scripts/update-architecture-documentation.ts --network hardhat",
+    "update:ai-knowledge": "hardhat run scripts/update-ai-architecture-knowledge.ts --network hardhat",
     "ai:terra-stake:full-demo": "npm run ai:terra-stake:complete && npm run ai:terra-stake:verify",
     "ai:terra-stake:localhost": "hardhat run scripts/deploy-terra-stake-deterministic.ts --network localhost",
     "ai:terra-stake:sepolia": "hardhat run scripts/deploy-terra-stake-deterministic.ts --network sepolia",
