@@ -28,8 +28,8 @@ export interface FeeConfig {
 }
 
 /**
- * Current deployed contract addresses (localhost/testnet)
- * TODO: Update with mainnet addresses when ready
+ * Current deployed contract addresses (updated for PayRox Diamond System)
+ * Note: These are placeholder addresses - update with actual deployment addresses
  */
 export const NETWORKS: Record<string, NetworkConfig> = {
   localhost: {
@@ -38,14 +38,14 @@ export const NETWORKS: Record<string, NetworkConfig> = {
     rpcUrl: "http://127.0.0.1:8545",
     blockExplorer: "",
     contracts: {
-      factory: "0x5FbDB2315678afecb367f032d93F642f64180aa3",
-      dispatcher: "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
-      orchestrator: "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
-      governance: "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
-      auditRegistry: "0x0165878A594ca255338adfa4d48449f69242Eb8F"
+      factory: "0x5FbDB2315678afecb367f032d93F642f64180aa3", // DeterministicChunkFactory
+      dispatcher: "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512", // ManifestDispatcher
+      orchestrator: "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9", // PayRoxOrchestrator
+      governance: "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707", // Governance contract
+      auditRegistry: "0x0165878A594ca255338adfa4d48449f69242Eb8F" // Audit registry
     },
     fees: {
-      deploymentFee: "700000000000000", // 0.0007 ETH
+      deploymentFee: "700000000000000", // 0.0007 ETH - matches DeterministicChunkFactory
       gasLimit: 5000000
     }
   },

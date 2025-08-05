@@ -25,8 +25,7 @@ export interface PayRoxContracts {
   DeterministicChunkFactory: ContractABI;
   GovernanceOrchestrator: ContractABI;
   Orchestrator: ContractABI;
-  PingFacet: ContractABI;
-}
+  }
 
 export const CONTRACT_ADDRESSES = {
   'AUDIT-REGISTRY': '0xc5a5C42992dECbae36851359345FE25997F5C42d',

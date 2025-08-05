@@ -1,0 +1,411 @@
+{
+  "timestamp": "2025-08-05T01:52:55.204Z",
+  "analysis": {
+    "facets": [
+      {
+        "name": "ChunkFactoryFacet",
+        "path": "contracts\\facets\\ChunkFactoryFacet.sol",
+        "size": 24558,
+        "lines": 431,
+        "functions": [
+          "stage",
+          "stageBatch",
+          "deployDeterministic",
+          "deployDeterministicBatch",
+          "predict",
+          "predictAddress",
+          "predictAddressBatch",
+          "exists",
+          "isDeployed",
+          "validateBytecodeSize",
+          "getDeploymentFee",
+          "getDeploymentCount",
+          "getUserTier",
+          "setTierFee",
+          "withdrawFees",
+          "pause",
+          "unpause",
+          "verifySystemIntegrity",
+          "getExpectedManifestHash",
+          "getExpectedFactoryBytecodeHash",
+          "getManifestDispatcher",
+          "getFactoryAddress",
+          "supportsInterface",
+          "getFacetFunctionSelectors",
+          "getUserDeploymentStats",
+          "isHashDeployed",
+          "getSystemStats",
+          "performMaintenance",
+          "setEmergencyMode"
+        ],
+        "interfaces": [
+          "IChunkFactory",
+          "AccessControl"
+        ],
+        "storageSlots": [
+          "payrox.facets.chunkfactory.v1"
+        ],
+        "dependencies": [
+          ";\r\nimport {IChunkFactory} from ",
+          ";\r\nimport {IDiamondLoupe} from "
+        ],
+        "communicationPatterns": [
+          "events",
+          "diamond-loupe",
+          "caller-context"
+        ]
+      },
+      {
+        "name": "TerraStakeCoordinatorFacet",
+        "path": "contracts\\demo\\facets\\TerraStakeCoordinatorFacet.sol",
+        "size": 14289,
+        "lines": 411,
+        "functions": [
+          "initializeCoordinator",
+          "completeStaking",
+          "executeEmergencyStakeRelease",
+          "fractionalize",
+          "getFractionalizationInfo",
+          "updateEnvironmentalData",
+          "setFractionalizationVault",
+          "getFractionalizationVault",
+          "supportsInterface",
+          "getFacetInfo"
+        ],
+        "interfaces": [
+          "AccessControlUpgradeable",
+          "PausableUpgradeable",
+          "ReentrancyGuardUpgradeable"
+        ],
+        "storageSlots": [
+          "payrox.facets.terrastake.coordinator.v1",
+          "COORDINATOR_ROLE",
+          "EMERGENCY_ROLE",
+          "ORACLE_ROLE",
+          "FRACTIONALIZATION_ROLE",
+          "MINTER_ROLE"
+        ],
+        "dependencies": [
+          ";\r\nimport ",
+          ";\r\nimport ",
+          ";\r\n\r\nimport "
+        ],
+        "communicationPatterns": [
+          "events",
+          "modifiers",
+          "access-control",
+          "caller-context"
+        ]
+      },
+      {
+        "name": "TerraStakeTokenFacet",
+        "path": "contracts\\demo\\facets\\TerraStakeTokenFacet.sol",
+        "size": 12826,
+        "lines": 369,
+        "functions": [
+          "initializeToken",
+          "mintWithEnvironmentalData",
+          "batchMintWithEnvironmentalData",
+          "uri",
+          "getEnvironmentalData",
+          "getSupplyInfo",
+          "setEnvironmentalOracle",
+          "getEnvironmentalOracle",
+          "supportsInterface",
+          "getFacetInfo"
+        ],
+        "interfaces": [
+          "ERC1155Upgradeable",
+          "ERC1155HolderUpgradeable",
+          "AccessControlUpgradeable",
+          "PausableUpgradeable",
+          "ReentrancyGuardUpgradeable"
+        ],
+        "storageSlots": [
+          "payrox.facets.terrastake.token.v1",
+          "MINTER_ROLE"
+        ],
+        "dependencies": [
+          ";\r\nimport ",
+          ";\r\nimport ",
+          ";\r\n\r\nimport "
+        ],
+        "communicationPatterns": [
+          "events",
+          "modifiers",
+          "access-control"
+        ]
+      },
+      {
+        "name": "TerraStakeTokenFacet",
+        "path": "contracts\\facets\\TerraStakeTokenFacet.sol",
+        "size": 12450,
+        "lines": 331,
+        "functions": [
+          "mintWithEnvironmentalData",
+          "batchMintWithEnvironmentalData",
+          "updateEnvironmentalData",
+          "setTokenURI",
+          "getEnvironmentalData",
+          "getTierSupply",
+          "totalSupply",
+          "uri",
+          "supportsInterface"
+        ],
+        "interfaces": [
+          "ERC1155Upgradeable",
+          "AccessControlUpgradeable",
+          "PausableUpgradeable",
+          "ReentrancyGuardUpgradeable"
+        ],
+        "storageSlots": [
+          "MINTER_ROLE",
+          "VALIDATOR_ROLE"
+        ],
+        "dependencies": [
+          ";\r\nimport ",
+          ";\r\nimport ",
+          ";\r\n\r\n/**\r\n * @title TerraStakeTokenFacet\r\n * @dev Token management functions for TerraStake environmental NFTs\r\n * \r\n * This facet handles all ERC1155 token operations including minting with\r\n * environmental data, batch operations, and metadata management. Each token\r\n * represents a specific environmental impact or conservation effort.\r\n * \r\n * Key Features:\r\n * - Multi-tier environmental NFTs (Bronze, Silver, Gold, Platinum)\r\n * - Environmental data integration for real-world impact tracking\r\n * - Batch minting for efficient operations\r\n * - Metadata URI management with IPFS integration\r\n * - Carbon footprint and impact verification\r\n * \r\n * @author PayRox Go Beyond AI Toolchain\r\n */\r\ncontract TerraStakeTokenFacet is ERC1155Upgradeable, AccessControlUpgradeable, PausableUpgradeable, ReentrancyGuardUpgradeable {\r\n    using LibTerraStake for LibTerraStake.TerraStakeStorage;\r\n\r\n    // Token tier definitions\r\n    uint256 public constant BRONZE_TIER = 1;\r\n    uint256 public constant SILVER_TIER = 2;\r\n    uint256 public constant GOLD_TIER = 3;\r\n    uint256 public constant PLATINUM_TIER = 4;\r\n\r\n    // Role for environmental data validation\r\n    bytes32 public constant MINTER_ROLE = keccak256("
+        ],
+        "communicationPatterns": [
+          "events",
+          "access-control",
+          "caller-context"
+        ]
+      },
+      {
+        "name": "TerraStakeStakingFacet",
+        "path": "contracts\\demo\\facets\\TerraStakeStakingFacet.sol",
+        "size": 11909,
+        "lines": 351,
+        "functions": [
+          "initializeStaking",
+          "startStaking",
+          "endStaking",
+          "getStakeInfo",
+          "calculateCurrentRewards",
+          "getBaseRewardRate",
+          "setEnvironmentalOracle",
+          "updateBaseRewardRate",
+          "supportsInterface",
+          "getFacetInfo"
+        ],
+        "interfaces": [
+          "AccessControlUpgradeable",
+          "PausableUpgradeable",
+          "ReentrancyGuardUpgradeable"
+        ],
+        "storageSlots": [
+          "payrox.facets.terrastake.staking.v1"
+        ],
+        "dependencies": [
+          ";\r\nimport ",
+          ";\r\n\r\nimport "
+        ],
+        "communicationPatterns": [
+          "events",
+          "modifiers",
+          "access-control",
+          "caller-context"
+        ]
+      },
+      {
+        "name": "TerraStakeInsuranceFacet",
+        "path": "contracts\\facets\\TerraStakeInsuranceFacet.sol",
+        "size": 10719,
+        "lines": 263,
+        "functions": [
+          "initializeInsurance",
+          "payPremium",
+          "fileClaim",
+          "processClaim",
+          "getUserClaimCount",
+          "getClaim",
+          "getFundBalance",
+          "premiumsPaid",
+          "coverageAmount",
+          "totalFundValue",
+          "minCapitalRequirement",
+          "basePremiumRate",
+          "coverageMultiplier",
+          "getFacetFunctionSelectors",
+          "supportsInterface"
+        ],
+        "interfaces": [
+          "AccessControl"
+        ],
+        "storageSlots": [
+          "payrox.terrastake.insurance.v1",
+          "GOVERNANCE_ROLE",
+          "FUND_MANAGER_ROLE",
+          "INSURANCE_ADMIN_ROLE"
+        ],
+        "dependencies": [
+          ";\r\nimport ",
+          ";\r\nimport ",
+          ";\r\nimport "
+        ],
+        "communicationPatterns": [
+          "events",
+          "modifiers",
+          "access-control",
+          "diamond-loupe",
+          "caller-context"
+        ]
+      },
+      {
+        "name": "TerraStakeVRFFacet",
+        "path": "contracts\\demo\\facets\\TerraStakeVRFFacet.sol",
+        "size": 9519,
+        "lines": 287,
+        "functions": [
+          "initializeVRF",
+          "requestRandomness",
+          "fulfillRandomWords",
+          "getPendingRandomness",
+          "getVRFConfig",
+          "updateVRFConfig",
+          "updateVRFCoordinator",
+          "supportsInterface",
+          "getFacetInfo"
+        ],
+        "interfaces": [
+          "AccessControlUpgradeable",
+          "PausableUpgradeable",
+          "ReentrancyGuardUpgradeable"
+        ],
+        "storageSlots": [
+          "payrox.facets.terrastake.vrf.v1"
+        ],
+        "dependencies": [
+          ";\r\nimport ",
+          ";\r\n\r\nimport "
+        ],
+        "communicationPatterns": [
+          "events",
+          "modifiers",
+          "access-control",
+          "caller-context"
+        ]
+      },
+      {
+        "name": "TerraStakeCoreFacet",
+        "path": "contracts\\demo\\facets\\TerraStakeCoreFacet.sol",
+        "size": 8298,
+        "lines": 244,
+        "functions": [
+          "initializeCore",
+          "requestEmergencyWithdraw",
+          "checkEmergencyWithdrawStatus",
+          "clearEmergencyWithdrawRequest",
+          "emergencyPause",
+          "emergencyUnpause",
+          "updateEmergencyWithdrawDelay",
+          "getEmergencyWithdrawDelay",
+          "isCoreInitialized",
+          "supportsInterface",
+          "getFacetInfo"
+        ],
+        "interfaces": [
+          "Initializable",
+          "AccessControlUpgradeable",
+          "PausableUpgradeable",
+          "ReentrancyGuardUpgradeable",
+          "UUPSUpgradeable"
+        ],
+        "storageSlots": [
+          "payrox.facets.terrastake.core.v1",
+          "MINTER_ROLE",
+          "UPGRADER_ROLE",
+          "ORACLE_ROLE",
+          "EMERGENCY_ROLE",
+          "FRACTIONALIZATION_ROLE",
+          "EMERGENCY_PAUSE"
+        ],
+        "dependencies": [
+          ";\r\nimport ",
+          ";\r\nimport ",
+          ";\r\n\r\n/**\r\n * @title TerraStakeCoreFacet\r\n * @dev Core management facet for TerraStake system - handles admin, roles, and emergency functions\r\n * @author PayRox Go Beyond Team\r\n */\r\ncontract TerraStakeCoreFacet is \r\n    Initializable,\r\n    AccessControlUpgradeable,\r\n    PausableUpgradeable,\r\n    ReentrancyGuardUpgradeable,\r\n    UUPSUpgradeable\r\n{\r\n    // ============ Diamond-Safe Storage ============\r\n    bytes32 private constant _SLOT = keccak256("
+        ],
+        "communicationPatterns": [
+          "events",
+          "modifiers",
+          "access-control",
+          "caller-context"
+        ]
+      },
+      {
+        "name": "TerraStakeCoreFacet",
+        "path": "contracts\\facets\\TerraStakeCoreFacet.sol",
+        "size": 8016,
+        "lines": 224,
+        "functions": [
+          "initialize",
+          "grantRoleWithContext",
+          "emergencyPause",
+          "unpauseAfterMaintenance",
+          "updateBaseURI",
+          "updateStakingRewardRate",
+          "updateEnvironmentalBonus",
+          "getSystemConfig",
+          "isInitialized"
+        ],
+        "interfaces": [
+          "AccessControlUpgradeable",
+          "PausableUpgradeable"
+        ],
+        "storageSlots": [
+          "MINTER_ROLE",
+          "VALIDATOR_ROLE",
+          "ORACLE_ROLE",
+          "EMERGENCY_ROLE"
+        ],
+        "dependencies": [
+          ";\r\nimport ",
+          ";\r\nimport ",
+          ";\r\n\r\n/**\r\n * @title TerraStakeCoreFacet\r\n * @dev Core administrative functions for TerraStake NFT system\r\n * \r\n * This facet handles initialization, access control, and administrative functions\r\n * for the TerraStake environmental NFT platform. It follows the Diamond storage \r\n * pattern for safe storage separation and upgradability.\r\n * \r\n * Key Features:\r\n * - Role-based access control with environmental validator roles\r\n * - Emergency pause functionality for system protection\r\n * - Initialization of all core system parameters\r\n * - Integration with PayRox deterministic deployment system\r\n * \r\n * @author PayRox Go Beyond AI Toolchain\r\n */\r\ncontract TerraStakeCoreFacet is AccessControlUpgradeable, PausableUpgradeable {\r\n    using LibTerraStake for LibTerraStake.TerraStakeStorage;\r\n\r\n    // Role definitions for environmental platform\r\n    bytes32 public constant MINTER_ROLE = keccak256("
+        ],
+        "communicationPatterns": [
+          "events",
+          "access-control",
+          "caller-context"
+        ]
+      }
+    ],
+    "integration": {
+      "manifestDispatcher": {
+        "routes": [
+          "Route mapping found"
+        ],
+        "selectors": [
+          "Selector registration found"
+        ],
+        "facetMapping": {}
+      },
+      "communicationMethods": {
+        "delegatecall": true,
+        "events": [
+          "RootUpdated",
+          "DiamondCut",
+          "ReturnDataSizeUpdated"
+        ],
+        "sharedStorage": false,
+        "interfaces": []
+      },
+      "architecture": {
+        "diamondPattern": true,
+        "storageIsolation": true,
+        "upgradeability": false
+      }
+    }
+  },
+  "summary": {
+    "totalFacets": 9,
+    "totalSize": 112584,
+    "integrationPattern": "Diamond",
+    "communicationMethods": [
+      "delegatecall",
+      "events"
+    ]
+  }
+}

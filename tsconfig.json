@@ -16,7 +16,14 @@
     "outDir": "./dist",
     "rootDir": "./",
     "noImplicitAny": false,
-    "typeRoots": ["./node_modules/@types"]
+    "typeRoots": ["./node_modules/@types"],
+    "baseUrl": "./",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@tasks/*": ["./tasks/*"],
+      "@scripts/*": ["./scripts/*"],
+      "@test/*": ["./test/*"]
+    }
   },
   "include": [
     "./scripts/**/*",
@@ -26,7 +33,8 @@
     "./src/**/*",
     "./typechain-types/**/*",
     "./cli/src/**/*",
-    "./sdk/src/**/*"
+    "./sdk/src/**/*",
+    "./docs/**/*"
   ],
   "exclude": [
     "node_modules",

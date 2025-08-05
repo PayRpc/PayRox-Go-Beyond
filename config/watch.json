@@ -1,28 +1,71 @@
 {
+  "description": "PayRox NON-STANDARD Diamond Monitoring Configuration",
   "monitoredSelectors": [
     "0x5c36b186",
     "0x7ab7b94b",
     "0xb5211ec4",
-    "0x3c7264b2"
+    "0x3c7264b2",
+    "0x31cd4199",
+    "0x54f6127f",
+    "0x37184e95",
+    "0x5aa723df",
+    "0x2113522a",
+    "0x642f7d5e"
   ],
+  "criticalSelectors": ["0x7ab7b94b", "0xb5211ec4", "0x31cd4199"],
   "alertOnEvents": [
+    "RootCommitted",
+    "RootActivated",
+    "RouteAdded",
     "RouteRemoved",
-    "RoutesRemoved",
+    "RouteUpdated",
     "Frozen",
-    "FeesUpdated",
+    "ManifestVersionUpdated",
+    "ManifestCommitted",
+    "ManifestApplied",
+    "ActivationDelaySet",
     "Paused",
     "Unpaused",
-    "ActivationDelaySet"
+    "StatusSnapshot",
+    "GovernanceRotated",
+    "GuardianAction"
   ],
-  "checkInterval": 30000,
-  "maxBlocks": 1000,
+  "checkInterval": 15000,
+  "maxBlocks": 2000,
   "alertSeverity": {
     "Frozen": "CRITICAL",
     "RouteRemoved": "CRITICAL",
-    "RoutesRemoved": "CRITICAL",
-    "Paused": "WARNING",
-    "FeesUpdated": "WARNING",
+    "RouteUpdated": "CRITICAL",
+    "GovernanceRotated": "CRITICAL",
+    "ManifestVersionUpdated": "HIGH",
+    "RootCommitted": "HIGH",
+    "RootActivated": "HIGH",
+    "ManifestCommitted": "HIGH",
+    "ManifestApplied": "HIGH",
+    "RouteAdded": "WARNING",
     "ActivationDelaySet": "WARNING",
+    "Paused": "WARNING",
+    "StatusSnapshot": "INFO",
+    "GuardianAction": "INFO",
     "Unpaused": "INFO"
+  },
+  "nonStandardDiamond": {
+    "isolatedFacetStorage": true,
+    "manifestBasedRouting": true,
+    "merkleProofVerification": true,
+    "immutableAfterFreeze": true
+  },
+  "securityThresholds": {
+    "maxRouteChangesPerHour": 10,
+    "maxFailedCallsPerMinute": 50,
+    "maxGasUsageDeviation": 0.3,
+    "routeIntegrityCheckInterval": 60000
+  },
+  "monitoring": {
+    "enableRouteIntegrityChecks": true,
+    "enableCodehashValidation": true,
+    "enableGasAnalysis": true,
+    "enableEventCorrelation": true,
+    "logLevel": "INFO"
   }
 }

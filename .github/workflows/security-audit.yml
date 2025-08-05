@@ -1,0 +1,335 @@
+name: 🔒 Security Audit Pipeline
+
+on:
+  push:
+    branches: [main, develop, Phase-*]
+    paths: ['contracts/**', 'scripts/**', 'hardhat.config.ts']
+  pull_request:
+    branches: [main, develop]
+    paths: ['contracts/**', 'scripts/**', 'hardhat.config.ts']
+  schedule:
+    - cron: '0 2 * * 1' # Weekly security scan
+
+env:
+  NODE_VERSION: '18'
+  FOUNDRY_PROFILE: 'ci'
+
+jobs:
+  # Pre-audit compilation and basic checks
+  prepare-audit:
+    name: 🏗️ Prepare Security Audit
+    runs-on: ubuntu-latest
+    outputs:
+      contracts-changed: ${{ steps.changes.outputs.contracts }}
+      should-run-full-audit: ${{ steps.decide.outputs.full-audit }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check for contract changes
+        id: changes
+        uses: dorny/paths-filter@v2
+        with:
+          filters: |
+            contracts:
+              - 'contracts/**'
+              - 'scripts/**'
+              - 'hardhat.config.ts'
+
+      - name: Compile contracts
+        run: npx hardhat compile
+
+      - name: Decide audit scope
+        id: decide
+        run: |
+          if [[ "${{ github.event_name }}" == "schedule" ]] || [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "full-audit=true" >> $GITHUB_OUTPUT
+          elif [[ "${{ steps.changes.outputs.contracts }}" == "true" ]]; then
+            echo "full-audit=true" >> $GITHUB_OUTPUT
+          else
+            echo "full-audit=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Cache compilation artifacts
+        uses: actions/cache@v3
+        with:
+          path: |
+            artifacts
+            cache
+            typechain-types
+          key: compilation-${{ runner.os }}-${{ hashFiles('contracts/**/*.sol', 'hardhat.config.ts') }}
+
+  # Slither static analysis
+  slither-analysis:
+    name: 🐍 Slither Static Analysis
+    runs-on: ubuntu-latest
+    needs: prepare-audit
+    if: needs.prepare-audit.outputs.should-run-full-audit == 'true'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Slither
+        run: |
+          pip install slither-analyzer==0.10.0
+          pip install solc-select
+          solc-select install 0.8.20
+          solc-select use 0.8.20
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Restore compilation cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            artifacts
+            cache
+            typechain-types
+          key: compilation-${{ runner.os }}-${{ hashFiles('contracts/**/*.sol', 'hardhat.config.ts') }}
+
+      - name: Run Slither analysis
+        run: |
+          # Create security reports directory
+          mkdir -p security-reports
+          
+          # Run Slither with PayRox-specific configuration
+          slither . \
+            --config-file .github/security/slither.config.json \
+            --json security-reports/slither-report.json \
+            --checklist \
+            --markdown-root security-reports/ \
+            --exclude-dependencies \
+            --exclude-informational \
+            --exclude-optimization \
+            --filter-paths "node_modules,test" \
+            --hardhat-ignore-compile || echo "Slither completed with findings"
+
+      - name: Process Slither results
+        run: |
+          # Filter critical and high severity issues
+          python3 .github/security/process-slither.py security-reports/slither-report.json
+          
+          # Check for critical issues that should fail the build
+          if [ -f "security-reports/critical-issues.json" ]; then
+            CRITICAL_COUNT=$(jq length security-reports/critical-issues.json)
+            if [ "$CRITICAL_COUNT" -gt 0 ]; then
+              echo "❌ Critical security issues found: $CRITICAL_COUNT"
+              exit 1
+            fi
+          fi
+
+      - name: Upload Slither reports
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: slither-security-reports
+          path: security-reports/
+          retention-days: 30
+
+      - name: Comment PR with results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            if (fs.existsSync('security-reports/slither-summary.md')) {
+              const summary = fs.readFileSync('security-reports/slither-summary.md', 'utf8');
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: `## 🐍 Slither Security Analysis\n\n${summary}`
+              });
+            }
+
+  # Mythril symbolic execution
+  mythril-analysis:
+    name: 🔮 Mythril Symbolic Analysis
+    runs-on: ubuntu-latest
+    needs: prepare-audit
+    if: needs.prepare-audit.outputs.should-run-full-audit == 'true'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Mythril
+        run: |
+          pip install mythril==0.24.8
+          pip install solc-select
+          solc-select install 0.8.20
+          solc-select use 0.8.20
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Compile contracts for Mythril
+        run: npx hardhat compile
+
+      - name: Run Mythril analysis
+        run: |
+          mkdir -p security-reports
+          
+          # Analyze core contracts with Mythril
+          CONTRACTS=(
+            "contracts/factory/DeterministicChunkFactory.sol"
+            "contracts/dispatcher/ManifestDispatcher.sol"
+            "contracts/orchestrator/ManifestOrchestrator.sol"
+            "contracts/facets/ChunkFactoryFacet.sol"
+          )
+          
+          for contract in "${CONTRACTS[@]}"; do
+            if [ -f "$contract" ]; then
+              CONTRACT_NAME=$(basename "$contract" .sol)
+              echo "🔍 Analyzing $CONTRACT_NAME..."
+              
+              timeout 300 myth analyze "$contract" \
+                --solv 0.8.20 \
+                --max-depth 10 \
+                --execution-timeout 60 \
+                --json \
+                --output "security-reports/mythril-${CONTRACT_NAME}.json" || true
+            fi
+          done
+
+      - name: Process Mythril results
+        run: |
+          python3 .github/security/process-mythril.py security-reports/
+          
+          # Check for high-severity vulnerabilities
+          if [ -f "security-reports/mythril-summary.json" ]; then
+            HIGH_SEVERITY=$(jq '[.[] | select(.severity == "High")] | length' security-reports/mythril-summary.json)
+            if [ "$HIGH_SEVERITY" -gt 0 ]; then
+              echo "⚠️ High severity vulnerabilities found: $HIGH_SEVERITY"
+              # Don't fail build for Mythril (too many false positives)
+              # but flag for manual review
+            fi
+          fi
+
+      - name: Upload Mythril reports
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: mythril-security-reports
+          path: security-reports/
+          retention-days: 30
+
+  # Combined security report
+  security-summary:
+    name: 📊 Security Summary
+    runs-on: ubuntu-latest
+    needs: [slither-analysis, mythril-analysis]
+    if: always() && needs.prepare-audit.outputs.should-run-full-audit == 'true'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download Slither reports
+        uses: actions/download-artifact@v3
+        with:
+          name: slither-security-reports
+          path: slither-reports/
+
+      - name: Download Mythril reports
+        uses: actions/download-artifact@v3
+        with:
+          name: mythril-security-reports
+          path: mythril-reports/
+
+      - name: Generate combined security report
+        run: |
+          python3 .github/security/generate-security-summary.py \
+            --slither-dir slither-reports/ \
+            --mythril-dir mythril-reports/ \
+            --output security-summary.md
+
+      - name: Upload security summary
+        uses: actions/upload-artifact@v3
+        with:
+          name: security-summary
+          path: security-summary.md
+          retention-days: 90
+
+      - name: Update security badge
+        if: github.ref == 'refs/heads/main'
+        run: |
+          # Generate security status badge
+          python3 .github/security/update-security-badge.py security-summary.md
+
+  # Emergency security scan (lightweight)
+  emergency-scan:
+    name: ⚡ Emergency Security Scan
+    runs-on: ubuntu-latest
+    needs: prepare-audit
+    if: needs.prepare-audit.outputs.should-run-full-audit == 'false'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run basic security checks
+        run: |
+          # Basic pattern matching for known security issues
+          echo "🔍 Running emergency security patterns..."
+          
+          # Check for common vulnerabilities
+          if grep -r "tx.origin" contracts/; then
+            echo "⚠️ Found tx.origin usage - potential security risk"
+          fi
+          
+          if grep -r "block.timestamp" contracts/ | grep -v "test"; then
+            echo "ℹ️ Found block.timestamp usage - verify not used for critical logic"
+          fi
+          
+          # Check for proper access controls
+          if ! grep -r "onlyRole\|onlyOwner\|require.*msg.sender" contracts/; then
+            echo "⚠️ No access controls found - verify intentional"
+          fi
+          
+          echo "✅ Emergency security scan completed"

@@ -1,0 +1,86 @@
+{
+  "version": "1.0.0",
+  "timestamp": "2025-08-05T03:41:55.894Z",
+  "network": "localhost",
+  "protocol": "TerraStake-PayRox-Integration",
+  "infrastructure": {
+    "factory": "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
+    "dispatcher": "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0"
+  },
+  "terrastakeFacets": [
+    {
+      "name": "StakingFacet",
+      "address": "0x0165878A594ca255338adfa4d48449f69242Eb8F"
+    },
+    {
+      "name": "InsuranceFacet",
+      "address": "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853"
+    },
+    {
+      "name": "ValidatorFacet",
+      "address": "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6"
+    },
+    {
+      "name": "GovernanceFacet",
+      "address": "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318"
+    },
+    {
+      "name": "BridgeFacet",
+      "address": "0x610178dA211FEF7D417bC0e6FeD39F05609AD788"
+    }
+  ],
+  "capabilities": {
+    "staking": true,
+    "insurance": true,
+    "governance": true,
+    "crossChainBridge": true,
+    "deterministicDeployment": true
+  },
+  "routes": [
+    {
+      "facetName": "StakingFacet",
+      "address": "0x0165878A594ca255338adfa4d48449f69242Eb8F",
+      "selectors": [
+        "0x12345678",
+        "0x87654321"
+      ],
+      "stakingRole": "staker"
+    },
+    {
+      "facetName": "InsuranceFacet",
+      "address": "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853",
+      "selectors": [
+        "0x12345678",
+        "0x87654321"
+      ],
+      "stakingRole": "insurer"
+    },
+    {
+      "facetName": "ValidatorFacet",
+      "address": "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6",
+      "selectors": [
+        "0x12345678",
+        "0x87654321"
+      ],
+      "stakingRole": "validator"
+    },
+    {
+      "facetName": "GovernanceFacet",
+      "address": "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318",
+      "selectors": [
+        "0x12345678",
+        "0x87654321"
+      ],
+      "stakingRole": "governor"
+    },
+    {
+      "facetName": "BridgeFacet",
+      "address": "0x610178dA211FEF7D417bC0e6FeD39F05609AD788",
+      "selectors": [
+        "0x12345678",
+        "0x87654321"
+      ],
+      "stakingRole": "bridger"
+    }
+  ]
+}

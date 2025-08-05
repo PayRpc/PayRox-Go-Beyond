@@ -1,0 +1,13 @@
+{
+  "scripts": {
+    "emergency:pause": "npx hardhat run scripts/emergency-pause.ts",
+    "emergency:forbid": "npx hardhat run scripts/emergency-forbid-selector.ts",
+    "emergency:remove-routes": "npx hardhat run scripts/emergency-remove-routes.ts",
+    "emergency:health-check": "npx hardhat run scripts/emergency-health-check.ts",
+    "emergency:drill": "npx tsx scripts/emergency-drill.ts",
+    "emergency:drill:help": "npx tsx scripts/emergency-drill.ts --help",
+    "emergency:verify-isolation": "npx hardhat run scripts/emergency-verify-isolation.ts",
+    "emergency:prepare-rollback": "npx hardhat run scripts/emergency-prepare-rollback.ts",
+    "emergency:rollback": "npx hardhat run scripts/emergency-rollback.ts"
+  }
+}

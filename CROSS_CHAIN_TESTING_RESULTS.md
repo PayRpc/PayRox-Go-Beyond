@@ -98,7 +98,6 @@ $ npm test
   FacetSizeCap
     ✅ Should verify ExampleFacetA runtime size is within EIP-170 limit
     ✅ Should verify ExampleFacetB runtime size is within EIP-170 limit
-    ✅ Should verify PingFacet runtime size is within EIP-170 limit
     ✅ Should fail CI if any production facet exceeds EIP-170 limit
   Production Factory Deployment
     ✅ Should demonstrate the production deployment flow

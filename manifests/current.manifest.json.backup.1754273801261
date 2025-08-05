@@ -1,0 +1,207 @@
+{
+  "version": "1.0.0",
+  "timestamp": "2025-08-04T02:11:05.467Z",
+  "description": "Initial release of PayRox Go Beyond deployment framework",
+  "network": {
+    "name": "localhost",
+    "chainId": "31337"
+  },
+  "factory": "0xc3e53F4d16Ae77Db1c982e75a937B9f60FE63690",
+  "facets": [
+    {
+      "name": "ExampleFacetA",
+      "contract": "ExampleFacetA",
+      "address": "0x9E545E3C0baAB3E08CdfD552C960A1050f373042",
+      "salt": "0xa7db7351ea23b8ffa6384725944a4006bbb338930a91bf178bd32e6013952655",
+      "bytecodeHash": "0xa7db7351ea23b8ffa6384725944a4006bbb338930a91bf178bd32e6013952655",
+      "bytecodeSize": 3492,
+      "selectors": [
+        "0xbdb475b8",
+        "0x24d824cb",
+        "0xb5211ec4",
+        "0x54f6127f",
+        "0x7ab7b94b",
+        "0x03e8837c",
+        "0x2113522a",
+        "0x9730174d",
+        "0x642f7d5e",
+        "0x31cd4199"
+      ],
+      "priority": 1,
+      "gasLimit": 500000
+    },
+    {
+      "name": "ExampleFacetB",
+      "contract": "ExampleFacetB",
+      "address": "0xa82fF9aFd8f496c3d6ac40E2a0F282E47488CFc9",
+      "salt": "0x6c3ad3b81d232773ea1a6f349b100307e7871e41f0d8f28cb2138bd124e211f4",
+      "bytecodeHash": "0x6c3ad3b81d232773ea1a6f349b100307e7871e41f0d8f28cb2138bd124e211f4",
+      "bytecodeSize": 8680,
+      "selectors": [
+        "0x5aa723df",
+        "0x31e8c195",
+        "0x37184e95",
+        "0xa8ced948",
+        "0x3c7264b2",
+        "0x289b3c0d",
+        "0xc66b4f23",
+        "0x279412c5",
+        "0x7c300fd1",
+        "0xe2ab79b1",
+        "0xa83583e9",
+        "0xe9e831d7",
+        "0xc15a59e2",
+        "0x0e7d1d93",
+        "0x16c38b3c",
+        "0x0af73309",
+        "0xea83977f"
+      ],
+      "priority": 2,
+      "gasLimit": 750000
+    }
+  ],
+  "routes": [
+    {
+      "selector": "0xbdb475b8",
+      "facet": "0xb8fc557Cb7506C468fC359390c0d4a98c49cCf8F",
+      "codehash": "0xa7db7351ea23b8ffa6384725944a4006bbb338930a91bf178bd32e6013952655"
+    },
+    {
+      "selector": "0x24d824cb",
+      "facet": "0xb8fc557Cb7506C468fC359390c0d4a98c49cCf8F",
+      "codehash": "0xa7db7351ea23b8ffa6384725944a4006bbb338930a91bf178bd32e6013952655"
+    },
+    {
+      "selector": "0xb5211ec4",
+      "facet": "0xb8fc557Cb7506C468fC359390c0d4a98c49cCf8F",
+      "codehash": "0xa7db7351ea23b8ffa6384725944a4006bbb338930a91bf178bd32e6013952655"
+    },
+    {
+      "selector": "0x54f6127f",
+      "facet": "0xb8fc557Cb7506C468fC359390c0d4a98c49cCf8F",
+      "codehash": "0xa7db7351ea23b8ffa6384725944a4006bbb338930a91bf178bd32e6013952655"
+    },
+    {
+      "selector": "0x7ab7b94b",
+      "facet": "0xb8fc557Cb7506C468fC359390c0d4a98c49cCf8F",
+      "codehash": "0xa7db7351ea23b8ffa6384725944a4006bbb338930a91bf178bd32e6013952655"
+    },
+    {
+      "selector": "0x03e8837c",
+      "facet": "0xb8fc557Cb7506C468fC359390c0d4a98c49cCf8F",
+      "codehash": "0xa7db7351ea23b8ffa6384725944a4006bbb338930a91bf178bd32e6013952655"
+    },
+    {
+      "selector": "0x2113522a",
+      "facet": "0xb8fc557Cb7506C468fC359390c0d4a98c49cCf8F",
+      "codehash": "0xa7db7351ea23b8ffa6384725944a4006bbb338930a91bf178bd32e6013952655"
+    },
+    {
+      "selector": "0x9730174d",
+      "facet": "0xb8fc557Cb7506C468fC359390c0d4a98c49cCf8F",
+      "codehash": "0xa7db7351ea23b8ffa6384725944a4006bbb338930a91bf178bd32e6013952655"
+    },
+    {
+      "selector": "0x642f7d5e",
+      "facet": "0xb8fc557Cb7506C468fC359390c0d4a98c49cCf8F",
+      "codehash": "0xa7db7351ea23b8ffa6384725944a4006bbb338930a91bf178bd32e6013952655"
+    },
+    {
+      "selector": "0x31cd4199",
+      "facet": "0xb8fc557Cb7506C468fC359390c0d4a98c49cCf8F",
+      "codehash": "0xa7db7351ea23b8ffa6384725944a4006bbb338930a91bf178bd32e6013952655"
+    },
+    {
+      "selector": "0x5aa723df",
+      "facet": "0x9AfdEDfD8d5C57f39ACc8F6810f2731baC0bb911",
+      "codehash": "0x6c3ad3b81d232773ea1a6f349b100307e7871e41f0d8f28cb2138bd124e211f4"
+    },
+    {
+      "selector": "0x31e8c195",
+      "facet": "0x9AfdEDfD8d5C57f39ACc8F6810f2731baC0bb911",
+      "codehash": "0x6c3ad3b81d232773ea1a6f349b100307e7871e41f0d8f28cb2138bd124e211f4"
+    },
+    {
+      "selector": "0x37184e95",
+      "facet": "0x9AfdEDfD8d5C57f39ACc8F6810f2731baC0bb911",
+      "codehash": "0x6c3ad3b81d232773ea1a6f349b100307e7871e41f0d8f28cb2138bd124e211f4"
+    },
+    {
+      "selector": "0xa8ced948",
+      "facet": "0x9AfdEDfD8d5C57f39ACc8F6810f2731baC0bb911",
+      "codehash": "0x6c3ad3b81d232773ea1a6f349b100307e7871e41f0d8f28cb2138bd124e211f4"
+    },
+    {
+      "selector": "0x3c7264b2",
+      "facet": "0x9AfdEDfD8d5C57f39ACc8F6810f2731baC0bb911",
+      "codehash": "0x6c3ad3b81d232773ea1a6f349b100307e7871e41f0d8f28cb2138bd124e211f4"
+    },
+    {
+      "selector": "0x289b3c0d",
+      "facet": "0x9AfdEDfD8d5C57f39ACc8F6810f2731baC0bb911",
+      "codehash": "0x6c3ad3b81d232773ea1a6f349b100307e7871e41f0d8f28cb2138bd124e211f4"
+    },
+    {
+      "selector": "0xc66b4f23",
+      "facet": "0x9AfdEDfD8d5C57f39ACc8F6810f2731baC0bb911",
+      "codehash": "0x6c3ad3b81d232773ea1a6f349b100307e7871e41f0d8f28cb2138bd124e211f4"
+    },
+    {
+      "selector": "0x279412c5",
+      "facet": "0x9AfdEDfD8d5C57f39ACc8F6810f2731baC0bb911",
+      "codehash": "0x6c3ad3b81d232773ea1a6f349b100307e7871e41f0d8f28cb2138bd124e211f4"
+    },
+    {
+      "selector": "0x7c300fd1",
+      "facet": "0x9AfdEDfD8d5C57f39ACc8F6810f2731baC0bb911",
+      "codehash": "0x6c3ad3b81d232773ea1a6f349b100307e7871e41f0d8f28cb2138bd124e211f4"
+    },
+    {
+      "selector": "0xe2ab79b1",
+      "facet": "0x9AfdEDfD8d5C57f39ACc8F6810f2731baC0bb911",
+      "codehash": "0x6c3ad3b81d232773ea1a6f349b100307e7871e41f0d8f28cb2138bd124e211f4"
+    },
+    {
+      "selector": "0xa83583e9",
+      "facet": "0x9AfdEDfD8d5C57f39ACc8F6810f2731baC0bb911",
+      "codehash": "0x6c3ad3b81d232773ea1a6f349b100307e7871e41f0d8f28cb2138bd124e211f4"
+    },
+    {
+      "selector": "0xe9e831d7",
+      "facet": "0x9AfdEDfD8d5C57f39ACc8F6810f2731baC0bb911",
+      "codehash": "0x6c3ad3b81d232773ea1a6f349b100307e7871e41f0d8f28cb2138bd124e211f4"
+    },
+    {
+      "selector": "0xc15a59e2",
+      "facet": "0x9AfdEDfD8d5C57f39ACc8F6810f2731baC0bb911",
+      "codehash": "0x6c3ad3b81d232773ea1a6f349b100307e7871e41f0d8f28cb2138bd124e211f4"
+    },
+    {
+      "selector": "0x0e7d1d93",
+      "facet": "0x9AfdEDfD8d5C57f39ACc8F6810f2731baC0bb911",
+      "codehash": "0x6c3ad3b81d232773ea1a6f349b100307e7871e41f0d8f28cb2138bd124e211f4"
+    },
+    {
+      "selector": "0x16c38b3c",
+      "facet": "0x9AfdEDfD8d5C57f39ACc8F6810f2731baC0bb911",
+      "codehash": "0x6c3ad3b81d232773ea1a6f349b100307e7871e41f0d8f28cb2138bd124e211f4"
+    },
+    {
+      "selector": "0x0af73309",
+      "facet": "0x9AfdEDfD8d5C57f39ACc8F6810f2731baC0bb911",
+      "codehash": "0x6c3ad3b81d232773ea1a6f349b100307e7871e41f0d8f28cb2138bd124e211f4"
+    },
+    {
+      "selector": "0xea83977f",
+      "facet": "0x9AfdEDfD8d5C57f39ACc8F6810f2731baC0bb911",
+      "codehash": "0x6c3ad3b81d232773ea1a6f349b100307e7871e41f0d8f28cb2138bd124e211f4"
+    }
+  ],
+  "merkleRoot": "0x6a6ec117a5ba01f8d6702f8dec3c0d8050c4234c219f5f439122a6251e9d58c7",
+  "merkleMetadata": {
+    "leavesCount": 27,
+    "treeDepth": 6,
+    "proofsGenerated": 27,
+    "utilityVersion": "2.0.0"
+  }
+}

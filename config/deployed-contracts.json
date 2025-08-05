@@ -1,7 +1,7 @@
 {
-  "version": "1.0.4",
-  "timestamp": "2025-08-02T21:48:27.613Z",
-  "description": "PayRox Go Beyond Deployed Contracts - Address Synchronized v1.0.4",
+  "version": "1.1",
+  "timestamp": "2025-08-03T08:36:01.216Z",
+  "description": "PayRox Go Beyond Deployed Contracts - Address Synchronized v1.1",
   "network": {
     "name": "localhost",
     "chainId": "31337",
@@ -11,7 +11,7 @@
     "core": {
       "factory": {
         "name": "DeterministicChunkFactory",
-        "address": "0x59b670e9fA9D0A427751Af201D676719a970857b",
+        "address": "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
         "abi": "./artifacts/contracts/factory/DeterministicChunkFactory.sol/DeterministicChunkFactory.json",
         "deploymentFile": "./deployments/localhost/factory.json",
         "currentFee": "0.0007 ETH",
@@ -19,7 +19,7 @@
       },
       "dispatcher": {
         "name": "ManifestDispatcher",
-        "address": "0x68B1D87F95878fE05B998F19b66F4baba5De1aed",
+        "address": "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
         "abi": "./artifacts/contracts/dispatcher/ManifestDispatcher.sol/ManifestDispatcher.json",
         "deploymentFile": "./deployments/localhost/dispatcher.json"
       }
@@ -27,19 +27,19 @@
     "orchestrators": {
       "main": {
         "name": "Orchestrator",
-        "address": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+        "address": "0x0165878A594ca255338adfa4d48449f69242Eb8F",
         "abi": "./artifacts/contracts/orchestrator/Orchestrator.sol/Orchestrator.json",
         "deploymentFile": "./deployments/localhost/orchestrator.json"
       },
       "governance": {
         "name": "GovernanceOrchestrator",
-        "address": "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
+        "address": "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853",
         "abi": "./artifacts/contracts/orchestrator/GovernanceOrchestrator.sol/GovernanceOrchestrator.json",
         "deploymentFile": "./deployments/localhost/governance-orchestrator.json"
       },
       "auditRegistry": {
         "name": "AuditRegistry",
-        "address": "0x0165878A594ca255338adfa4d48449f69242Eb8F",
+        "address": "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6",
         "abi": "./artifacts/contracts/orchestrator/AuditRegistry.sol/AuditRegistry.json",
         "deploymentFile": "./deployments/localhost/audit-registry.json"
       }
@@ -47,9 +47,15 @@
     "facets": {
       "ping": {
         "name": "PingFacet",
-        "address": "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853",
+        "address": "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318",
         "abi": "./artifacts/contracts/facets/PingFacet.sol/PingFacet.json",
         "deploymentFile": "./deployments/localhost/ping-facet.json"
+      },
+      "chunkFactory": {
+        "name": "ChunkFactoryFacet",
+        "address": "0xCD8a1C3ba11CF5ECfa6267617243239504a98d90",
+        "abi": "./artifacts/contracts/facets/ChunkFactoryFacet.sol/ChunkFactoryFacet.json",
+        "deploymentFile": "./deployments/localhost/chunk-factory-facet.json"
       },
       "exampleA": {
         "name": "ExampleFacetA",
@@ -66,12 +72,14 @@
       "facet-a": {
         "name": "ExampleFacetA",
         "address": "0x4ed7c70F96B99c776995fB64377f0d4aB3B0e1C1",
-        "abi": "./artifacts/contracts/facets/ExampleFacetA.sol/ExampleFacetA.json"
+        "abi": "./artifacts/contracts/facets/ExampleFacetA.sol/ExampleFacetA.json",
+        "deploymentFile": "./deployments/localhost/facet-a.json"
       },
       "facet-b": {
         "name": "ExampleFacetB",
         "address": "0x322813Fd9A801c5507c9de605d63CEA4f2CE6c44",
-        "abi": "./artifacts/contracts/facets/ExampleFacetB.sol/ExampleFacetB.json"
+        "abi": "./artifacts/contracts/facets/ExampleFacetB.sol/ExampleFacetB.json",
+        "deploymentFile": "./deployments/localhost/facet-b.json"
       }
     }
   },
@@ -98,5 +106,105 @@
     "facetSystem": true,
     "governance": true,
     "auditRegistry": true
+  },
+  "syncDetails": {
+    "deploymentsFound": 8,
+    "configsUpdated": 8,
+    "lastSync": "2025-08-03T08:36:01.216Z",
+    "sourceDirectory": "C:\\Projects\\PayRox-Go_beyond_2\\PayRox-Go-Beyond\\deployments\\localhost"
+  },
+  "hardhat": {
+    "TerraStakeNFT": {
+      "facets": {
+        "TerraStakeCoreFacet": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+        "TerraStakeTokenFacet": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+        "TerraStakeStakingFacet": "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
+        "TerraStakeVRFFacet": "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9"
+      },
+      "metrics": {
+        "TerraStakeCoreFacet": {
+          "gasUsed": "1454135",
+          "codeSize": 6481
+        },
+        "TerraStakeTokenFacet": {
+          "gasUsed": "2261226",
+          "codeSize": 10213
+        },
+        "TerraStakeStakingFacet": {
+          "gasUsed": "998541",
+          "codeSize": 4371
+        },
+        "TerraStakeVRFFacet": {
+          "gasUsed": "984460",
+          "codeSize": 4307
+        }
+      },
+      "manifest": {
+        "name": "TerraStakeNFT",
+        "version": "1.0.0",
+        "description": "AI-validated Environmental Impact NFT with Diamond architecture",
+        "facets": [
+          {
+            "name": "TerraStakeCoreFacet",
+            "address": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+            "selectors": [],
+            "gasUsed": "1454135",
+            "codeSize": 6481
+          },
+          {
+            "name": "TerraStakeTokenFacet",
+            "address": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+            "selectors": [],
+            "gasUsed": "2261226",
+            "codeSize": 10213
+          },
+          {
+            "name": "TerraStakeStakingFacet",
+            "address": "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
+            "selectors": [],
+            "gasUsed": "998541",
+            "codeSize": 4371
+          },
+          {
+            "name": "TerraStakeVRFFacet",
+            "address": "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
+            "selectors": [],
+            "gasUsed": "984460",
+            "codeSize": 4307
+          }
+        ],
+        "metadata": {
+          "deployer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+          "timestamp": 1754354691,
+          "chainId": 31337,
+          "deploymentEpoch": 1,
+          "validationResults": [
+            {
+              "type": "compilation",
+              "severity": "info",
+              "description": "Run compilation check before deployment",
+              "autoFixAvailable": true,
+              "suggestion": "Always compile contracts before deployment"
+            },
+            {
+              "type": "storage",
+              "severity": "info",
+              "description": "Diamond storage isolation patterns detected",
+              "autoFixAvailable": false,
+              "suggestion": "Use unique storage slots for each facet to avoid conflicts"
+            },
+            {
+              "type": "gas",
+              "severity": "info",
+              "description": "Consider using CREATE2 for deterministic deployment",
+              "autoFixAvailable": false,
+              "suggestion": "PayRox CREATE2 factory provides gas-efficient deterministic deployment"
+            }
+          ]
+        }
+      },
+      "deployedAt": 1754354691,
+      "validationPassed": true
+    }
   }
 }

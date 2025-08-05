@@ -19,15 +19,45 @@ export class ChunkFactory {
     this.signer = signer;
     this.network = network;
 
-    // DeterministicChunkFactory ABI (essential functions)
+    // DeterministicChunkFactory ABI (updated to match actual contract)
     const abi = [
-      'function deployChunk(bytes calldata data, bytes32 salt) external payable returns (address chunkAddr)',
-      'function getChunkAddress(bytes32 dataHash) external view returns (address)',
-      'function calculateSalt(bytes calldata data) external pure returns (bytes32)',
+      // Core deployment functions
+      'function stage(bytes calldata data) external payable returns (address chunk, bytes32 hash)',
+      'function stageBatch(bytes[] calldata blobs) external payable returns (address[] memory chunks, bytes32[] memory hashes)',
+      'function deployDeterministic(bytes32 salt, bytes calldata bytecode, bytes calldata constructorArgs) external payable returns (address deployed)',
+      'function deployDeterministicBatch(bytes32[] calldata salts, bytes[] calldata bytecodes, bytes[] calldata constructorArgs) external payable returns (address[] memory deployed)',
+      
+      // Prediction and validation functions
+      'function predict(bytes calldata data) external view returns (address predicted, bytes32 hash)',
+      'function predictAddress(bytes32 salt, bytes32 codeHash) external view returns (address)',
+      'function predictAddressBatch(bytes32[] calldata salts, bytes32[] calldata codeHashes) external view returns (address[] memory predicted)',
+      'function exists(bytes32 hash) external view returns (bool)',
+      'function isDeployed(address target) external view returns (bool)',
+      'function validateBytecodeSize(bytes calldata bytecode) external pure returns (bool)',
+      
+      // Fee and configuration functions
       'function baseFeeWei() external view returns (uint256)',
       'function feesEnabled() external view returns (bool)',
       'function feeRecipient() external view returns (address)',
+      'function getDeploymentFee() external view returns (uint256)',
+      'function getUserTier(address user) external view returns (uint8)',
+      
+      // System integrity and configuration
+      'function verifySystemIntegrity() external view returns (bool)',
+      'function getExpectedManifestHash() external view returns (bytes32)',
+      'function getExpectedFactoryBytecodeHash() external view returns (bytes32)',
+      'function getManifestDispatcher() external view returns (address)',
+      
+      // Admin functions
+      'function pause() external',
+      'function unpause() external',
+      'function paused() external view returns (bool)',
+      
+      // Events
       'event ChunkDeployed(bytes32 indexed hash, address indexed chunk, uint256 size)',
+      'event ChunkStaged(address indexed chunk, bytes32 indexed hash, bytes32 salt, uint256 size)',
+      'event ContractDeployed(address indexed deployed, bytes32 indexed salt, address indexed deployer, uint256 fee)',
+      'event BatchDeployed(address[] deployed, bytes32[] salts, address indexed deployer, uint256 totalFee)',
     ];
 
     this.contract = new ethers.Contract(
@@ -38,7 +68,7 @@ export class ChunkFactory {
   }
 
   /**
-   * Deploy a contract as a chunk using CREATE2
+   * Deploy a contract as a chunk using CREATE2 (updated for actual contract interface)
    */
   async deployChunk(
     bytecode: BytesLike,
@@ -58,19 +88,69 @@ export class ChunkFactory {
       throw new Error('Signer required for deployment');
     }
 
-    // Encode constructor arguments if provided
-    let deploymentData = bytecode;
-    if (constructorArgs.length > 0) {
-      const abiCoder = new ethers.AbiCoder();
-      const encodedArgs = abiCoder.encode(['uint256[]'], [constructorArgs]);
-      deploymentData = ethers.concat([bytecode, encodedArgs]);
+    // For DeterministicChunkFactory, we need to use the actual contract methods
+    // Use deployDeterministic for CREATE2 deployment with bytecode
+    const salt = ethers.randomBytes(32); // Generate random salt
+    
+    // Deploy using deployDeterministic
+    const tx = await this.contract.deployDeterministic(
+      salt,
+      bytecode,
+      constructorArgs.length > 0 ? ethers.AbiCoder.defaultAbiCoder().encode(['uint256[]'], [constructorArgs]) : '0x',
+      {
+        value: options?.value || this.network.fees.deploymentFee,
+        gasLimit: options?.gasLimit || this.network.fees.gasLimit,
+        maxFeePerGas: options?.maxFeePerGas,
+        maxPriorityFeePerGas: options?.maxPriorityFeePerGas,
+      }
+    );
+
+    const receipt = await tx.wait();
+
+    // Find ContractDeployed event
+    const deployEvent = receipt.logs.find((log: any) => {
+      try {
+        const parsed = this.contract.interface.parseLog(log);
+        return parsed?.name === 'ContractDeployed';
+      } catch {
+        return false;
+      }
+    });
+
+    let deployedAddress = '';
+    if (deployEvent) {
+      const parsed = this.contract.interface.parseLog(deployEvent);
+      deployedAddress = parsed?.args[0] || '';
     }
 
-    // Calculate salt
-    const salt = await this.contract.calculateSalt(deploymentData);
+    return {
+      address: deployedAddress,
+      transactionHash: receipt.hash,
+      chunkAddress: deployedAddress, // Same for deterministic deployment
+    };
+  }
 
-    // Deploy chunk
-    const tx = await this.contract.deployChunk(deploymentData, salt, {
+  /**
+   * Deploy data as a chunk using stage function
+   */
+  async stageChunk(
+    data: BytesLike,
+    options?: {
+      value?: string;
+      gasLimit?: number;
+      maxFeePerGas?: string;
+      maxPriorityFeePerGas?: string;
+    }
+  ): Promise<{
+    chunkAddress: string;
+    contentHash: string;
+    transactionHash: string;
+  }> {
+    if (!this.signer) {
+      throw new Error('Signer required for staging');
+    }
+
+    const tx = await this.contract.stage(data, {
       value: options?.value || this.network.fees.deploymentFee,
       gasLimit: options?.gasLimit || this.network.fees.gasLimit,
       maxFeePerGas: options?.maxFeePerGas,
@@ -79,31 +159,33 @@ export class ChunkFactory {
 
     const receipt = await tx.wait();
 
-    // Find ChunkDeployed event
-    const deployEvent = receipt.logs.find((log: any) => {
+    // Find ChunkStaged event
+    const stageEvent = receipt.logs.find((log: any) => {
       try {
         const parsed = this.contract.interface.parseLog(log);
-        return parsed?.name === 'ChunkDeployed';
+        return parsed?.name === 'ChunkStaged';
       } catch {
         return false;
       }
     });
 
     let chunkAddress = '';
-    if (deployEvent) {
-      const parsed = this.contract.interface.parseLog(deployEvent);
-      chunkAddress = parsed?.args[1] || '';
+    let contentHash = '';
+    if (stageEvent) {
+      const parsed = this.contract.interface.parseLog(stageEvent);
+      chunkAddress = parsed?.args[0] || '';
+      contentHash = parsed?.args[1] || '';
     }
 
     return {
-      address: receipt.contractAddress || '',
-      transactionHash: receipt.hash,
       chunkAddress,
+      contentHash,
+      transactionHash: receipt.hash,
     };
   }
 
   /**
-   * Calculate the deterministic address for a contract
+   * Calculate the deterministic address for a contract (updated method)
    */
   async calculateAddress(
     bytecode: BytesLike,
@@ -117,15 +199,61 @@ export class ChunkFactory {
       deploymentData = ethers.concat([bytecode, encodedArgs]);
     }
 
-    // Calculate data hash
-    const dataHash = ethers.keccak256(deploymentData);
-
-    // Get chunk address from factory
-    return await this.contract.getChunkAddress(dataHash);
+    // Use predict function from DeterministicChunkFactory
+    const [predictedAddress] = await this.contract.predict(deploymentData);
+    return predictedAddress;
   }
 
   /**
-   * Estimate gas for deployment
+   * Predict address for deterministic deployment with salt
+   */
+  async predictDeterministicAddress(
+    salt: BytesLike,
+    bytecode: BytesLike,
+    constructorArgs: any[] = []
+  ): Promise<string> {
+    // Combine bytecode and constructor args
+    let initCode = bytecode;
+    if (constructorArgs.length > 0) {
+      const abiCoder = new ethers.AbiCoder();
+      const encodedArgs = abiCoder.encode(['uint256[]'], [constructorArgs]);
+      initCode = ethers.concat([bytecode, encodedArgs]);
+    }
+
+    const codeHash = ethers.keccak256(initCode);
+    return await this.contract.predictAddress(salt, codeHash);
+  }
+
+  /**
+   * Check if a chunk exists by content hash
+   */
+  async chunkExists(contentHash: string): Promise<boolean> {
+    return await this.contract.exists(contentHash);
+  }
+
+  /**
+   * Check if a contract is deployed at address
+   */
+  async isContractDeployed(address: string): Promise<boolean> {
+    return await this.contract.isDeployed(address);
+  }
+
+  /**
+   * Validate bytecode size before deployment
+   */
+  async validateBytecode(bytecode: BytesLike): Promise<boolean> {
+    return await this.contract.validateBytecodeSize(bytecode);
+  }
+
+  /**
+   * Verify system integrity
+   */
+  async verifySystemIntegrity(): Promise<boolean> {
+    return await this.contract.verifySystemIntegrity();
+  }
+
+  /**
+   * Estimate gas for deployment (updated for actual contract)
    */
   async estimateDeploymentGas(
     bytecode: BytesLike,
@@ -135,21 +263,25 @@ export class ChunkFactory {
       throw new Error('Signer required for gas estimation');
     }
 
+    // Generate a random salt for estimation
+    const salt = ethers.randomBytes(32);
+    
     // Encode constructor arguments if provided
-    let deploymentData = bytecode;
+    let constructorData = '0x';
     if (constructorArgs.length > 0) {
       const abiCoder = new ethers.AbiCoder();
-      const encodedArgs = abiCoder.encode(['uint256[]'], [constructorArgs]);
-      deploymentData = ethers.concat([bytecode, encodedArgs]);
+      constructorData = abiCoder.encode(['uint256[]'], [constructorArgs]);
     }
 
-    // Calculate salt
-    const salt = await this.contract.calculateSalt(deploymentData);
-
-    // Estimate gas
-    return await this.contract.deployChunk.estimateGas(deploymentData, salt, {
-      value: this.network.fees.deploymentFee,
-    });
+    // Estimate gas for deployDeterministic
+    return await this.contract.deployDeterministic.estimateGas(
+      salt,
+      bytecode,
+      constructorData,
+      {
+        value: this.network.fees.deploymentFee,
+      }
+    );
   }
 
   /**

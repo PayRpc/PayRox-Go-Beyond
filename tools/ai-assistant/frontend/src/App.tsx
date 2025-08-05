@@ -1,474 +1,239 @@
-import React, { useState } from 'react';
-import ContractInterface from './components/ContractInterfaceV2';
+import React, { useState, useEffect } from 'react';
+import AIAnalysisSimple from './components/AIAnalysisSimple';
+import { payRoxService } from './services/PayRoxContracts';
 import './styles/components.css';
-import './styles/contract-dashboard.css';
 import './styles/globals.css';
 
-// Types
-type DeploymentStrategy = 'single' | 'faceted' | 'chunked';
-
-interface ContractAnalysis {
-  name: string;
-  functions: number;
-  variables: number;
-  size: number;
-  deploymentStrategy: DeploymentStrategy;
-  chunkingRequired: boolean;
-  facetCandidates: Array<{
+interface SystemStatus {
+  connected: boolean;
+  networkInfo?: {
     name: string;
-    functions: Array<{
-      name: string;
-      visibility: string;
-      stateMutability: string;
-    }>;
-  }>;
-  manifestRoutes: Array<{
-    functionName: string;
-    selector: string;
-    securityLevel: string;
-  }>;
-  storageWarnings: string[];
-  gasOptimizations: string[];
-  securityConsiderations: string[];
+    chainId: string;
+    blockNumber: number;
+    rpcUrl: string;
+  };
+  contractsLoaded: number;
+  aiBackendStatus: 'online' | 'offline';
 }
 
-interface AnalysisStatus {
-  isAnalyzing: boolean;
-  hasError: boolean;
-  errorMessage?: string;
-}
+const App: React.FC = () => {
+  const [systemStatus, setSystemStatus] = useState<SystemStatus>({
+    connected: false,
+    contractsLoaded: 0,
+    aiBackendStatus: 'offline'
+  });
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'analysis' | 'contracts' | 'dashboard'>('analysis');
 
-// Components
-const Header: React.FC = () => (
-  <header className="header">
-    <div className="container">
-      <div className="header-content">
-        <div className="header-text">
-          <h1>PayRox Go Beyond</h1>
-          <p>Smart Contract Interaction Platform</p>
-        </div>
-        <div className="connection-status">
-          <span className="status-indicator connected">
-            ● Ready
-          </span>
+  useEffect(() => {
+    initializeSystem();
+  }, []);
+
+  const initializeSystem = async () => {
+    try {
+      setLoading(true);
+      
+      // Connect to network
+      await payRoxService.connectToNetwork();
+      
+      // Get system status
+      const status = await payRoxService.getSystemStatus();
+      setSystemStatus(status);
+      
+    } catch (error) {
+      console.error('Failed to initialize system:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const connectWallet = async () => {
+    try {
+      await payRoxService.connectWallet();
+      const status = await payRoxService.getSystemStatus();
+      setSystemStatus(status);
+    } catch (error) {
+      console.error('Failed to connect wallet:', error);
+      alert('Failed to connect wallet. Make sure MetaMask is installed.');
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="app-loading">
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <h2>🚀 PayRox Go Beyond</h2>
+          <p>Initializing AI Assistant...</p>
         </div>
       </div>
-    </div>
-  </header>
-);
-
-const ContractInput: React.FC<{
-  onAnalyze: (code: string, name: string) => void;
-  isAnalyzing: boolean;
-}> = ({ onAnalyze, isAnalyzing }) => {
-  const [contractCode, setContractCode] = useState('');
-  const [contractName, setContractName] = useState('');
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (contractCode.trim() && contractName.trim()) {
-      onAnalyze(contractCode, contractName);
-    }
-  };
-
-  const loadSampleContract = () => {
-    setContractName('ExampleContract');
-    setContractCode(`// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
-
-contract ExampleContract {
-    address public owner;
-    mapping(address => uint256) public balances;
-    uint256 public totalSupply;
-    bool public paused;
-
-    modifier onlyOwner() {
-        require(msg.sender == owner, "Not owner");
-        _;
-    }
-
-    modifier whenNotPaused() {
-        require(!paused, "Contract is paused");
-        _;
-    }
-
-    constructor() {
-        owner = msg.sender;
-        totalSupply = 1000000;
-    }
-
-    function setOwner(address newOwner) external onlyOwner {
-        owner = newOwner;
-    }
-
-    function pause() external onlyOwner {
-        paused = true;
-    }
-
-    function unpause() external onlyOwner {
-        paused = false;
-    }
-
-    function transfer(address to, uint256 amount) external whenNotPaused {
-        require(balances[msg.sender] >= amount, "Insufficient balance");
-        balances[msg.sender] -= amount;
-        balances[to] += amount;
-    }
-
-    function mint(address to, uint256 amount) external onlyOwner {
-        balances[to] += amount;
-        totalSupply += amount;
-    }
-
-    function getBalance(address account) external view returns (uint256) {
-        return balances[account];
-    }
-}`);
-  };
+    );
+  }
 
   return (
-    <section className="contract-input">
-      <div className="container">
-        <h2>Contract Analysis</h2>
-        <form onSubmit={handleSubmit} className="analysis-form">
-          <div className="form-group">
-            <label htmlFor="contractName">Contract Name</label>
-            <input
-              id="contractName"
-              type="text"
-              value={contractName}
-              onChange={(e) => setContractName(e.target.value)}
-              placeholder="Enter contract name"
-              disabled={isAnalyzing}
-              required
-            />
+    <div className="app">
+      {/* Header */}
+      <header className="app-header">
+        <div className="header-container">
+          <div className="header-brand">
+            <h1>🚀 PayRox Go Beyond</h1>
+            <p>AI-Powered Smart Contract Platform</p>
           </div>
-
-          <div className="form-group">
-            <label htmlFor="contractCode">Solidity Contract Code</label>
-            <textarea
-              id="contractCode"
-              value={contractCode}
-              onChange={(e) => setContractCode(e.target.value)}
-              placeholder="Paste your Solidity contract code here..."
-              disabled={isAnalyzing}
-              rows={20}
-              required
-            />
-          </div>
-
-          <div className="form-actions">
-            <button
-              type="button"
-              onClick={loadSampleContract}
-              className="btn btn-secondary"
-              disabled={isAnalyzing}
-            >
-              Load Sample Contract
-            </button>
-            <button
-              type="submit"
-              className="btn btn-primary"
-              disabled={isAnalyzing || !contractCode.trim() || !contractName.trim()}
-            >
-              {isAnalyzing ? (
-                <>
-                  <span className="spinner"></span>
-                  Analyzing...
-                </>
-              ) : (
-                'Analyze Contract'
+          
+          <div className="header-status">
+            <div className="status-grid">
+              <div className={`status-item ${systemStatus.connected ? 'connected' : 'disconnected'}`}>
+                <span className="status-indicator"></span>
+                <span className="status-text">
+                  {systemStatus.connected ? 'Connected' : 'Disconnected'}
+                </span>
+              </div>
+              
+              <div className={`status-item ${systemStatus.aiBackendStatus === 'online' ? 'online' : 'offline'}`}>
+                <span className="status-indicator"></span>
+                <span className="status-text">
+                  AI Backend: {systemStatus.aiBackendStatus}
+                </span>
+              </div>
+              
+              <div className="status-item">
+                <span className="status-text">
+                  Contracts: {systemStatus.contractsLoaded}
+                </span>
+              </div>
+              
+              {systemStatus.networkInfo && (
+                <div className="status-item">
+                  <span className="status-text">
+                    Block: #{systemStatus.networkInfo.blockNumber}
+                  </span>
+                </div>
               )}
+            </div>
+            
+            <button 
+              className="connect-wallet-btn"
+              onClick={connectWallet}
+            >
+              🦊 Connect Wallet
             </button>
-          </div>
-        </form>
-      </div>
-    </section>
-  );
-};
-
-const AnalysisResults: React.FC<{ analysis: ContractAnalysis }> = ({ analysis }) => (
-  <section className="analysis-results">
-    <div className="container">
-      <h2>Analysis Results</h2>
-
-      <div className="results-grid">
-        <div className="metrics-card">
-          <h3>Basic Metrics</h3>
-          <div className="metrics-list">
-            <div className="metric">
-              <span className="metric-label">Contract Name:</span>
-              <span className="metric-value">{analysis.name}</span>
-            </div>
-            <div className="metric">
-              <span className="metric-label">Total Functions:</span>
-              <span className="metric-value">{analysis.functions}</span>
-            </div>
-            <div className="metric">
-              <span className="metric-label">Total Variables:</span>
-              <span className="metric-value">{analysis.variables}</span>
-            </div>
-            <div className="metric">
-              <span className="metric-label">Contract Size:</span>
-              <span className="metric-value">{analysis.size} bytes</span>
-            </div>
-            <div className="metric">
-              <span className="metric-label">Deployment Strategy:</span>
-              <span className={`metric-value strategy-${analysis.deploymentStrategy}`}>
-                {analysis.deploymentStrategy}
-              </span>
-            </div>
-            <div className="metric">
-              <span className="metric-label">Chunking Required:</span>
-              <span className={`metric-value ${analysis.chunkingRequired ? 'warning' : 'success'}`}>
-                {analysis.chunkingRequired ? 'Yes' : 'No'}
-              </span>
-            </div>
           </div>
         </div>
+      </header>
 
-        <div className="facets-card">
-          <h3>Facet Candidates</h3>
-          <div className="facets-list">
-            {analysis.facetCandidates.map((facet, index) => (
-              <div key={index} className="facet-item">
-                <h4>{facet.name}</h4>
-                <p>{facet.functions.length} functions</p>
-                <div className="function-list">
-                  {facet.functions.map((fn, fnIndex) => (
-                    <div key={fnIndex} className="function-item">
-                      <code>{fn.name}</code>
-                      <span className="function-meta">
-                        {fn.stateMutability}, {fn.visibility}
-                      </span>
+      {/* Navigation */}
+      <nav className="app-nav">
+        <div className="nav-container">
+          <button 
+            className={`nav-tab ${activeTab === 'analysis' ? 'active' : ''}`}
+            onClick={() => setActiveTab('analysis')}
+          >
+            🤖 AI Analysis
+          </button>
+          <button 
+            className={`nav-tab ${activeTab === 'contracts' ? 'active' : ''}`}
+            onClick={() => setActiveTab('contracts')}
+          >
+            📋 Contracts
+          </button>
+          <button 
+            className={`nav-tab ${activeTab === 'dashboard' ? 'active' : ''}`}
+            onClick={() => setActiveTab('dashboard')}
+          >
+            📊 Dashboard
+          </button>
+        </div>
+      </nav>
+
+      {/* Main Content */}
+      <main className="app-main">
+        <div className="main-container">
+          {activeTab === 'analysis' && (
+            <div className="tab-content">
+              <AIAnalysisSimple />
+            </div>
+          )}
+          
+          {activeTab === 'contracts' && (
+            <div className="tab-content">
+              <div className="contracts-view">
+                <h2>📋 PayRox Contracts</h2>
+                <p>Contract interaction interface coming soon...</p>
+                <div className="contracts-grid">
+                  {payRoxService.getContracts().map((contract, index) => (
+                    <div key={index} className="contract-card">
+                      <div className="contract-header">
+                        <h3>{contract.name}</h3>
+                        <span className={`category category-${contract.category.toLowerCase()}`}>
+                          {contract.category}
+                        </span>
+                      </div>
+                      <div className="contract-details">
+                        <p className="contract-address">
+                          <strong>Address:</strong>
+                          <code>{contract.address}</code>
+                        </p>
+                        <p className="contract-functions">
+                          <strong>Functions:</strong> {contract.abi.filter(item => item.type === 'function').length}
+                        </p>
+                      </div>
                     </div>
                   ))}
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="routes-card">
-          <h3>Manifest Routes</h3>
-          <div className="routes-table">
-            <table>
-              <thead>
-                <tr>
-                  <th>Function</th>
-                  <th>Selector</th>
-                  <th>Security Level</th>
-                </tr>
-              </thead>
-              <tbody>
-                {analysis.manifestRoutes.slice(0, 5).map((route, index) => (
-                  <tr key={index}>
-                    <td><code>{route.functionName}</code></td>
-                    <td><code>{route.selector}</code></td>
-                    <td>
-                      <span className={`security-badge security-${route.securityLevel}`}>
-                        {route.securityLevel}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {analysis.storageWarnings.length > 0 && (
-          <div className="warnings-card">
-            <h3>Storage Warnings</h3>
-            <ul className="warnings-list">
-              {analysis.storageWarnings.map((warning, index) => (
-                <li key={index} className="warning-item">{warning}</li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        <div className="optimizations-card">
-          <h3>Gas Optimizations</h3>
-          <ul className="optimizations-list">
-            {analysis.gasOptimizations.map((optimization, index) => (
-              <li key={index} className="optimization-item">{optimization}</li>
-            ))}
-          </ul>
-        </div>
-
-        <div className="security-card">
-          <h3>Security Considerations</h3>
-          <ul className="security-list">
-            {analysis.securityConsiderations.map((consideration, index) => (
-              <li key={index} className="security-item">{consideration}</li>
-            ))}
-          </ul>
-        </div>
-      </div>
-    </div>
-  </section>
-);
-
-const ErrorDisplay: React.FC<{ message: string; onClear: () => void }> = ({ message, onClear }) => (
-  <div className="error-display">
-    <div className="container">
-      <div className="error-card">
-        <h3>Analysis Error</h3>
-        <p>{message}</p>
-        <button onClick={onClear} className="btn btn-secondary">
-          Clear Error
-        </button>
-      </div>
-    </div>
-  </div>
-);
-
-// Main App Component
-const App: React.FC = () => {
-  const [analysis, setAnalysis] = useState<ContractAnalysis | null>(null);
-  const [status, setStatus] = useState<AnalysisStatus>({
-    isAnalyzing: false,
-    hasError: false,
-  });
-  const [activeTab, setActiveTab] = useState<'analysis' | 'dashboard'>('dashboard');
-
-  // Local analysis function (simulated)
-  const analyzeContractLocally = (contractCode: string, contractName: string): ContractAnalysis => {
-    // Simple analysis based on code patterns
-    const functions = (contractCode.match(/function\s+\w+/g) || []).length;
-    const variables = (contractCode.match(/\w+\s+(public|private|internal)\s+\w+/g) || []).length;
-    const size = Math.round(contractCode.length / 1024);
-
-    // Determine deployment strategy
-    let deploymentStrategy: DeploymentStrategy;
-    if (size > 24) {
-      deploymentStrategy = 'chunked';
-    } else if (functions > 15) {
-      deploymentStrategy = 'faceted';
-    } else {
-      deploymentStrategy = 'single';
-    }
-
-    // Generate sample facet suggestions
-    const facetCandidates = [
-      {
-        name: 'CoreFacet',
-        functions: [
-          { name: 'constructor', visibility: 'public', stateMutability: 'nonpayable' },
-          { name: 'owner', visibility: 'public', stateMutability: 'view' }
-        ]
-      },
-      {
-        name: 'TokenFacet',
-        functions: [
-          { name: 'transfer', visibility: 'external', stateMutability: 'nonpayable' },
-          { name: 'balances', visibility: 'public', stateMutability: 'view' }
-        ]
-      }
-    ];
-
-    const manifestRoutes = [
-      { functionName: 'transfer', selector: '0xa9059cbb', securityLevel: 'Medium' },
-      { functionName: 'mint', selector: '0x40c10f19', securityLevel: 'High' },
-      { functionName: 'pause', selector: '0x8456cb59', securityLevel: 'Critical' }
-    ];
-
-    return {
-      name: contractName,
-      functions,
-      variables,
-      size,
-      deploymentStrategy,
-      chunkingRequired: size > 24,
-      facetCandidates,
-      manifestRoutes,
-      storageWarnings: ['Consider using packed structs for gas efficiency'],
-      gasOptimizations: ['Use assembly for low-level operations', 'Pack struct variables'],
-      securityConsiderations: ['Add reentrancy guards', 'Validate all external inputs']
-    };
-  };
-
-  const handleAnalyze = async (contractCode: string, contractName: string) => {
-    setStatus({ isAnalyzing: true, hasError: false });
-    setAnalysis(null);
-
-    try {
-      // Simulate analysis delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      const result = analyzeContractLocally(contractCode, contractName);
-      setAnalysis(result);
-      setStatus({ isAnalyzing: false, hasError: false });
-    } catch (error) {
-      setStatus({
-        isAnalyzing: false,
-        hasError: true,
-        errorMessage: error instanceof Error ? error.message : 'Analysis failed'
-      });
-    }
-  };
-
-  const clearError = () => {
-    setStatus({ isAnalyzing: false, hasError: false });
-  };
-
-  return (
-    <div className="app">
-      <div className="header">
-        <h1>PayRox Go Beyond</h1>
-        <p>Advanced Blockchain Deployment & Orchestration Framework</p>
-      </div>
-
-      <nav className="tabs">
-        <button
-          className={`tab ${activeTab === 'dashboard' ? 'active' : ''}`}
-          onClick={() => setActiveTab('dashboard')}
-        >
-          � Contract Interface
-        </button>
-        <button
-          className={`tab ${activeTab === 'analysis' ? 'active' : ''}`}
-          onClick={() => setActiveTab('analysis')}
-        >
-          � Analysis Portal
-        </button>
-      </nav>
-
-      <main className="content">
-        {activeTab === 'dashboard' && (
-          <ContractInterface />
-        )}
-
-        {activeTab === 'analysis' && (
-          <div className="analysis-section">
-            <ContractInput onAnalyze={handleAnalyze} isAnalyzing={status.isAnalyzing} />
-
-            {status.hasError && status.errorMessage && (
-              <ErrorDisplay message={status.errorMessage} onClear={clearError} />
-            )}
-
-            {status.isAnalyzing && (
-              <div className="analyzing-status">
-                <div className="container">
-                  <div className="status-card">
-                    <h3>Analyzing Contract...</h3>
-                    <p>Please wait while we analyze your contract code.</p>
+            </div>
+          )}
+          
+          {activeTab === 'dashboard' && (
+            <div className="tab-content">
+              <div className="dashboard-view">
+                <h2>📊 System Dashboard</h2>
+                <div className="dashboard-grid">
+                  <div className="dashboard-card">
+                    <h3>🌐 Network Status</h3>
+                    {systemStatus.networkInfo ? (
+                      <div className="network-info">
+                        <p><strong>Network:</strong> {systemStatus.networkInfo.name}</p>
+                        <p><strong>Chain ID:</strong> {systemStatus.networkInfo.chainId}</p>
+                        <p><strong>Block Number:</strong> #{systemStatus.networkInfo.blockNumber}</p>
+                        <p><strong>RPC URL:</strong> {systemStatus.networkInfo.rpcUrl}</p>
+                      </div>
+                    ) : (
+                      <p>No network information available</p>
+                    )}
+                  </div>
+                  
+                  <div className="dashboard-card">
+                    <h3>🤖 AI Backend Status</h3>
+                    <div className={`ai-status ${systemStatus.aiBackendStatus}`}>
+                      <div className="status-indicator"></div>
+                      <span>{systemStatus.aiBackendStatus === 'online' ? 'AI Backend Online' : 'AI Backend Offline (Using Mock)'}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="dashboard-card">
+                    <h3>📋 Contracts Loaded</h3>
+                    <div className="contract-count">
+                      <span className="count">{systemStatus.contractsLoaded}</span>
+                      <span className="label">PayRox Contracts</span>
+                    </div>
                   </div>
                 </div>
               </div>
-            )}
-
-            {analysis && !status.isAnalyzing && (
-              <AnalysisResults analysis={analysis} />
-            )}
-          </div>
-        )}
+            </div>
+          )}
+        </div>
       </main>
 
-      <footer className="footer">
-        <div className="container">
-          <p>PayRox Go Beyond - AI-Powered Smart Contract Modularization</p>
+      {/* Footer */}
+      <footer className="app-footer">
+        <div className="footer-container">
+          <p>© 2025 PayRox Go Beyond - AI-Powered Smart Contract Platform</p>
+          <div className="footer-links">
+            <span>🔗 CLI Integration Available</span>
+            <span>🛡️ Security First</span>
+            <span>💎 Diamond Pattern Support</span>
+          </div>
         </div>
       </footer>
     </div>

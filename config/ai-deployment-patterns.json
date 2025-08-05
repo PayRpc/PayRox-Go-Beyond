@@ -1,0 +1,46 @@
+{
+  "patterns": [
+    [
+      "TerraStakeCoreFacet",
+      {
+        "contractName": "TerraStakeCoreFacet",
+        "preferredArtifact": "contracts\\demo\\facets\\TerraStakeCoreFacet.sol:TerraStakeCoreFacet",
+        "optimalGasLimit": 1599548,
+        "successCount": 4,
+        "lastSuccessful": "2025-08-05T00:48:50.186Z"
+      }
+    ],
+    [
+      "TerraStakeTokenFacet",
+      {
+        "contractName": "TerraStakeTokenFacet",
+        "preferredArtifact": "contracts\\demo\\facets\\TerraStakeTokenFacet.sol:TerraStakeTokenFacet",
+        "optimalGasLimit": 2487348,
+        "successCount": 3,
+        "lastSuccessful": "2025-08-05T00:48:50.203Z"
+      }
+    ],
+    [
+      "TerraStakeStakingFacet",
+      {
+        "contractName": "TerraStakeStakingFacet",
+        "preferredArtifact": "TerraStakeStakingFacet",
+        "optimalGasLimit": 1098395,
+        "successCount": 2,
+        "lastSuccessful": "2025-08-05T00:48:50.129Z"
+      }
+    ],
+    [
+      "TerraStakeVRFFacet",
+      {
+        "contractName": "TerraStakeVRFFacet",
+        "preferredArtifact": "TerraStakeVRFFacet",
+        "optimalGasLimit": 1082906,
+        "successCount": 2,
+        "lastSuccessful": "2025-08-05T00:48:50.144Z"
+      }
+    ]
+  ],
+  "issues": [],
+  "lastUpdated": "2025-08-05T00:48:50.203Z"
+}

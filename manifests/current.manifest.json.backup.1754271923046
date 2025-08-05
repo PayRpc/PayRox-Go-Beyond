@@ -1,0 +1,201 @@
+{
+  "version": "1.0.0",
+  "timestamp": "2025-08-04T00:11:09.716Z",
+  "description": "Initial release of PayRox Go Beyond deployment framework",
+  "network": {
+    "name": "localhost",
+    "chainId": "31337"
+  },
+  "factory": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+  "facets": [
+    {
+      "name": "ExampleFacetA",
+      "contract": "ExampleFacetA",
+      "address": "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
+      "salt": "0xa7db7351ea23b8ffa6384725944a4006bbb338930a91bf178bd32e6013952655",
+      "bytecodeHash": "0xa7db7351ea23b8ffa6384725944a4006bbb338930a91bf178bd32e6013952655",
+      "bytecodeSize": 3492,
+      "selectors": [
+        "0x03e8837c",
+        "0x2113522a",
+        "0x24d824cb",
+        "0x31cd4199",
+        "0x54f6127f",
+        "0x642f7d5e",
+        "0x7ab7b94b",
+        "0x9730174d",
+        "0xb5211ec4",
+        "0xbdb475b8"
+      ],
+      "priority": 1,
+      "gasLimit": 500000
+    },
+    {
+      "name": "ExampleFacetB",
+      "contract": "ExampleFacetB",
+      "address": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+      "salt": "0x6c3ad3b81d232773ea1a6f349b100307e7871e41f0d8f28cb2138bd124e211f4",
+      "bytecodeHash": "0x6c3ad3b81d232773ea1a6f349b100307e7871e41f0d8f28cb2138bd124e211f4",
+      "bytecodeSize": 8680,
+      "selectors": [
+        "0x0af73309",
+        "0x0e7d1d93",
+        "0x16c38b3c",
+        "0x279412c5",
+        "0x289b3c0d",
+        "0x31e8c195",
+        "0x37184e95",
+        "0x3c7264b2",
+        "0x5aa723df",
+        "0x7c300fd1",
+        "0xa83583e9",
+        "0xa8ced948",
+        "0xc15a59e2",
+        "0xc66b4f23",
+        "0xe2ab79b1",
+        "0xe9e831d7",
+        "0xea83977f"
+      ],
+      "priority": 2,
+      "gasLimit": 750000
+    }
+  ],
+  "routes": [
+    {
+      "selector": "0x03e8837c",
+      "facet": "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
+      "codehash": "0xa7db7351ea23b8ffa6384725944a4006bbb338930a91bf178bd32e6013952655"
+    },
+    {
+      "selector": "0x2113522a",
+      "facet": "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
+      "codehash": "0xa7db7351ea23b8ffa6384725944a4006bbb338930a91bf178bd32e6013952655"
+    },
+    {
+      "selector": "0x24d824cb",
+      "facet": "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
+      "codehash": "0xa7db7351ea23b8ffa6384725944a4006bbb338930a91bf178bd32e6013952655"
+    },
+    {
+      "selector": "0x31cd4199",
+      "facet": "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
+      "codehash": "0xa7db7351ea23b8ffa6384725944a4006bbb338930a91bf178bd32e6013952655"
+    },
+    {
+      "selector": "0x54f6127f",
+      "facet": "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
+      "codehash": "0xa7db7351ea23b8ffa6384725944a4006bbb338930a91bf178bd32e6013952655"
+    },
+    {
+      "selector": "0x642f7d5e",
+      "facet": "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
+      "codehash": "0xa7db7351ea23b8ffa6384725944a4006bbb338930a91bf178bd32e6013952655"
+    },
+    {
+      "selector": "0x7ab7b94b",
+      "facet": "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
+      "codehash": "0xa7db7351ea23b8ffa6384725944a4006bbb338930a91bf178bd32e6013952655"
+    },
+    {
+      "selector": "0x9730174d",
+      "facet": "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
+      "codehash": "0xa7db7351ea23b8ffa6384725944a4006bbb338930a91bf178bd32e6013952655"
+    },
+    {
+      "selector": "0xb5211ec4",
+      "facet": "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
+      "codehash": "0xa7db7351ea23b8ffa6384725944a4006bbb338930a91bf178bd32e6013952655"
+    },
+    {
+      "selector": "0xbdb475b8",
+      "facet": "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
+      "codehash": "0xa7db7351ea23b8ffa6384725944a4006bbb338930a91bf178bd32e6013952655"
+    },
+    {
+      "selector": "0x0af73309",
+      "facet": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+      "codehash": "0x6c3ad3b81d232773ea1a6f349b100307e7871e41f0d8f28cb2138bd124e211f4"
+    },
+    {
+      "selector": "0x0e7d1d93",
+      "facet": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+      "codehash": "0x6c3ad3b81d232773ea1a6f349b100307e7871e41f0d8f28cb2138bd124e211f4"
+    },
+    {
+      "selector": "0x16c38b3c",
+      "facet": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+      "codehash": "0x6c3ad3b81d232773ea1a6f349b100307e7871e41f0d8f28cb2138bd124e211f4"
+    },
+    {
+      "selector": "0x279412c5",
+      "facet": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+      "codehash": "0x6c3ad3b81d232773ea1a6f349b100307e7871e41f0d8f28cb2138bd124e211f4"
+    },
+    {
+      "selector": "0x289b3c0d",
+      "facet": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+      "codehash": "0x6c3ad3b81d232773ea1a6f349b100307e7871e41f0d8f28cb2138bd124e211f4"
+    },
+    {
+      "selector": "0x31e8c195",
+      "facet": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+      "codehash": "0x6c3ad3b81d232773ea1a6f349b100307e7871e41f0d8f28cb2138bd124e211f4"
+    },
+    {
+      "selector": "0x37184e95",
+      "facet": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+      "codehash": "0x6c3ad3b81d232773ea1a6f349b100307e7871e41f0d8f28cb2138bd124e211f4"
+    },
+    {
+      "selector": "0x3c7264b2",
+      "facet": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+      "codehash": "0x6c3ad3b81d232773ea1a6f349b100307e7871e41f0d8f28cb2138bd124e211f4"
+    },
+    {
+      "selector": "0x5aa723df",
+      "facet": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+      "codehash": "0x6c3ad3b81d232773ea1a6f349b100307e7871e41f0d8f28cb2138bd124e211f4"
+    },
+    {
+      "selector": "0x7c300fd1",
+      "facet": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+      "codehash": "0x6c3ad3b81d232773ea1a6f349b100307e7871e41f0d8f28cb2138bd124e211f4"
+    },
+    {
+      "selector": "0xa83583e9",
+      "facet": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+      "codehash": "0x6c3ad3b81d232773ea1a6f349b100307e7871e41f0d8f28cb2138bd124e211f4"
+    },
+    {
+      "selector": "0xa8ced948",
+      "facet": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+      "codehash": "0x6c3ad3b81d232773ea1a6f349b100307e7871e41f0d8f28cb2138bd124e211f4"
+    },
+    {
+      "selector": "0xc15a59e2",
+      "facet": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+      "codehash": "0x6c3ad3b81d232773ea1a6f349b100307e7871e41f0d8f28cb2138bd124e211f4"
+    },
+    {
+      "selector": "0xc66b4f23",
+      "facet": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+      "codehash": "0x6c3ad3b81d232773ea1a6f349b100307e7871e41f0d8f28cb2138bd124e211f4"
+    },
+    {
+      "selector": "0xe2ab79b1",
+      "facet": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+      "codehash": "0x6c3ad3b81d232773ea1a6f349b100307e7871e41f0d8f28cb2138bd124e211f4"
+    },
+    {
+      "selector": "0xe9e831d7",
+      "facet": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+      "codehash": "0x6c3ad3b81d232773ea1a6f349b100307e7871e41f0d8f28cb2138bd124e211f4"
+    },
+    {
+      "selector": "0xea83977f",
+      "facet": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+      "codehash": "0x6c3ad3b81d232773ea1a6f349b100307e7871e41f0d8f28cb2138bd124e211f4"
+    }
+  ],
+  "merkleRoot": "0x3339b6c719e59f2227573f77d5f92f8dfaa2039b1e4f52fa4892cdd13474aa92"
+}

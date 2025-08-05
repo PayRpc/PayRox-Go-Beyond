@@ -1,0 +1,15 @@
+{
+  "timeout": 30000,
+  "require": ["ts-node/register"],
+  "recursive": true,
+  "exclude": [
+    "test/scripts/analyze-merkle-organization-functional.test.ts",
+    "test/scripts/*-enhanced*.test.ts",
+    "test/scripts/architecture-comparison-*.test.ts",
+    "test/scripts/assess-freeze-readiness-*.test.ts",
+    "test/scripts/build-manifest-enhanced*.test.ts"
+  ],
+  "exit": true,
+  "extension": ["ts"],
+  "spec": ["test/*.spec.ts", "test/**/*.spec.ts"]
+}

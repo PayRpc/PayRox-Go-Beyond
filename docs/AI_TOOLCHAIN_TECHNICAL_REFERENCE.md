@@ -1,3 +1,5 @@
+> **ARCHITECTURE UPDATE (August 2025)**: PayRox implements a Manifest-Router Architecture, NOT an EIP-2535 Diamond. This document has been updated to reflect the correct architecture.
+
 # PayRox Go Beyond: AI Toolchain Technical Reference
 
 ## 📋 **Executive Summary**

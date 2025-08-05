@@ -5,10 +5,10 @@
   /* Color System - Enhanced Gradients and Modern Palette */
   --primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   --primary-hover: linear-gradient(135deg, #5a6fd8 0%, #6b4190 100%);
-  --secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  --secondary: linear-gradient(135deg, #4facfe 0%, #667eea 100%);
   --success: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
   --warning: linear-gradient(135deg, #ffb347 0%, #ffcc33 100%);
-  --error: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+  --error: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
 
   /* Background Gradients */
   --bg-main: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -95,12 +95,14 @@ body::before {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
 }
 
 /* Header Styles */
 .header {
   background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--glass-border);
   padding: 1.5rem 2rem;

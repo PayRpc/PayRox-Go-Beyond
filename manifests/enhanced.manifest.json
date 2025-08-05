@@ -1,0 +1,87 @@
+{
+  "version": "1.0.0",
+  "timestamp": "2025-08-03T16:57:42.201Z",
+  "description": "Initial release of PayRox Go Beyond deployment framework",
+  "metadata": {
+    "buildHash": "748a9af3ecc1e996",
+    "builderVersion": "2.0.0",
+    "environment": "hardhat",
+    "optimizationLevel": "standard",
+    "compressionEnabled": true,
+    "securityValidated": true
+  },
+  "network": {
+    "name": "hardhat",
+    "chainId": "31337",
+    "gasPrice": "1.875 gwei",
+    "blockNumber": 0
+  },
+  "factory": "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
+  "facets": [
+    {
+      "name": "ExampleFacetA",
+      "contract": "ExampleFacetA",
+      "address": "0xcEe8664853D8de0069836988CbEc81EbaEF9E70A",
+      "salt": "0xa7db7351ea23b8ffa6384725944a4006bbb338930a91bf178bd32e6013952655",
+      "bytecodeHash": "0xa7db7351ea23b8ffa6384725944a4006bbb338930a91bf178bd32e6013952655",
+      "bytecodeSize": 3492,
+      "selectors": [],
+      "priority": 1,
+      "gasLimit": 500000,
+      "deploymentCost": "0",
+      "verification": {
+        "verified": false
+      }
+    },
+    {
+      "name": "ExampleFacetB",
+      "contract": "ExampleFacetB",
+      "address": "0x98E95C3d8eC3d4cc5aa6b12fDA28Be88BAA361E2",
+      "salt": "0x6c3ad3b81d232773ea1a6f349b100307e7871e41f0d8f28cb2138bd124e211f4",
+      "bytecodeHash": "0x6c3ad3b81d232773ea1a6f349b100307e7871e41f0d8f28cb2138bd124e211f4",
+      "bytecodeSize": 8680,
+      "selectors": [],
+      "priority": 2,
+      "gasLimit": 750000,
+      "deploymentCost": "0",
+      "verification": {
+        "verified": false
+      }
+    }
+  ],
+  "routes": [],
+  "merkleRoot": "0x0000000000000000000000000000000000000000000000000000000000000000",
+  "merkleData": {
+    "root": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "leaves": [],
+    "proofs": [],
+    "tree": [
+      []
+    ],
+    "statistics": {
+      "totalLeaves": 0,
+      "treeHeight": 1,
+      "totalNodes": 0,
+      "averageProofLength": null
+    }
+  },
+  "validation": {
+    "isValid": true,
+    "errors": [],
+    "warnings": [],
+    "statistics": {
+      "totalFacets": 2,
+      "totalRoutes": 0,
+      "totalSelectors": 0,
+      "duplicateSelectors": 0,
+      "missingContracts": 0,
+      "gasEstimateTotal": "0"
+    }
+  },
+  "performance": {
+    "buildTime": 0,
+    "validationTime": 0,
+    "optimizationTime": 0,
+    "totalTime": 0
+  }
+}

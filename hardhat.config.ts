@@ -11,31 +11,55 @@ import './tasks/payrox';
 import './tasks/payrox-ops';
 import './tasks/payrox-release';
 import './tasks/payrox-roles';
+import './tasks/routes';
 import './tasks/sbom';
 
 dotenv.config();
 
 const config: HardhatUserConfig = {
-  defaultNetwork: process.env.DEFAULT_NETWORK || 'hardhat',
+  defaultNetwork: 'hardhat', // Always use hardhat as default for development
   solidity: {
-    version: '0.8.30', // Keep current version - works perfectly
-    settings: {
-      optimizer: {
-        enabled: true,
-        runs: 200,
-      },
-      viaIR: true, // Keep current setting - contracts compile fine
-      evmVersion: 'cancun', // Support OpenZeppelin v5.x contracts
-      metadata: {
-        // Include source in metadata for better debugging
-        bytecodeHash: 'none', // Deterministic builds
-      },
-      outputSelection: {
-        '*': {
-          '*': ['abi', 'evm.bytecode', 'evm.deployedBytecode', 'metadata'],
+    compilers: [
+      {
+        version: '0.8.30', // Main version - works perfectly
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+          viaIR: true, // Keep current setting - contracts compile fine
+          evmVersion: 'cancun', // Support OpenZeppelin v5.x contracts
+          metadata: {
+            // Include source in metadata for better debugging
+            bytecodeHash: 'none', // Deterministic builds
+          },
+          outputSelection: {
+            '*': {
+              '*': ['abi', 'evm.bytecode', 'evm.deployedBytecode', 'metadata'],
+            },
+          },
         },
       },
-    },
+      {
+        version: '0.8.28', // Support for TerraStake Insurance contracts
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+          viaIR: true,
+          evmVersion: 'cancun',
+          metadata: {
+            bytecodeHash: 'none',
+          },
+          outputSelection: {
+            '*': {
+              '*': ['abi', 'evm.bytecode', 'evm.deployedBytecode', 'metadata'],
+            },
+          },
+        },
+      }
+    ]
   },
   networks: {
     hardhat: {

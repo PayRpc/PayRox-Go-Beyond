@@ -1,0 +1,92 @@
+# Analysis of deploy-go-beyond.ts
+
+## Integrations
+
+### External Libraries
+- `fs`: File system operations
+- `ethers`: Ethereum library for blockchain interactions
+- `hardhat`: Ethereum development environment
+- `path`: Path utilities for file and directory operations
+
+### Internal Utilities
+- `utils/io`:
+  - `writeJsonFile`: Writes JSON data to a file
+  - `readJsonFile`: Reads JSON data from a file
+  - `ensureDirectoryExists`: Ensures a directory exists
+  - `saveDeploymentArtifact`: Saves deployment artifacts
+  - `FileOperationError`: Custom error for file operations
+  - `SecurityError`: Custom error for security issues
+
+- `utils/create2`:
+  - `calculateCreate2Address`: Calculates deterministic contract addresses
+  - `generatePayRoxSalt`: Generates a salt for PayRox contracts
+  - `generateFacetSalt`: Generates a salt for facets
+  - `generateDispatcherSalt`: Generates a salt for dispatchers
+  - `validateDeploymentConfig`: Validates deployment configurations
+
+- `utils/network-fees`:
+  - `getNetworkFeeConfig`: Retrieves network fee configurations
+  - `calculateDynamicFees`: Calculates dynamic fees based on network
+  - `getFeeSummary`: Summarizes network fees
+  - `NetworkFeeConfig`: Interface for network fee configurations
+
+## Orchestration
+
+### Deployment Steps
+1. **Compile Contracts**
+   - Ensures all contracts are up to date.
+   - Assumes contracts are pre-compiled.
+
+2. **Clean Previous Deployments**
+   - Removes old deployment artifacts.
+   - Creates a new `deployments` directory if it doesn't exist.
+
+3. **Deploy Factory and Dispatcher**
+   - Deploys `DeterministicChunkFactory` and `ManifestDispatcher` deterministically using CREATE2.
+   - Validates unique addresses for factory and dispatcher.
+
+4. **Deploy Facets**
+   - Deploys `ExampleFacetA`, `ExampleFacetB`, and `ChunkFactoryFacet`.
+   - Uses the Diamond pattern for hot-swappable logic.
+
+5. **Deploy Orchestrator Contracts**
+   - Deploys orchestrator contracts for system coordination.
+
+6. **Build Production Manifest**
+   - Generates a production manifest.
+   - Saves audit records with manifest hash.
+
+7. **Test Basic Functionality**
+   - Tests factory and dispatcher functionality.
+   - Validates predicted addresses and content hashes.
+
+### Error Handling
+- Logs warnings for non-critical failures (e.g., facet deployment).
+- Throws errors for critical issues (e.g., address mismatches).
+- Provides troubleshooting steps for deployment failures.
+
+## Imports from Schema
+
+### DeploymentInfo Interface
+- `contractName`: Name of the contract
+- `address`: Deployed contract address
+- `deployer`: Address of the deployer
+- `network`: Network name
+- `timestamp`: Deployment timestamp
+- `transactionHash`: Transaction hash
+- `constructorArguments`: Constructor arguments
+- `salt`: Salt for deterministic deployments
+
+### CROSS_NETWORK_CONFIG
+- `PAYROX_VERSION`: Version of the PayRox system
+- `CROSS_CHAIN_NONCE`: Nonce for cross-network deployments
+- `PROJECT_IDENTIFIER`: Identifier for the PayRox project
+
+### Deployment Functions
+- `deployDeterministic`: Deploys contracts deterministically using CREATE2.
+- `saveDeploymentInfo`: Saves deployment information to a file.
+- `saveAuditRecord`: Saves audit records with manifest hash.
+- `runScript`: Executes deployment scripts for facets and orchestrators.
+
+## Summary
+The `deploy-go-beyond.ts` script is a comprehensive deployment orchestrator for the PayRox Go Beyond system. It integrates deterministic deployment, dynamic fee calculation, and robust error handling. The script ensures reproducibility across networks using CREATE2 and provides detailed audit records for security compliance.
