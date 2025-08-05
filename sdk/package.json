@@ -1,28 +1,26 @@
 {
   "name": "@payrox/go-beyond-sdk",
   "version": "1.0.0",
-  "description": "PayRox Go Beyond SDK - Build deterministic dApps with content-addressed deployment",
+  "description": "Official SDK for PayRox Go Beyond - 5-minute integration with manifest-based smart contract routing",
   "main": "dist/index.js",
-  "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
   "files": [
-    "dist",
+    "dist/**/*",
     "README.md",
-    "LICENSE",
-    "contracts"
+    "QUICK_START.md"
   ],
   "scripts": {
-    "build": "rollup -c && npm run build:types",
-    "build:types": "tsc --emitDeclarationOnly",
-    "dev": "rollup -c -w",
+    "build": "tsc",
+    "build:watch": "tsc --watch",
     "test": "jest",
     "test:watch": "jest --watch",
-    "lint": "eslint src --ext .ts",
-    "lint:fix": "eslint src --ext .ts --fix",
-    "typecheck": "tsc --noEmit",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix",
     "docs": "typedoc src/index.ts",
-    "clean": "rm -rf dist",
-    "prepublishOnly": "npm run clean && npm run build"
+    "prepublishOnly": "npm run build",
+    "example:basic": "tsx examples/basic-integration.ts",
+    "example:advanced": "tsx examples/advanced-usage.ts",
+    "example:batch": "tsx examples/batch-operations.ts"
   },
   "keywords": [
     "ethereum",

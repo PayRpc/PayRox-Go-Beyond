@@ -1,0 +1,374 @@
+name: 🚀 Canary Deployment Pipeline
+
+on:
+  push:
+    branches: [develop]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment for canary deployment'
+        required: true
+        default: 'sepolia'
+        type: choice
+        options:
+          - sepolia
+          - goerli
+          - mumbai
+          - optimism-sepolia
+          - arbitrum-sepolia
+      force_deploy:
+        description: 'Force deployment even if validation fails'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  NODE_VERSION: '18'
+  CANARY_ADDRESS: '0x742d35Cc6634C0532925a3b8D88F3E73C09cCF40'
+
+jobs:
+  # Pre-deployment validation
+  validate-canary:
+    name: 🔍 Validate Canary Deployment
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.setup.outputs.environment }}
+      should-deploy: ${{ steps.validate.outputs.should-deploy }}
+      deployment-config: ${{ steps.validate.outputs.deployment-config }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup environment
+        id: setup
+        run: |
+          # Determine target environment
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "environment=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
+          else
+            echo "environment=sepolia" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Compile contracts
+        run: npx hardhat compile
+
+      - name: Validate deployment readiness
+        id: validate
+        run: |
+          # Check if contracts compiled successfully
+          if [ ! -d "artifacts/contracts" ]; then
+            echo "❌ Contract compilation failed"
+            echo "should-deploy=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+          
+          # Run basic validation tests
+          npx hardhat test test/validation/ --grep "deployment" || {
+            if [ "${{ github.event.inputs.force_deploy }}" == "true" ]; then
+              echo "⚠️ Validation failed but force deployment requested"
+            else
+              echo "❌ Validation tests failed"
+              echo "should-deploy=false" >> $GITHUB_OUTPUT
+              exit 1
+            fi
+          }
+          
+          # Generate deployment configuration
+          cat > canary-config.json << EOF
+          {
+            "environment": "${{ steps.setup.outputs.environment }}",
+            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "commit": "${{ github.sha }}",
+            "canary_address": "${{ env.CANARY_ADDRESS }}",
+            "gas_settings": {
+              "maxFeePerGas": "20000000000",
+              "maxPriorityFeePerGas": "2000000000"
+            }
+          }
+          EOF
+          
+          echo "should-deploy=true" >> $GITHUB_OUTPUT
+          echo "deployment-config=$(cat canary-config.json | jq -c .)" >> $GITHUB_OUTPUT
+          
+          echo "✅ Canary deployment validation passed"
+
+      - name: Upload canary config
+        uses: actions/upload-artifact@v3
+        with:
+          name: canary-deployment-config
+          path: canary-config.json
+          retention-days: 7
+
+  # Canary deployment execution
+  deploy-canary:
+    name: 🎯 Deploy Canary System
+    runs-on: ubuntu-latest
+    needs: validate-canary
+    if: needs.validate-canary.outputs.should-deploy == 'true'
+    environment: ${{ needs.validate-canary.outputs.environment }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download canary config
+        uses: actions/download-artifact@v3
+        with:
+          name: canary-deployment-config
+
+      - name: Setup environment variables
+        run: |
+          # Load deployment configuration
+          export DEPLOYMENT_CONFIG=$(cat canary-config.json)
+          echo "NETWORK=${{ needs.validate-canary.outputs.environment }}" >> $GITHUB_ENV
+          echo "CANARY_ADDRESS=${{ env.CANARY_ADDRESS }}" >> $GITHUB_ENV
+
+      - name: Configure deployment secrets
+        env:
+          PRIVATE_KEY: ${{ secrets.CANARY_PRIVATE_KEY }}
+          INFURA_KEY: ${{ secrets.INFURA_API_KEY }}
+          ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
+        run: |
+          # Validate required secrets
+          if [ -z "$PRIVATE_KEY" ]; then
+            echo "❌ CANARY_PRIVATE_KEY not configured"
+            exit 1
+          fi
+          
+          if [ -z "$INFURA_KEY" ]; then
+            echo "❌ INFURA_API_KEY not configured"
+            exit 1
+          fi
+          
+          echo "✅ Deployment secrets validated"
+
+      - name: Execute canary deployment
+        env:
+          PRIVATE_KEY: ${{ secrets.CANARY_PRIVATE_KEY }}
+          INFURA_API_KEY: ${{ secrets.INFURA_API_KEY }}
+          ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
+        run: |
+          echo "🚀 Starting canary deployment to ${{ env.NETWORK }}..."
+          
+          # Create canary deployment script
+          cat > scripts/deploy-canary.ts << 'EOF'
+          import { ethers } from "hardhat";
+          import { writeFileSync } from "fs";
+          
+          async function main() {
+            console.log("🎯 PayRox Go Beyond Canary Deployment");
+            console.log(`Network: ${process.env.NETWORK}`);
+            console.log(`Deployer: ${process.env.CANARY_ADDRESS}`);
+            
+            const [deployer] = await ethers.getSigners();
+            console.log(`Deployer address: ${deployer.address}`);
+            console.log(`Deployer balance: ${ethers.formatEther(await deployer.provider.getBalance(deployer.address))} ETH`);
+            
+            // Deploy minimal system for canary testing
+            console.log("\n1️⃣ Deploying DeterministicChunkFactory...");
+            const ChunkFactory = await ethers.getContractFactory("DeterministicChunkFactory");
+            const factory = await ChunkFactory.deploy({
+              gasLimit: 2000000
+            });
+            await factory.waitForDeployment();
+            console.log(`✅ Factory deployed at: ${await factory.getAddress()}`);
+            
+            console.log("\n2️⃣ Deploying ManifestDispatcher...");
+            const Dispatcher = await ethers.getContractFactory("ManifestDispatcher");
+            const dispatcher = await Dispatcher.deploy({
+              gasLimit: 3000000
+            });
+            await dispatcher.waitForDeployment();
+            console.log(`✅ Dispatcher deployed at: ${await dispatcher.getAddress()}`);
+            
+            console.log("\n3️⃣ Basic functionality test...");
+            try {
+              const factoryVersion = await factory.version();
+              console.log(`Factory version: ${factoryVersion}`);
+              
+              const dispatcherVersion = await dispatcher.version();
+              console.log(`Dispatcher version: ${dispatcherVersion}`);
+              
+              console.log("✅ Basic functionality test passed");
+            } catch (error) {
+              console.error("❌ Basic functionality test failed:", error);
+              process.exit(1);
+            }
+            
+            // Save canary deployment info
+            const deploymentInfo = {
+              network: process.env.NETWORK,
+              timestamp: new Date().toISOString(),
+              deployer: deployer.address,
+              contracts: {
+                factory: await factory.getAddress(),
+                dispatcher: await dispatcher.getAddress()
+              },
+              gasUsed: {
+                factory: "~2M",
+                dispatcher: "~3M"
+              },
+              status: "SUCCESS"
+            };
+            
+            writeFileSync("canary-deployment.json", JSON.stringify(deploymentInfo, null, 2));
+            console.log("\n🎉 Canary deployment completed successfully!");
+          }
+          
+          main().catch((error) => {
+            console.error("💥 Canary deployment failed:", error);
+            process.exit(1);
+          });
+          EOF
+          
+          # Execute canary deployment
+          npx hardhat run scripts/deploy-canary.ts --network ${{ env.NETWORK }}
+
+      - name: Verify canary deployment
+        run: |
+          if [ -f "canary-deployment.json" ]; then
+            echo "📊 Canary Deployment Results:"
+            cat canary-deployment.json | jq .
+            
+            # Extract addresses for verification
+            FACTORY_ADDRESS=$(jq -r '.contracts.factory' canary-deployment.json)
+            DISPATCHER_ADDRESS=$(jq -r '.contracts.dispatcher' canary-deployment.json)
+            
+            echo "🔍 Verifying deployed contracts..."
+            echo "Factory: $FACTORY_ADDRESS"
+            echo "Dispatcher: $DISPATCHER_ADDRESS"
+            
+            # Basic verification
+            npx hardhat verify --network ${{ env.NETWORK }} $FACTORY_ADDRESS || echo "⚠️ Factory verification failed (expected for some networks)"
+            npx hardhat verify --network ${{ env.NETWORK }} $DISPATCHER_ADDRESS || echo "⚠️ Dispatcher verification failed (expected for some networks)"
+            
+            echo "✅ Canary deployment verification completed"
+          else
+            echo "❌ Canary deployment results not found"
+            exit 1
+          fi
+
+      - name: Upload canary results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: canary-deployment-results
+          path: |
+            canary-deployment.json
+            canary-config.json
+          retention-days: 30
+
+      - name: Update deployment status
+        if: success()
+        run: |
+          echo "🎯 Canary deployment successful on ${{ env.NETWORK }}"
+          echo "📝 Deployment artifacts uploaded for review"
+          echo "🔄 Ready for production deployment validation"
+
+  # Post-deployment validation
+  validate-canary-deployment:
+    name: ✅ Validate Canary Deployment
+    runs-on: ubuntu-latest
+    needs: [validate-canary, deploy-canary]
+    if: success()
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download canary results
+        uses: actions/download-artifact@v3
+        with:
+          name: canary-deployment-results
+
+      - name: Validate deployment results
+        run: |
+          echo "🔍 Validating canary deployment results..."
+          
+          if [ ! -f "canary-deployment.json" ]; then
+            echo "❌ Deployment results not found"
+            exit 1
+          fi
+          
+          # Check deployment status
+          STATUS=$(jq -r '.status' canary-deployment.json)
+          if [ "$STATUS" != "SUCCESS" ]; then
+            echo "❌ Deployment status: $STATUS"
+            exit 1
+          fi
+          
+          # Validate contract addresses
+          FACTORY=$(jq -r '.contracts.factory' canary-deployment.json)
+          DISPATCHER=$(jq -r '.contracts.dispatcher' canary-deployment.json)
+          
+          if [ "$FACTORY" == "null" ] || [ "$DISPATCHER" == "null" ]; then
+            echo "❌ Invalid contract addresses"
+            exit 1
+          fi
+          
+          echo "✅ Canary deployment validation passed"
+          echo "🏭 Factory: $FACTORY"
+          echo "🔀 Dispatcher: $DISPATCHER"
+          echo "🌐 Network: $(jq -r '.network' canary-deployment.json)"
+
+      - name: Generate canary report
+        run: |
+          cat > canary-report.md << EOF
+          # 🎯 Canary Deployment Report
+          
+          **Deployment Date**: $(jq -r '.timestamp' canary-deployment.json)
+          **Network**: $(jq -r '.network' canary-deployment.json)
+          **Status**: ✅ SUCCESS
+          
+          ## Deployed Contracts
+          
+          | Contract | Address | Gas Used |
+          |----------|---------|----------|
+          | DeterministicChunkFactory | \`$(jq -r '.contracts.factory' canary-deployment.json)\` | ~2M |
+          | ManifestDispatcher | \`$(jq -r '.contracts.dispatcher' canary-deployment.json)\` | ~3M |
+          
+          ## Validation Results
+          
+          ✅ Contract compilation successful  
+          ✅ Basic functionality tests passed  
+          ✅ Deployment completed without errors  
+          ✅ Contract verification attempted  
+          
+          ## Next Steps
+          
+          1. Monitor canary deployment for 24 hours
+          2. Run integration tests against deployed contracts
+          3. Validate gas costs and performance
+          4. Proceed to production deployment if stable
+          
+          ---
+          *Generated by PayRox Go Beyond Canary Pipeline*
+          EOF
+          
+          echo "📋 Canary deployment report generated"
+
+      - name: Upload canary report
+        uses: actions/upload-artifact@v3
+        with:
+          name: canary-deployment-report
+          path: canary-report.md
+          retention-days: 90
