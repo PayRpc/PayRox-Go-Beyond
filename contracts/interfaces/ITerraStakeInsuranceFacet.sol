@@ -2,7 +2,7 @@
 pragma solidity ^0.8.20;
 
 /**
- * @title ITerraStakeInsuranceFund
+ * @title ITerraStakeInsuranceFacet
  * @dev AI-Generated interface for PayRox Go Beyond
  * @notice This interface is PayRox-compatible and future-ready
  * 
@@ -11,7 +11,7 @@ pragma solidity ^0.8.20;
  * PayRox Ready: Yes
  */
 
-interface ITerraStakeInsuranceFund {
+interface ITerraStakeInsuranceFacet {
 // Custom Errors for Gas Efficiency
 error ZeroPremium();
 error InvalidClaimAmount();
@@ -21,20 +21,31 @@ error ClaimNotFound();
 error UnauthorizedCaller();
 error InsufficientFund();
 error TransferFailed(address from, address token, address to, uint256 amount);
+error AlreadyInitialized();
+error NotInitialized();
 
 // Events
 event PremiumPaid(address indexed, uint256 premium, uint256 coverageGranted, uint256 timestamp);
 event ClaimFiled(address indexed, uint256 claimId, uint256 claimAmount, uint256 timestamp);
 event ClaimProcessed(uint256 claimId, address indexed, bool approved, uint256 amountPaid, uint256 timestamp);
+event InsuranceFacetInitialized(address tstakeToken, uint256 minCapital, uint256 premiumRate, uint256 multiplier);
 
 // Interface Functions
-function initialize(address _tstakeToken, uint256 _minCapitalRequirement, uint256 _basePremiumRate, uint256 _coverageMultiplier) external;
+function initializeInsurance(address _tstakeToken, uint256 _minCapitalRequirement, uint256 _basePremiumRate, uint256 _coverageMultiplier) external;
     function payPremium(uint256 premiumAmount) external;
     function fileClaim(uint256 claimAmount) external;
     function processClaim(uint256 claimId, bool approve) external;
-    function getUserClaimCount(address user) external view returns (uint256 paramgkoa0h9f5);
-    function getClaim(uint256 claimId) external view returns (Claim memory);
-    function getFundBalance() external view returns (uint256 paramtzohx95s5);
+    function getUserClaimCount(address user) external view;
+    function getClaim(uint256 claimId) external view;
+    function getFundBalance() external view;
+    function premiumsPaid(address user) external view;
+    function coverageAmount(address user) external view;
+    function totalFundValue() external view;
+    function minCapitalRequirement() external view;
+    function basePremiumRate() external view;
+    function coverageMultiplier() external view;
+    function getFacetFunctionSelectors() external pure returns (bytes4[] memory);
+    function supportsInterface(bytes4 interfaceId) external view;
 }
 
 /**
