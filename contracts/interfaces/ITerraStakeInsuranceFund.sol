@@ -12,6 +12,16 @@ pragma solidity ^0.8.20;
  */
 
 interface ITerraStakeInsuranceFund {
+// Struct definitions
+struct Claim {
+    uint256 id;
+    address claimant;
+    uint256 amount;
+    uint256 timestamp;
+    bool processed;
+    string description;
+}
+
 // Custom Errors for Gas Efficiency
 error ZeroPremium();
 error InvalidClaimAmount();

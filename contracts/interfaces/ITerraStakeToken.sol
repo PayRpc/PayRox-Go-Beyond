@@ -1,3 +1,10 @@
+struct BuybackStats {
+    uint256 total;
+    uint256 active;
+    uint256 lastUpdate;
+    bool isValid;
+}
+
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
@@ -36,7 +43,7 @@ function initialize(address _uniswapPool, address _governanceContract, address _
     function airdrop(address[] calldata, uint256 amount) external;
     function mint(address to, uint256 amount) external;
     function burnFrom(address from, uint256 amount) external;
-    function getTWAPPrice(uint32 twapInterval) external returns (uint256 price);
+    function getTWAPPrice(uint32 twapInterval) external override returns (uint256 price);
     function emergencyWithdraw(address token, address to, uint256 amount) external;
     function emergencyWithdrawMultiple(address[] calldata, address to, uint256[] calldata) external;
     function updateGovernanceContract(address _governanceContract) external;
@@ -44,22 +51,22 @@ function initialize(address _uniswapPool, address _governanceContract, address _
     function updateLiquidityGuard(address _liquidityGuard) external;
     function stakeTokens(address from, uint256 amount) external;
     function unstakeTokens(address to, uint256 amount) external;
-    function getGovernanceVotes(address account) external view returns (uint256 param48gauy5nn);
-    function isGovernorPenalized(address account) external view returns (bool param0msmisyin);
+    function getGovernanceVotes(address account) external override view returns (uint256 param48gauy5nn);
+    function isGovernorPenalized(address account) external override view returns (bool param0msmisyin);
     function executeBuyback(uint256 usdcAmount) external;
     function injectLiquidity(uint256 amount) external;
     function triggerHalving() external;
-    function getHalvingDetails() external view returns (uint256 period, uint256 lastTime, uint256 epoch);
-    function checkGovernanceApproval(address account, uint256 amount) external view returns (bool paramym8x26k0i);
+    function getHalvingDetails() external override view returns (uint256 period, uint256 lastTime, uint256 epoch);
+    function checkGovernanceApproval(address account, uint256 amount) external override view returns (bool paramym8x26k0i);
     function penalizeGovernanceViolator(address account) external;
     function pause() external;
     function unpause() external;
     function activateCircuitBreaker() external;
     function resetCircuitBreaker() external;
-    function getBuybackStatistics() external view returns (BuybackStats memory);
-    function getLiquiditySettings() external view returns (bool paramd66c1wyt6);
-    function isCircuitBreakerTriggered() external view returns (bool parammduszechs);
-    function getImplementation() external view returns (address param7uqx3bdt0);
+    function getBuybackStatistics() external override view returns (BuybackStats memory);
+    function getLiquiditySettings() external override view returns (bool paramd66c1wyt6);
+    function isCircuitBreakerTriggered() external override view returns (bool parammduszechs);
+    function getImplementation() external override view returns (address param7uqx3bdt0);
 }
 
 /**

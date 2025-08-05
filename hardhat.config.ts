@@ -58,6 +58,23 @@ const config: HardhatUserConfig = {
             },
           },
         },
+      },
+      {
+        version: '0.7.6', // Support for Uniswap V3 contracts
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 800,
+          },
+          metadata: {
+            bytecodeHash: 'none',
+          },
+          outputSelection: {
+            '*': {
+              '*': ['abi', 'evm.bytecode', 'evm.deployedBytecode', 'metadata'],
+            },
+          },
+        },
       }
     ]
   },

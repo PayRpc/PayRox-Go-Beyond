@@ -23,7 +23,7 @@ function mintWithEnvironmentalData(address to, uint256 tokenId, uint256 amount, 
     function batchMintWithEnvironmentalData(address to, uint256[] memory, uint256[] memory, uint256[] memory, uint256[] memory, string[] memory, bytes memory) external;
     function updateEnvironmentalData(uint256 tokenId, string memory) external;
     function setTokenURI(uint256 tokenId, string memory) external;
-    function getEnvironmentalData(uint256 tokenId) external view returns (LibTerraStake.EnvironmentalData memory);
+    function getEnvironmentalData(uint256 tokenId) external view returns (uint256 memory);
     function getTierSupply(uint256 tier) external view returns (uint256 paramdsbq1bxuf);
     function totalSupply(uint256 tokenId) external view returns (uint256 paramuqlpvx0oa);
     function uri(uint256 tokenId) external view;

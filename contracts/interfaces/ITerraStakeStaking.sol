@@ -12,6 +12,33 @@ pragma solidity ^0.8.20;
  */
 
 interface ITerraStakeStaking {
+// Struct definitions
+struct StakingPosition {
+    uint256 amount;
+    uint256 projectId;
+    uint256 timestamp;
+    uint256 tier;
+}
+
+struct PositionWithTier {
+    StakingPosition position;
+    uint256 tierLevel;
+    uint256 multiplier;
+}
+
+struct PenaltyEvent {
+    uint256 amount;
+    uint256 timestamp;
+    string reason;
+}
+
+struct StakingTier {
+    uint256 minAmount;
+    uint256 minDuration;
+    uint256 multiplier;
+    string name;
+}
+
 // Custom Errors for Gas Efficiency
 error ZeroAmount();
 error InsufficientStakingDuration(uint256 minimum, uint256 provided);

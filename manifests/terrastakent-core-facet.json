@@ -1,0 +1,226 @@
+{
+  "facetId": "terrastakent-core-facet",
+  "facetName": "TerraStakeNFTCoreFacet",
+  "facetVersion": "1.0.0",
+  "description": "Core NFT functionality for TerraStakeNFT with PayRox Diamond architecture",
+  "author": "PayRox AI Assistant - Emiliano Enhanced Learning",
+  "license": "MIT",
+  "created": "2025-01-23",
+  
+  "payRoxDiamondConfig": {
+    "storageSlot": "payrox.facet.storage.terrastakentcore.v1",
+    "storageHash": "0x7f4c2d1e8a95b3e6f0c9d8a7b5e4f3c2d1e0a9b8c7d6e5f4a3b2c1d0e9f8a7b6",
+    "manifestDispatcherRequired": true,
+    "libDiamondIntegration": true,
+    "accessControlPattern": "role-based",
+    "upgradeability": "via-manifest"
+  },
+  
+  "functions": [
+    {
+      "selector": "0x73e4e9b0",
+      "signature": "initializeTerraStakeNFTCore(address,string)",
+      "name": "initializeTerraStakeNFTCore",
+      "access": "deployer",
+      "description": "Initialize core NFT facet with PayRox Diamond integration"
+    },
+    {
+      "selector": "0x156e29f6",
+      "signature": "mintNFT(address,uint256,uint256,bytes)",
+      "name": "mintNFT",
+      "access": "minter_role",
+      "description": "Mint environmental NFT tokens"
+    },
+    {
+      "selector": "0x9dc29fac",
+      "signature": "burnNFT(address,uint256,uint256)",
+      "name": "burnNFT",
+      "access": "burner_role",
+      "description": "Burn NFT tokens"
+    },
+    {
+      "selector": "0xf242432a",
+      "signature": "safeTransferFrom(address,address,uint256,uint256,bytes)",
+      "name": "safeTransferFrom",
+      "access": "public",
+      "description": "Safe transfer single token"
+    },
+    {
+      "selector": "0x2eb2c2d6",
+      "signature": "safeBatchTransferFrom(address,address,uint256[],uint256[],bytes)",
+      "name": "safeBatchTransferFrom", 
+      "access": "public",
+      "description": "Safe batch transfer tokens"
+    },
+    {
+      "selector": "0xa22cb465",
+      "signature": "setApprovalForAll(address,bool)",
+      "name": "setApprovalForAll",
+      "access": "public",
+      "description": "Set operator approval for all tokens"
+    },
+    {
+      "selector": "0x00fdd58e",
+      "signature": "balanceOf(address,uint256)",
+      "name": "balanceOf",
+      "access": "view",
+      "description": "Get token balance"
+    },
+    {
+      "selector": "0x4e1273f4",
+      "signature": "balanceOfBatch(address[],uint256[])",
+      "name": "balanceOfBatch",
+      "access": "view",
+      "description": "Get batch token balances"
+    },
+    {
+      "selector": "0xe985e9c5",
+      "signature": "isApprovedForAll(address,address)",
+      "name": "isApprovedForAll",
+      "access": "view",
+      "description": "Check operator approval status"
+    },
+    {
+      "selector": "0x0e89341c",
+      "signature": "uri(uint256)",
+      "name": "uri",
+      "access": "view",
+      "description": "Get token URI"
+    },
+    {
+      "selector": "0xbd85b039",
+      "signature": "getTokenSupply(uint256)",
+      "name": "getTokenSupply",
+      "access": "view",
+      "description": "Get current token supply"
+    },
+    {
+      "selector": "0x0b26cf66",
+      "signature": "getMaxTokenSupply(uint256)",
+      "name": "getMaxTokenSupply",
+      "access": "view",
+      "description": "Get maximum token supply"
+    },
+    {
+      "selector": "0x01ffc9a7",
+      "signature": "supportsInterface(bytes4)",
+      "name": "supportsInterface",
+      "access": "view",
+      "description": "Check interface support (ERC165)"
+    }
+  ],
+  
+  "roleRequirements": [
+    {
+      "role": "MINTER_ROLE",
+      "description": "Required for minting NFT tokens",
+      "functions": ["mintNFT"]
+    },
+    {
+      "role": "BURNER_ROLE", 
+      "description": "Required for burning NFT tokens",
+      "functions": ["burnNFT"]
+    }
+  ],
+  
+  "storageLayout": {
+    "isolated": true,
+    "slot": "payrox.facet.storage.terrastakentcore.v1",
+    "fields": [
+      {
+        "name": "tokenSupply",
+        "type": "mapping(uint256 => uint256)",
+        "description": "Current supply for each token type"
+      },
+      {
+        "name": "maxTokenSupply",
+        "type": "mapping(uint256 => uint256)",
+        "description": "Maximum supply for each token type"
+      },
+      {
+        "name": "tokenURIs",
+        "type": "mapping(uint256 => string)",
+        "description": "URI templates for each token type"
+      },
+      {
+        "name": "balances",
+        "type": "mapping(uint256 => mapping(address => uint256))",
+        "description": "Token balances by type and account"
+      },
+      {
+        "name": "operatorApprovals",
+        "type": "mapping(address => mapping(address => bool))",
+        "description": "Operator approvals for all tokens"
+      },
+      {
+        "name": "baseURI",
+        "type": "string",
+        "description": "Base URI for token metadata"
+      },
+      {
+        "name": "initialized",
+        "type": "bool",
+        "description": "Initialization status flag"
+      },
+      {
+        "name": "manifestDispatcher",
+        "type": "address",
+        "description": "PayRox manifest dispatcher address"
+      }
+    ]
+  },
+  
+  "dependencies": {
+    "imports": [
+      "../../utils/LibDiamond.sol"
+    ],
+    "interfaces": [
+      "IERC1155Receiver"
+    ],
+    "standards": [
+      "ERC1155",
+      "ERC165"
+    ]
+  },
+  
+  "gasOptimizations": [
+    "Custom errors instead of require strings",
+    "Unchecked loops where safe",
+    "Storage slot packing",
+    "Event parameter indexing",
+    "View function gas optimization"
+  ],
+  
+  "securityFeatures": [
+    "Access control via PayRox manifest dispatcher",
+    "Role-based function access",
+    "Input validation with custom errors",
+    "Isolated storage to prevent conflicts",
+    "Safe transfer callbacks",
+    "Integer overflow protection (Solidity 0.8+)"
+  ],
+  
+  "testingNotes": [
+    "Test initialization with manifest dispatcher",
+    "Verify storage isolation from other facets",
+    "Test role-based access control",
+    "Validate token supply limits",
+    "Test batch operations",
+    "Verify ERC1155 compliance",
+    "Test receiver callbacks",
+    "Gas usage optimization verification"
+  ],
+  
+  "deploymentInstructions": {
+    "network": "any",
+    "create2Salt": "terrastakent-core-v1",
+    "initRequired": true,
+    "manifestEntry": true,
+    "routingRequired": [
+      "0x73e4e9b0", "0x156e29f6", "0x9dc29fac", "0xf242432a",
+      "0x2eb2c2d6", "0xa22cb465", "0x00fdd58e", "0x4e1273f4",
+      "0xe985e9c5", "0x0e89341c", "0xbd85b039", "0x0b26cf66",
+      "0x01ffc9a7"
+    ]
+  }
+}

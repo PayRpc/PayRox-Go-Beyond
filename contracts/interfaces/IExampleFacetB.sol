@@ -12,6 +12,16 @@ pragma solidity ^0.8.20;
  */
 
 interface IExampleFacetB {
+// Struct definitions
+struct OperationData {
+    bytes32 id;
+    uint256 operationType;
+    bytes data;
+    address executor;
+    uint256 timestamp;
+    bool completed;
+}
+
 // Custom Errors for Gas Efficiency
 error Paused();
 error InvalidOperationType();

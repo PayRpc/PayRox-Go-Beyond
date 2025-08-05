@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+import "../manifest/ManifestTypes.sol";
+
 /**
  * @title IAuditRegistry
  * @dev AI-Generated interface for PayRox Go Beyond
