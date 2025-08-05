@@ -1,0 +1,63 @@
+{
+  "version": "1.0.0-deterministic",
+  "timestamp": 1754356029,
+  "deployer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+  "networkName": "hardhat",
+  "chainId": 31337,
+  "facets": [
+    {
+      "facetName": "Core",
+      "contractName": "TerraStakeCoreFacet",
+      "address": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+      "salt": "0x55642805149c0c85fe3c5e4b661bb59ef8ad1795e167dda77d0cf9e27e0fd2f1",
+      "predictedAddress": "0xAe28E5374736A8937Ff608D790F75937def241F7",
+      "gasUsed": "1454135",
+      "codeSize": 6481,
+      "hash": "0x95b204975755cb613dee485fa367aa131baf1041ad63918d8a9509a42c7dba18",
+      "verified": true
+    },
+    {
+      "facetName": "Token",
+      "contractName": "TerraStakeTokenFacet",
+      "address": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+      "salt": "0x3bb87855a134763e929a1e2ee0fa4a7758d40a536c93d04f240b3c34d7c24442",
+      "predictedAddress": "0x82dE89625e0265843464C673E9BF0214EF78fd40",
+      "gasUsed": "2261226",
+      "codeSize": 10213,
+      "hash": "0x271e7c4a8d56ed2d5e49e6cb00c90bd75a47ffa9603f946e287a042423e87023",
+      "verified": true
+    },
+    {
+      "facetName": "Staking",
+      "contractName": "TerraStakeStakingFacet",
+      "address": "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
+      "salt": "0x75bdd62a4c7bf3a8eae8ff6614d5ec071f5dc0c550de0879bd61ce6a61369a83",
+      "predictedAddress": "0x1343A9ac4d59328B068f97fe8cF30f5EE6f2C70b",
+      "gasUsed": "998541",
+      "codeSize": 4371,
+      "hash": "0x0d29e2e6997441b3a401fefae16a9c62b7aee3afb7a38bd96abb2436eba4928f",
+      "verified": true
+    },
+    {
+      "facetName": "VRF",
+      "contractName": "TerraStakeVRFFacet",
+      "address": "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
+      "salt": "0x336779402d1b45863a3d48446f88cbab2e13687df09cce5ee7a5d8a408bc3e5b",
+      "predictedAddress": "0x41D592Fcb20d638C03774c9e3e70bb567296159A",
+      "gasUsed": "984460",
+      "codeSize": 4307,
+      "hash": "0xed9290a218f870c8f4c60e78efc10b7a5aa3067a50076b07fa08cdf2b7f29113",
+      "verified": true
+    }
+  ],
+  "verification": {
+    "totalHash": "0xb74ed071fe545d2a37b2d549c9d8065375426bbfe7cb163b38d7289f41de1fc2",
+    "addressProof": [
+      "0xccf13ebe2f198419b43442ec5cc86dab7e1a7617294da37b232bae311b836e65",
+      "0x010f73cf6f08833e16573aeda55a5ad22f85c46044f09dc8e264cf0ad1cdfe07",
+      "0x1f14f24814d72feb22c6cd555f6a126d7b564c34404c16af0a5963613cf73b55",
+      "0xf87c0a83fe7d9bb9b8f83a529aae59b603be27e70af73080aabfcf76b9d881c6"
+    ],
+    "crossNetworkConsistency": true
+  }
+}

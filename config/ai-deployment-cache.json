@@ -1,0 +1,65 @@
+{
+  "cache": [
+    [
+      "TerraStakeCoreFacet:[]",
+      {
+        "contractName": "contracts/demo/facets/TerraStakeCoreFacet.sol:TerraStakeCoreFacet",
+        "optimalGas": 1454135,
+        "successCount": 5,
+        "averageSize": 6481,
+        "lastDeployed": "2025-08-05T01:11:53.930Z"
+      }
+    ],
+    [
+      "TerraStakeTokenFacet:[]",
+      {
+        "contractName": "contracts/demo/facets/TerraStakeTokenFacet.sol:TerraStakeTokenFacet",
+        "optimalGas": 2261226,
+        "successCount": 4,
+        "averageSize": 10213,
+        "lastDeployed": "2025-08-05T00:59:32.886Z"
+      }
+    ],
+    [
+      "ExampleFacetA:[]",
+      {
+        "contractName": "contracts/facets/ExampleFacetA.sol:ExampleFacetA",
+        "optimalGas": 808482,
+        "successCount": 2,
+        "averageSize": 3492,
+        "lastDeployed": "2025-08-05T00:59:32.839Z"
+      }
+    ],
+    [
+      "TerraStakeStakingFacet:[]",
+      {
+        "contractName": "contracts/demo/facets/TerraStakeStakingFacet.sol:TerraStakeStakingFacet",
+        "optimalGas": 998541,
+        "successCount": 4,
+        "averageSize": 4371,
+        "lastDeployed": "2025-08-05T00:59:32.901Z"
+      }
+    ],
+    [
+      "TerraStakeVRFFacet:[]",
+      {
+        "contractName": "contracts/demo/facets/TerraStakeVRFFacet.sol:TerraStakeVRFFacet",
+        "optimalGas": 984460,
+        "successCount": 6,
+        "averageSize": 4307,
+        "lastDeployed": "2025-08-05T00:59:32.956Z"
+      }
+    ],
+    [
+      "PingFacet:[]",
+      {
+        "contractName": "contracts/facets/PingFacet.sol:PingFacet",
+        "optimalGas": 102513,
+        "successCount": 2,
+        "averageSize": 227,
+        "lastDeployed": "2025-08-05T00:59:32.999Z"
+      }
+    ]
+  ],
+  "lastUpdated": "2025-08-05T01:11:53.931Z"
+}

@@ -1,0 +1,66 @@
+{
+  "timestamp": "2025-08-05T01:27:37.592Z",
+  "analysis": {
+    "openZeppelin": {
+      "versions": {
+        "upgradeable": [
+          "contracts\\facets\\TerraStakeCoreFacet.sol",
+          "contracts\\facets\\TerraStakeTokenFacet.sol",
+          "contracts\\demo\\facets\\TerraStakeCoreFacet.sol",
+          "contracts\\demo\\facets\\TerraStakeStakingFacet.sol",
+          "contracts\\demo\\facets\\TerraStakeTokenFacet.sol",
+          "contracts\\demo\\facets\\TerraStakeVRFFacet.sol"
+        ],
+        "standard": [
+          "contracts\\facets\\ExampleFacetA.sol",
+          "contracts\\facets\\ExampleFacetB.sol",
+          "contracts\\facets\\TerraStakeInsuranceFacet.sol"
+        ],
+        "mixed": true
+      },
+      "patterns": {
+        "upgradeableContracts": 6,
+        "standardContracts": 3,
+        "hybridImplementations": 2
+      },
+      "aiAdaptations": {
+        "automaticVersionDetection": true,
+        "mixedVersionSupport": true,
+        "compatibilityResolution": true
+      }
+    },
+    "facetLinkage": {
+      "discoveredFacets": [
+        "ChunkFactoryFacet.sol",
+        "PingFacet.sol",
+        "TerraStakeCoreFacet.sol",
+        "TerraStakeInsuranceFacet.sol",
+        "TerraStakeTokenFacet.sol",
+        "TerraStakeCoordinatorFacet.sol",
+        "TerraStakeCoreFacet.sol",
+        "TerraStakeStakingFacet.sol",
+        "TerraStakeTokenFacet.sol",
+        "TerraStakeVRFFacet.sol"
+      ],
+      "linkagePatterns": {
+        "diamondPattern": true,
+        "storageIsolation": true,
+        "crossFacetCommunication": true,
+        "sharedInterfaces": true
+      },
+      "ecosystemIntegration": {
+        "terraStakeCore": true,
+        "terraStakeToken": true,
+        "terraStakeStaking": true,
+        "terraStakeVRF": true,
+        "terraStakeInsurance": true,
+        "coordinator": true
+      }
+    }
+  },
+  "assessment": {
+    "ozAdaptationSuccess": true,
+    "facetLinkageSuccess": true,
+    "overallSuccess": true
+  }
+}
