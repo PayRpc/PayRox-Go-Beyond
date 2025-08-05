@@ -478,3 +478,67 @@ export async function smartDeploy(
   const aiSystem = createAIDeploymentSystem();
   return await aiSystem.deployContract(contractName, constructorArgs, options);
 }
+
+/**
+ * 🎯 DETERMINISTIC FACET DEPLOYMENT MAIN FUNCTION
+ * Deploy facets deterministically using existing PayRox infrastructure
+ */
+async function main() {
+  console.log(`
+🚀 ENHANCED AI DETERMINISTIC DEPLOYMENT
+${'='.repeat(50)}
+Using existing PayRox infrastructure + CREATE2 deterministic addressing
+`);
+
+  const aiSystem = createAIDeploymentSystem();
+  
+  // Core facets that should work without TerraStake dependencies
+  const coreFacets = [
+    "ExampleFacetA", 
+    "ExampleFacetB", 
+    "MockFacet",
+    "ChunkFactoryFacet"
+  ];
+
+  console.log(`\n🎯 Deploying ${coreFacets.length} core facets deterministically...`);
+  
+  const results = [];
+  
+  for (const facetName of coreFacets) {
+    try {
+      console.log(`\n📦 Deploying ${facetName}...`);
+      const result = await aiSystem.deployContract(facetName, []);
+      
+      if (result.success) {
+        results.push(result);
+        console.log(`   ✅ Success: ${result.address}`);
+      } else {
+        console.log(`   ❌ Failed: ${result.error}`);
+      }
+    } catch (error) {
+      console.log(`   ❌ Error deploying ${facetName}: ${error}`);
+    }
+  }
+
+  console.log(`
+🎉 DEPLOYMENT COMPLETE!
+${'='.repeat(30)}
+✅ Successful: ${results.filter(r => r.success).length}
+❌ Failed: ${coreFacets.length - results.filter(r => r.success).length}
+📊 Success Rate: ${((results.filter(r => r.success).length / coreFacets.length) * 100).toFixed(1)}%
+
+📍 Deployed Addresses:
+`);
+
+  results.forEach((result, index) => {
+    if (result.success) {
+      console.log(`   ${index + 1}. ${result.contractName}: ${result.address}`);
+    }
+  });
+
+  console.log(`\n🌟 Enhanced AI Deployment System used your existing patterns and intelligence!`);
+}
+
+if (require.main === module) {
+  main().catch(console.error);
+}
