@@ -308,7 +308,20 @@ async function saveSignatureToFile(signatureData, filename) {
  */
 async function interactiveSignatureGeneration() {
   const args = process.argv.slice(2);
-  const operation = args[0] || 'init';
+  
+  // Check for environment variables first (for master controller integration)
+  const envOperation = process.env.SIGNATURE_OPERATION;
+  const envOperator = process.env.SIGNATURE_OPERATOR;
+  const envGovernance = process.env.SIGNATURE_GOVERNANCE;
+  const envFacet = process.env.SIGNATURE_FACET;
+  
+  // Use environment variables if available, otherwise use command line args
+  const operation = envOperation || args[0] || 'init';
+  const operator = envOperator || args[1];
+  const governance = envGovernance || args[2];
+  const verifyingContract = envFacet || args[3];
+  const deadline = args[4] ? parseInt(args[4]) : undefined;
+  const nonce = args[5] ? parseInt(args[5]) : undefined;
 
   console.log(`🚀 PayRox ExampleFacetB Signature Generator`);
   console.log(`Operation: ${operation}`);
@@ -320,28 +333,28 @@ async function interactiveSignatureGeneration() {
       case 'init':
       case 'initialize':
         result = await generateInitSignature({
-          operator: args[1],
-          governance: args[2],
-          verifyingContract: args[3],
-          deadline: args[4] ? parseInt(args[4]) : undefined,
+          operator: operator,
+          governance: governance,
+          verifyingContract: verifyingContract,
+          deadline: deadline,
         });
         break;
 
       case 'rotate-governance':
         result = await generateGovernanceRotationSignature({
-          newGovernance: args[1],
-          verifyingContract: args[2],
-          deadline: args[3] ? parseInt(args[3]) : undefined,
-          nonce: args[4] ? parseInt(args[4]) : undefined,
+          newGovernance: governance,
+          verifyingContract: verifyingContract,
+          deadline: deadline,
+          nonce: nonce,
         });
         break;
 
       case 'rotate-operator':
         result = await generateOperatorRotationSignature({
-          newOperator: args[1],
-          verifyingContract: args[2],
-          deadline: args[3] ? parseInt(args[3]) : undefined,
-          nonce: args[4] ? parseInt(args[4]) : undefined,
+          newOperator: operator,
+          verifyingContract: verifyingContract,
+          deadline: deadline,
+          nonce: nonce,
         });
         break;
 

@@ -1,0 +1,49 @@
+{
+  "version": "1.0.0",
+  "timestamp": "2025-08-06T12:56:11.535Z",
+  "source": "ComplexDeFiProtocol.sol",
+  "facets": [
+    {
+      "name": "TradingFacet",
+      "functions": 3,
+      "estimatedSize": "25KB",
+      "gasOptimization": "45%",
+      "storagePattern": "Isolated trading state"
+    },
+    {
+      "name": "LendingFacet",
+      "functions": 5,
+      "estimatedSize": "30KB",
+      "gasOptimization": "58%",
+      "storagePattern": "Isolated lending pools"
+    },
+    {
+      "name": "StakingFacet",
+      "functions": 4,
+      "estimatedSize": "20KB",
+      "gasOptimization": "49%",
+      "storagePattern": "Isolated staking mechanics"
+    },
+    {
+      "name": "GovernanceFacet",
+      "functions": 3,
+      "estimatedSize": "28KB",
+      "gasOptimization": "62%",
+      "storagePattern": "Isolated governance state"
+    },
+    {
+      "name": "InsuranceFacet",
+      "functions": 3,
+      "estimatedSize": "22KB",
+      "gasOptimization": "55%",
+      "storagePattern": "Isolated insurance coverage"
+    },
+    {
+      "name": "RewardsFacet",
+      "functions": 3,
+      "estimatedSize": "18KB",
+      "gasOptimization": "53%",
+      "storagePattern": "Isolated reward systems"
+    }
+  ]
+}

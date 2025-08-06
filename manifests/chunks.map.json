@@ -1,16 +1,30 @@
 {
+  "MockFacetCoreFacet": {
+    "address": "0x7e986f429C7e90E18c6065726a10372462f3E329",
+    "salt": "0x1b6cc7f048471b8710cff228227ed756e462e33123896b90f109381f08d7023a",
+    "hash": "0x1b6cc7f048471b8710cff228227ed756e462e33123896b90f109381f08d7023a",
+    "size": 1129,
+    "gasLimit": 500000
+  },
+  "ChunkFactoryFacet": {
+    "address": "0x0116FDF0E2410655B1F57fF0acBDc897832f30F9",
+    "salt": "0x155dc9cdfeabe496c3a8d31c15948f2cbb29d40bb195eacf4406b21ee3518387",
+    "hash": "0x155dc9cdfeabe496c3a8d31c15948f2cbb29d40bb195eacf4406b21ee3518387",
+    "size": 7011,
+    "gasLimit": 750000
+  },
   "ExampleFacetA": {
-    "address": "0x809d550fca64d94Bd9F66E60752A544199cfAC3D",
+    "address": "0x7A36d138A0e3f667391761350201B179D17f6e53",
     "salt": "0xa7db7351ea23b8ffa6384725944a4006bbb338930a91bf178bd32e6013952655",
     "hash": "0xa7db7351ea23b8ffa6384725944a4006bbb338930a91bf178bd32e6013952655",
     "size": 3492,
     "gasLimit": 500000
   },
   "ExampleFacetB": {
-    "address": "0x4c5859f0F772848b2D91F1D83E2Fe57935348029",
-    "salt": "0x6c3ad3b81d232773ea1a6f349b100307e7871e41f0d8f28cb2138bd124e211f4",
-    "hash": "0x6c3ad3b81d232773ea1a6f349b100307e7871e41f0d8f28cb2138bd124e211f4",
-    "size": 8680,
+    "address": "0x24a2868924D815D01b4F0e29Def32f372539DEC6",
+    "salt": "0xe65d17db1f59f6f4e4d1a1824a148b338923e5b4917c8ef176dfc66b3f73da84",
+    "hash": "0xe65d17db1f59f6f4e4d1a1824a148b338923e5b4917c8ef176dfc66b3f73da84",
+    "size": 8782,
     "gasLimit": 750000
   }
 }

@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 import {IChunkFactory} from "../factory/interfaces/IChunkFactory.sol";
 import {DeterministicChunkFactory} from "../factory/DeterministicChunkFactory.sol";
 import {IDiamondLoupe} from "../dispatcher/enhanced/interfaces/IDiamondLoupe.sol";
@@ -12,7 +11,7 @@ import {IDiamondLoupe} from "../dispatcher/enhanced/interfaces/IDiamondLoupe.sol
  * @dev Enables hot-swapping of factory logic via ManifestDispatcher without redeploying
  * @author PayRox Enhancement Suite
  */
-contract ChunkFactoryFacet is IChunkFactory, AccessControl {
+contract ChunkFactoryFacet is IChunkFactory {
 
     // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
     // STORAGE
@@ -34,35 +33,6 @@ contract ChunkFactoryFacet is IChunkFactory, AccessControl {
         require(_factoryAddress.code.length > 0, "ChunkFactoryFacet: Not a contract");
         factoryAddress = _factoryAddress;
     }
-    // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
-    // DIAMOND STORAGE PATTERN
-    // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
-    
-    /// @notice Diamond storage slot for ChunkFactoryFacet
-    bytes32 private constant CHUNK_FACTORY_STORAGE_SLOT = keccak256("payrox.facets.chunkfactory.v1");
-    
-    struct ChunkFactoryStorage {
-        mapping(address => uint256) userDeployments;
-        mapping(bytes32 => bool) deployedHashes;
-        uint256 totalDeployments;
-        uint256 lastMaintenanceBlock;
-        bool emergencyMode;
-    }
-    
-    function _getChunkFactoryStorage() internal pure returns (ChunkFactoryStorage storage s) {
-        bytes32 slot = CHUNK_FACTORY_STORAGE_SLOT;
-        assembly { s.slot := slot }
-    }
-
-    // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
-    // ENHANCED EVENTS
-    // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
-    
-    event ChunkDeployed(address indexed deployer, address indexed deployed, bytes32 indexed salt, uint256 timestamp);
-    event BatchDeploymentCompleted(address indexed deployer, uint256 count, uint256 totalGasUsed);
-    event EmergencyModeToggled(bool enabled, address indexed by, uint256 timestamp);
-    event MaintenancePerformed(uint256 blockNumber, address indexed by);
-
 
     // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
     // CORE DEPLOYMENT FUNCTIONS
@@ -322,10 +292,10 @@ contract ChunkFactoryFacet is IChunkFactory, AccessControl {
      * @param interfaceId The interface identifier
      * @return True if interface is supported
      */
-    function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
-        return super.supportsInterface(interfaceId) ||
-               interfaceId == type(IChunkFactory).interfaceId ||
-               interfaceId == this.getFacetFunctionSelectors.selector;
+    function supportsInterface(bytes4 interfaceId) external pure returns (bool) {
+        return interfaceId == type(IChunkFactory).interfaceId ||
+               interfaceId == type(IDiamondLoupe).interfaceId ||
+               interfaceId == 0x01ffc9a7; // ERC165
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
@@ -367,65 +337,4 @@ contract ChunkFactoryFacet is IChunkFactory, AccessControl {
 
         return selectors;
     }
-
-    
-    // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
-    // ENHANCED DIAMOND INTEGRATION
-    // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
-    
-    /**
-     * @notice Get user deployment statistics
-     * @param user Address to check
-     * @return count Number of deployments by user
-     * @return lastDeployment Block number of last deployment
-     */
-    function getUserDeploymentStats(address user) external view returns (uint256 count, uint256 lastDeployment) {
-        ChunkFactoryStorage storage s = _getChunkFactoryStorage();
-        count = s.userDeployments[user];
-        lastDeployment = block.number; // This would be tracked in real implementation
-    }
-    
-    /**
-     * @notice Check if a content hash has been deployed
-     * @param contentHash Hash to check
-     * @return deployed Whether the hash has been deployed
-     */
-    function isHashDeployed(bytes32 contentHash) external view returns (bool deployed) {
-        ChunkFactoryStorage storage s = _getChunkFactoryStorage();
-        return s.deployedHashes[contentHash];
-    }
-    
-    /**
-     * @notice Get total deployment statistics
-     * @return total Total deployments across all users
-     * @return lastMaintenance Last maintenance block
-     * @return emergency Whether emergency mode is active
-     */
-    function getSystemStats() external view returns (uint256 total, uint256 lastMaintenance, bool emergency) {
-        ChunkFactoryStorage storage s = _getChunkFactoryStorage();
-        return (s.totalDeployments, s.lastMaintenanceBlock, s.emergencyMode);
-    }
-    
-    /**
-     * @notice Perform system maintenance (admin only)
-     * @dev Updates maintenance timestamp and performs cleanup
-     */
-    function performMaintenance() external {
-        require(msg.sender == factoryAddress || hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "ChunkFactoryFacet: unauthorized");
-        ChunkFactoryStorage storage s = _getChunkFactoryStorage();
-        s.lastMaintenanceBlock = block.number;
-        emit MaintenancePerformed(block.number, msg.sender);
-    }
-    
-    /**
-     * @notice Toggle emergency mode (admin only)
-     * @param enabled Whether to enable emergency mode
-     */
-    function setEmergencyMode(bool enabled) external {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "ChunkFactoryFacet: unauthorized");
-        ChunkFactoryStorage storage s = _getChunkFactoryStorage();
-        s.emergencyMode = enabled;
-        emit EmergencyModeToggled(enabled, msg.sender, block.timestamp);
-    }
-
 }

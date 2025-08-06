@@ -1,50 +1,6 @@
 {
-  "version": "1.1",
-  "timestamp": "2025-08-03T08:36:01.221Z",
+  "version": "1.0.0",
+  "timestamp": "2025-08-06T13:18:59.048Z",
   "network": "localhost",
-  "contracts": {
-    "audit-registry": {
-      "name": "AuditRegistry",
-      "address": "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6",
-      "hasABI": true,
-      "timestamp": "2025-08-03T00:52:30.450Z"
-    },
-    "dispatcher": {
-      "name": "ManifestDispatcher",
-      "address": "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
-      "hasABI": true,
-      "timestamp": "2025-08-03T00:52:13.189Z"
-    },
-    "facet-a": {
-      "name": "ExampleFacetA",
-      "address": "0x4ed7c70F96B99c776995fB64377f0d4aB3B0e1C1",
-      "hasABI": true,
-      "timestamp": "2025-08-02T00:37:26.142Z"
-    },
-    "facet-b": {
-      "name": "ExampleFacetB",
-      "address": "0x322813Fd9A801c5507c9de605d63CEA4f2CE6c44",
-      "hasABI": true,
-      "timestamp": "2025-08-02T00:37:30.966Z"
-    },
-    "factory": {
-      "name": "DeterministicChunkFactory",
-      "address": "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
-      "hasABI": true,
-      "timestamp": "2025-08-03T00:52:13.184Z"
-    },
-    "governance-orchestrator": {
-      "name": "GovernanceOrchestrator",
-      "address": "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853",
-      "hasABI": true,
-      "timestamp": "2025-08-03T00:52:30.405Z"
-    },
-    "orchestrator": {
-      "name": "Orchestrator",
-      "address": "0x0165878A594ca255338adfa4d48449f69242Eb8F",
-      "hasABI": true,
-      "timestamp": "2025-08-03T00:52:30.328Z"
-    }
-  },
-  "syncSource": "automated-sync-script"
+  "contracts": {}
 }

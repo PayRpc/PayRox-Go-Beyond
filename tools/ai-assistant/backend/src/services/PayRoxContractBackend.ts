@@ -20,7 +20,7 @@ export interface PayRoxBackendContracts {
     auditRegistry: DeployedContract;
   };
   facets: {
-    ping: DeployedContract;
+    // Production facets only
     exampleA?: DeployedContract;
     exampleB?: DeployedContract;
   };
@@ -102,13 +102,8 @@ export class PayRoxContractBackend {
           },
         },
         facets: {
-          ping: {
-            name: configData.contracts.facets.ping.name,
-            address: configData.contracts.facets.ping.address,
-            abi: this.loadABI('facets/PingFacet.sol/PingFacet.json'),
-            deploymentFile: configData.contracts.facets.ping.deploymentFile,
-          },
-        },
+          // Production facets only - test facets removed
+        }
       };
     } catch (error) {
       console.error('Failed to load contracts configuration:', error);
@@ -253,18 +248,7 @@ export class PayRoxContractBackend {
         results.orchestrator = { status: false, error: error.message };
       }
 
-      // Test ping facet
-      try {
-        const pingFacet = this.getContractInstance('facets', 'ping');
-        if (pingFacet) {
-          await pingFacet.ping();
-          results.pingFacet = { status: true };
-        } else {
-          results.pingFacet = { status: false, error: 'Contract not found' };
-        }
-      } catch (error) {
-        results.pingFacet = { status: false, error: error.message };
-      }
+      // Skip test facets - production environment only
 
       const healthyCount = Object.values(results).filter(r => r.status).length;
       const totalCount = Object.values(results).length;

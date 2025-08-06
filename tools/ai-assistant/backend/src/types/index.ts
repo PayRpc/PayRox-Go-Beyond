@@ -399,6 +399,16 @@ export interface FacetSuggestion {
   securityRating: 'Low' | 'Medium' | 'High' | 'Critical';
   dependencies: string[];
   reasoning: string;
+  // PayRox Diamond Architecture specific properties
+  payRoxDiamondConfig?: {
+    storageSlot: string;
+    requiresManifestDispatcher: boolean;
+    accessControlMethod: string;
+    initializationRequired: boolean;
+    manifestRouting?: boolean;
+    isolatedStorage?: boolean;
+    deterministicSalt?: string;
+  };
 }
 
 export interface RefactorPlan {

@@ -121,8 +121,8 @@ class ComprehensiveTestRunner {
       const configExists = existsSync(path.join(process.cwd(), 'config', 'deployed-contracts.json'));
       metrics.configManagement = configExists;
 
-      // Check monitoring setup
-      const monitoringExists = existsSync(path.join(process.cwd(), 'config', 'watch.json'));
+      // Check for monitoring configuration (optional)
+      const monitoringExists = existsSync(path.join(process.cwd(), 'config', 'monitoring.json'));
       metrics.monitoringSetup = monitoringExists;
 
       // Run basic deployment test
@@ -435,7 +435,7 @@ class ComprehensiveTestRunner {
       metrics.gasOptimizedForScale = true; // Based on Diamond pattern benefits
 
       // Check monitoring setup for production scale
-      const monitoringExists = existsSync(path.join(process.cwd(), 'config', 'watch.json'));
+      const monitoringExists = existsSync(path.join(process.cwd(), 'config', 'monitoring.json'));
       metrics.productionMonitoring = monitoringExists;
 
       if (metrics.maxTransactionsPerSecond < 100) {
@@ -488,7 +488,7 @@ class ComprehensiveTestRunner {
       }
 
       // Check monitoring and alerting
-      const monitoringExists = existsSync(path.join(process.cwd(), 'config', 'watch.json'));
+      const monitoringExists = existsSync(path.join(process.cwd(), 'config', 'monitoring.json'));
       metrics.monitoring = monitoringExists;
 
       // Check documentation maintenance

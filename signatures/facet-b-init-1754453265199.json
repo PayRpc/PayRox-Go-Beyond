@@ -1,0 +1,45 @@
+{
+  "signature": "0xf58ceee7ea2dee5fa8df4ccbc3bd8c743c7d92273396385164cfaf45d200d0233f2d25820b794535f2c84ae3dc5219b6d2969f0e763af960ae08979ff218c6c91b",
+  "parameters": {
+    "operator": "0x1234567890123456789012345678901234567890",
+    "governance": "0x0987654321098765432109876543210987654321",
+    "deadline": 1754456864,
+    "signature": "0xf58ceee7ea2dee5fa8df4ccbc3bd8c743c7d92273396385164cfaf45d200d0233f2d25820b794535f2c84ae3dc5219b6d2969f0e763af960ae08979ff218c6c91b"
+  },
+  "domain": {
+    "name": "PayRoxFacetB",
+    "version": "1.2.0",
+    "chainId": 31337,
+    "verifyingContract": "0x1111111111111111111111111111111111111111"
+  },
+  "types": {
+    "InitializeFacetB": [
+      {
+        "name": "operator",
+        "type": "address"
+      },
+      {
+        "name": "governance",
+        "type": "address"
+      },
+      {
+        "name": "deadline",
+        "type": "uint256"
+      },
+      {
+        "name": "nonce",
+        "type": "uint256"
+      }
+    ]
+  },
+  "value": {
+    "operator": "0x1234567890123456789012345678901234567890",
+    "governance": "0x0987654321098765432109876543210987654321",
+    "deadline": 1754456864,
+    "nonce": 0
+  },
+  "signer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+  "chainId": 31337,
+  "verifyingContract": "0x1111111111111111111111111111111111111111",
+  "timestamp": "2025-08-06T04:07:45.198Z"
+}

@@ -47,7 +47,7 @@ Based on comprehensive repository analysis, here are scripts that perform simila
 ### **System Testing Scripts**
 | Script | Purpose | Similar CI Action |
 |--------|---------|-------------------|
-| `scripts/e2e-smoke-test.ts` | End-to-end smoke testing | CI smoke tests |
+| ~~`scripts/e2e-smoke-test.ts`~~ | ~~End-to-end smoke testing~~ | ~~Removed - PingFacet obsolete~~ |
 | `scripts/final-integration-test.ts` | Final integration testing | CI integration tests |
 | `scripts/complete-production-test.ts` | Complete production testing | CI production tests |
 | `scripts/test-dispatcher-interface.ts` | Dispatcher interface testing | CI interface tests |

@@ -1,0 +1,83 @@
+{
+  "version": "2.0",
+  "created": "2025-08-06T05:48:42.088Z",
+  "successfulFixes": [
+    {
+      "timestamp": "2025-08-06T05:48:50.307Z",
+      "fix": {
+        "title": "Fix Reentrancy with Enhanced Protection",
+        "file": "factory/DeterministicChunkFactory.sol",
+        "confidence": 100,
+        "action": "Enhanced reentrancy protection"
+      },
+      "success": true,
+      "error": null
+    },
+    {
+      "timestamp": "2025-08-06T05:48:50.311Z",
+      "fix": {
+        "title": "Initialize State Variable Safely",
+        "file": "dispatcher/ManifestDispatcher.sol",
+        "confidence": 100,
+        "action": "Safe state initialization"
+      },
+      "success": true,
+      "error": null
+    },
+    {
+      "timestamp": "2025-08-06T05:49:36.971Z",
+      "fix": {
+        "title": "Fix Reentrancy with Enhanced Protection",
+        "file": "factory/DeterministicChunkFactory.sol",
+        "confidence": 100,
+        "action": "Enhanced reentrancy protection"
+      },
+      "success": true,
+      "error": null
+    },
+    {
+      "timestamp": "2025-08-06T05:49:36.973Z",
+      "fix": {
+        "title": "Initialize State Variable Safely",
+        "file": "dispatcher/ManifestDispatcher.sol",
+        "confidence": 100,
+        "action": "Safe state initialization"
+      },
+      "success": true,
+      "error": null
+    },
+    {
+      "timestamp": "2025-08-06T05:57:42.383Z",
+      "fix": {
+        "title": "Fix Reentrancy with Enhanced Protection",
+        "file": "factory/DeterministicChunkFactory.sol",
+        "confidence": 100,
+        "action": "Enhanced reentrancy protection"
+      },
+      "success": true,
+      "error": null
+    },
+    {
+      "timestamp": "2025-08-06T05:57:42.384Z",
+      "fix": {
+        "title": "Initialize State Variable Safely",
+        "file": "dispatcher/ManifestDispatcher.sol",
+        "confidence": 100,
+        "action": "Safe state initialization"
+      },
+      "success": true,
+      "error": null
+    }
+  ],
+  "failedAttempts": [],
+  "learnedPatterns": {
+    "duplicatePreventions": [],
+    "filePatterns": {},
+    "confidenceAdjustments": {}
+  },
+  "statistics": {
+    "totalRuns": 4,
+    "successfulFixes": 6,
+    "preventedDuplicates": 0
+  }
+}

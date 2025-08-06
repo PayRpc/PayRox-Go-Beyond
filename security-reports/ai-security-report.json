@@ -1,0 +1,223 @@
+{
+  "timestamp": "2025-08-06T05:58:30.224Z",
+  "version": "1.0.0",
+  "summary": {
+    "totalIssues": 24,
+    "criticalIssues": 1,
+    "highIssues": 3,
+    "mediumIssues": 0,
+    "lowIssues": 20,
+    "overallRisk": "CRITICAL",
+    "deploymentRecommendation": "DO NOT DEPLOY - Fix critical issues first"
+  },
+  "aiAnalysis": {
+    "riskScore": 13,
+    "criticalIssues": [
+      "1 critical static analysis issues detected"
+    ],
+    "recommendations": [
+      "Review and fix all high-impact, high-confidence Slither findings before deployment"
+    ],
+    "deploymentSafety": true,
+    "estimatedFixTime": 14,
+    "automatedFixes": [],
+    "fixableIssues": 0
+  },
+  "detailedFindings": {
+    "slither": [
+      {
+        "check": "reentrancy-eth",
+        "impact": "High",
+        "confidence": "Medium",
+        "description": "Reentrancy in DeterministicChunkFactory._stageInternal(bytes) (contracts/factory/DeterministicChunkFactory.sol#104-129):\nExternal calls:\n- _collectFee() (contracts/factory/DeterministicChunkFactory.sol#113)\n- (refundSuccess) = msg.sender.call{value: msg.value - fee}() (contracts/factory/DeterministicChunkFactory.sol#342-344)\n- chunkOf[hash] = chunk (contracts/factory/DeterministicChunkFactory.sol#125-126)\n- DeterministicChunkFactory.chunkOf (contracts/factory/DeterministicChunkFactory.sol#32)\n- DeterministicChunkFactory.exists(bytes32) (contracts/factory/DeterministicChunkFactory.sol#253-254)\nReference: https://github.com/crytic/slither/wiki/Detector-Documentation#reentrancy-vulnerabilities",
+        "elements": [],
+        "first_markdown_element": "Reentrancy in DeterministicChunkFactory._stageInternal(bytes) (contracts/factory/DeterministicChunkFactory.sol#104-129):"
+      },
+      {
+        "check": "reentrancy-eth",
+        "impact": "High",
+        "confidence": "Medium",
+        "description": "Reentrancy in DeterministicChunkFactory._stageInternal(bytes) (contracts/factory/DeterministicChunkFactory.sol#104-139):\nExternal calls:\n- _collectFee() (contracts/factory/DeterministicChunkFactory.sol#123)\n- (refundSuccess) = msg.sender.call{value: msg.value - fee}() (contracts/factory/DeterministicChunkFactory.sol#351)\n- chunkOf[hash] = chunk (contracts/factory/DeterministicChunkFactory.sol#134)\n- DeterministicChunkFactory.chunkOf (contracts/factory/DeterministicChunkFactory.sol#32)\n- DeterministicChunkFactory.exists(bytes32) (contracts/factory/DeterministicChunkFactory.sol#262-264)\nReference: https://github.com/crytic/slither/wiki/Detector-Documentation#reentrancy-vulnerabilities",
+        "elements": [],
+        "first_markdown_element": "Reentrancy in DeterministicChunkFactory._stageInternal(bytes) (contracts/factory/DeterministicChunkFactory.sol#104-139):"
+      },
+      {
+        "check": "uninitialized-state",
+        "impact": "High",
+        "confidence": "High",
+        "description": "ManifestDispatcher.facetSelectors (contracts/dispatcher/ManifestDispatcher.sol#76) is never initialized. It is used in:\n- ManifestDispatcher.facetFunctionSelectors(address) (contracts/dispatcher/ManifestDispatcher.sol#268-274)\n- ManifestDispatcher.facets() (contracts/dispatcher/ManifestDispatcher.sol#274-278)\n- ManifestDispatcher._addSelectorToFacet(address,bytes4) (contracts/dispatcher/ManifestDispatcher.sol#419-438)\n- ManifestDispatcher._removeSelectorFromFacet(address,bytes4) (contracts/dispatcher/ManifestDispatcher.sol#438-461)\n- ManifestDispatcher.getFacetInfo(address) (contracts/dispatcher/ManifestDispatcher.sol#855-860)\nReference: https://github.com/crytic/slither/wiki/Detector-Documentation#uninitialized-state-variables",
+        "elements": [],
+        "first_markdown_element": "ManifestDispatcher.facetSelectors (contracts/dispatcher/ManifestDispatcher.sol#76) is never initialized. It is used in:"
+      },
+      {
+        "check": "locked-ether",
+        "impact": "Medium",
+        "confidence": "High",
+        "description": "Contract locking ether found:\n- UniversalStub.fallback() (contracts/UniversalStub.sol#11-13)\n- UniversalStub.receive() (contracts/UniversalStub.sol#13-15)\nReference: https://github.com/crytic/slither/wiki/Detector-Documentation#contracts-that-lock-ether",
+        "elements": [],
+        "first_markdown_element": "Contract locking ether found:"
+      },
+      {
+        "check": "timestamp",
+        "impact": "Low",
+        "confidence": "Medium",
+        "description": "ManifestDispatcher.executeRotateGovernance() (contracts/dispatcher/ManifestDispatcher.sol#175-189) uses timestamp for comparisons\nDangerous comparisons:\n- block.timestamp < gs.etaGov (contracts/dispatcher/ManifestDispatcher.sol#177)",
+        "elements": [],
+        "first_markdown_element": "ManifestDispatcher.executeRotateGovernance() (contracts/dispatcher/ManifestDispatcher.sol#175-189) uses timestamp for comparisons"
+      },
+      {
+        "check": "timestamp",
+        "impact": "Low",
+        "confidence": "Medium",
+        "description": "ManifestDispatcher._activateRoot() (contracts/dispatcher/ManifestDispatcher.sol#348-366) uses timestamp for comparisons\nDangerous comparisons:\n- block.timestamp < earliestActivation (contracts/dispatcher/ManifestDispatcher.sol#354)",
+        "elements": [],
+        "first_markdown_element": "ManifestDispatcher._activateRoot() (contracts/dispatcher/ManifestDispatcher.sol#348-366) uses timestamp for comparisons"
+      },
+      {
+        "check": "timestamp",
+        "impact": "Low",
+        "confidence": "Medium",
+        "description": "ManifestDispatcher.verifyManifest(bytes32) (contracts/dispatcher/ManifestDispatcher.sol#599-610) uses timestamp for comparisons\nDangerous comparisons:\n- (manifestHash == manifestState.activeRoot,manifestState.activeRoot) (contracts/dispatcher/ManifestDispatcher.sol#607-609)",
+        "elements": [],
+        "first_markdown_element": "ManifestDispatcher.verifyManifest(bytes32) (contracts/dispatcher/ManifestDispatcher.sol#599-610) uses timestamp for comparisons"
+      },
+      {
+        "check": "timestamp",
+        "impact": "Low",
+        "confidence": "Medium",
+        "description": "ExampleFacetB.initializeFacetB(address,address,uint256,bytes) (contracts/facets/ExampleFacetB.sol#128-170) uses timestamp for comparisons\nDangerous comparisons:\n- block.timestamp > deadline (contracts/facets/ExampleFacetB.sol#136)",
+        "elements": [],
+        "first_markdown_element": "ExampleFacetB.initializeFacetB(address,address,uint256,bytes) (contracts/facets/ExampleFacetB.sol#128-170) uses timestamp for comparisons"
+      },
+      {
+        "check": "timestamp",
+        "impact": "Low",
+        "confidence": "Medium",
+        "description": "ExampleFacetB.rotateGovernance(address,uint256,bytes) (contracts/facets/ExampleFacetB.sol#187-224) uses timestamp for comparisons\nDangerous comparisons:\n- block.timestamp > deadline (contracts/facets/ExampleFacetB.sol#193)",
+        "elements": [],
+        "first_markdown_element": "ExampleFacetB.rotateGovernance(address,uint256,bytes) (contracts/facets/ExampleFacetB.sol#187-224) uses timestamp for comparisons"
+      },
+      {
+        "check": "timestamp",
+        "impact": "Low",
+        "confidence": "Medium",
+        "description": "ExampleFacetB.rotateOperator(address,uint256,bytes) (contracts/facets/ExampleFacetB.sol#233-270) uses timestamp for comparisons\nDangerous comparisons:\n- block.timestamp > deadline (contracts/facets/ExampleFacetB.sol#239)",
+        "elements": [],
+        "first_markdown_element": "ExampleFacetB.rotateOperator(address,uint256,bytes) (contracts/facets/ExampleFacetB.sol#233-270) uses timestamp for comparisons"
+      },
+      {
+        "check": "timestamp",
+        "impact": "Low",
+        "confidence": "Medium",
+        "description": "ManifestUtils.validateUpgrade(ManifestTypes.UpgradeManifest,ManifestTypes.ReleaseManifest) (contracts/manifest/ManifestUtils.sol#287-308) uses timestamp for comparisons\nDangerous comparisons:\n- block.timestamp > upgrade.upgradeDeadline (contracts/manifest/ManifestUtils.sol#298)",
+        "elements": [],
+        "first_markdown_element": "ManifestUtils.validateUpgrade(ManifestTypes.UpgradeManifest,ManifestTypes.ReleaseManifest) (contracts/manifest/ManifestUtils.sol#287-308) uses timestamp for comparisons"
+      },
+      {
+        "check": "timestamp",
+        "impact": "Low",
+        "confidence": "Medium",
+        "description": "ManifestUtils.validateSecurityProperties(ManifestTypes.ReleaseManifest) (contracts/manifest/ManifestUtils.sol#437-463) uses timestamp for comparisons\nDangerous comparisons:\n- block.timestamp > manifest.header.timestamp + 604800 (contracts/manifest/ManifestUtils.sol#458)",
+        "elements": [],
+        "first_markdown_element": "ManifestUtils.validateSecurityProperties(ManifestTypes.ReleaseManifest) (contracts/manifest/ManifestUtils.sol#437-463) uses timestamp for comparisons"
+      },
+      {
+        "check": "timestamp",
+        "impact": "Low",
+        "confidence": "Medium",
+        "description": "AuditRegistry.submitAudit(bytes32,bool,string) (contracts/orchestrator/AuditRegistry.sol#104-150) uses timestamp for comparisons\nDangerous comparisons:\n- require(bool,string)(ManifestUtils.verifyAudit(auditInfo,manifestHash),AuditRegistry: invalid audit information) (contracts/orchestrator/AuditRegistry.sol#138-141)",
+        "elements": [],
+        "first_markdown_element": "AuditRegistry.submitAudit(bytes32,bool,string) (contracts/orchestrator/AuditRegistry.sol#104-150) uses timestamp for comparisons"
+      },
+      {
+        "check": "timestamp",
+        "impact": "Low",
+        "confidence": "Medium",
+        "description": "AuditRegistry.getAuditStatus(bytes32) (contracts/orchestrator/AuditRegistry.sol#213-236) uses timestamp for comparisons\nDangerous comparisons:\n- auditInfo.auditor == address(0) (contracts/orchestrator/AuditRegistry.sol#218)\n- block.timestamp > auditExpiration[manifestHash] (contracts/orchestrator/AuditRegistry.sol#223)\n- (verified && auditInfo.passed,auditInfo) (contracts/orchestrator/AuditRegistry.sol#235)",
+        "elements": [],
+        "first_markdown_element": "AuditRegistry.getAuditStatus(bytes32) (contracts/orchestrator/AuditRegistry.sol#213-236) uses timestamp for comparisons"
+      },
+      {
+        "check": "timestamp",
+        "impact": "Low",
+        "confidence": "Medium",
+        "description": "AuditRegistry.markExpiredAudits(bytes32[]) (contracts/orchestrator/AuditRegistry.sol#300-312) uses timestamp for comparisons\nDangerous comparisons:\n- block.timestamp > auditExpiration[manifestHash] && audits[manifestHash].auditor != address(0) (contracts/orchestrator/AuditRegistry.sol#306-307)",
+        "elements": [],
+        "first_markdown_element": "AuditRegistry.markExpiredAudits(bytes32[]) (contracts/orchestrator/AuditRegistry.sol#300-312) uses timestamp for comparisons"
+      },
+      {
+        "check": "timestamp",
+        "impact": "Low",
+        "confidence": "Medium",
+        "description": "GovernanceOrchestrator.castVote(bytes32,bool) (contracts/orchestrator/GovernanceOrchestrator.sol#153-195) uses timestamp for comparisons\nDangerous comparisons:\n- block.timestamp > proposal.votingDeadline (contracts/orchestrator/GovernanceOrchestrator.sol#163)",
+        "elements": [],
+        "first_markdown_element": "GovernanceOrchestrator.castVote(bytes32,bool) (contracts/orchestrator/GovernanceOrchestrator.sol#153-195) uses timestamp for comparisons"
+      },
+      {
+        "check": "timestamp",
+        "impact": "Low",
+        "confidence": "Medium",
+        "description": "GovernanceOrchestrator.executeProposal(bytes32) (contracts/orchestrator/GovernanceOrchestrator.sol#201-230) uses timestamp for comparisons\nDangerous comparisons:\n- block.timestamp <= proposal.votingDeadline (contracts/orchestrator/GovernanceOrchestrator.sol#212)",
+        "elements": [],
+        "first_markdown_element": "GovernanceOrchestrator.executeProposal(bytes32) (contracts/orchestrator/GovernanceOrchestrator.sol#201-230) uses timestamp for comparisons"
+      },
+      {
+        "check": "timestamp",
+        "impact": "Low",
+        "confidence": "Medium",
+        "description": "GovernanceOrchestrator.checkProposalStatus(bytes32) (contracts/orchestrator/GovernanceOrchestrator.sol#290-305) uses timestamp for comparisons\nDangerous comparisons:\n- proposal.proposalId == bytes32(0) (contracts/orchestrator/GovernanceOrchestrator.sol#296)\nReference: https://github.com/crytic/slither/wiki/Detector-Documentation#block-timestamp",
+        "elements": [],
+        "first_markdown_element": "GovernanceOrchestrator.checkProposalStatus(bytes32) (contracts/orchestrator/GovernanceOrchestrator.sol#290-305) uses timestamp for comparisons"
+      },
+      {
+        "check": "timestamp",
+        "impact": "Low",
+        "confidence": "Medium",
+        "description": "ManifestDispatcher.executeRotateGovernance() (contracts/dispatcher/ManifestDispatcher.sol#180-198) uses timestamp for comparisons\nDangerous comparisons:\n- block.timestamp < gs.etaGov (contracts/dispatcher/ManifestDispatcher.sol#184)",
+        "elements": [],
+        "first_markdown_element": "ManifestDispatcher.executeRotateGovernance() (contracts/dispatcher/ManifestDispatcher.sol#180-198) uses timestamp for comparisons"
+      },
+      {
+        "check": "timestamp",
+        "impact": "Low",
+        "confidence": "Medium",
+        "description": "ManifestDispatcher._activateRoot() (contracts/dispatcher/ManifestDispatcher.sol#356-375) uses timestamp for comparisons\nDangerous comparisons:\n- block.timestamp < earliestActivation (contracts/dispatcher/ManifestDispatcher.sol#365-366)",
+        "elements": [],
+        "first_markdown_element": "ManifestDispatcher._activateRoot() (contracts/dispatcher/ManifestDispatcher.sol#356-375) uses timestamp for comparisons"
+      },
+      {
+        "check": "timestamp",
+        "impact": "Low",
+        "confidence": "Medium",
+        "description": "ManifestDispatcher.verifyManifest(bytes32) (contracts/dispatcher/ManifestDispatcher.sol#620-633) uses timestamp for comparisons\nDangerous comparisons:\n- (manifestHash == manifestState.activeRoot,manifestState.activeRoot) (contracts/dispatcher/ManifestDispatcher.sol#629-632)\nReference: https://github.com/crytic/slither/wiki/Detector-Documentation#block-timestamp",
+        "elements": [],
+        "first_markdown_element": "ManifestDispatcher.verifyManifest(bytes32) (contracts/dispatcher/ManifestDispatcher.sol#620-633) uses timestamp for comparisons"
+      },
+      {
+        "check": "timestamp",
+        "impact": "Low",
+        "confidence": "Medium",
+        "description": "ManifestDispatcher.executeRotateGovernance() (contracts/dispatcher/ManifestDispatcher.sol#187-204) uses timestamp for comparisons\nDangerous comparisons:\n- block.timestamp < gs.etaGov (contracts/dispatcher/ManifestDispatcher.sol#190)",
+        "elements": [],
+        "first_markdown_element": "ManifestDispatcher.executeRotateGovernance() (contracts/dispatcher/ManifestDispatcher.sol#187-204) uses timestamp for comparisons"
+      },
+      {
+        "check": "timestamp",
+        "impact": "Low",
+        "confidence": "Medium",
+        "description": "ManifestDispatcher._activateRoot() (contracts/dispatcher/ManifestDispatcher.sol#364-381) uses timestamp for comparisons\nDangerous comparisons:\n- block.timestamp < earliestActivation (contracts/dispatcher/ManifestDispatcher.sol#370)",
+        "elements": [],
+        "first_markdown_element": "ManifestDispatcher._activateRoot() (contracts/dispatcher/ManifestDispatcher.sol#364-381) uses timestamp for comparisons"
+      },
+      {
+        "check": "timestamp",
+        "impact": "Low",
+        "confidence": "Medium",
+        "description": "ManifestDispatcher.verifyManifest(bytes32) (contracts/dispatcher/ManifestDispatcher.sol#633-640) uses timestamp for comparisons\nDangerous comparisons:\n- (manifestHash == manifestState.activeRoot,manifestState.activeRoot) (contracts/dispatcher/ManifestDispatcher.sol#639)\nReference: https://github.com/crytic/slither/wiki/Detector-Documentation#block-timestamp",
+        "elements": [],
+        "first_markdown_element": "ManifestDispatcher.verifyManifest(bytes32) (contracts/dispatcher/ManifestDispatcher.sol#633-640) uses timestamp for comparisons"
+      }
+    ],
+    "mythril": []
+  }
+}

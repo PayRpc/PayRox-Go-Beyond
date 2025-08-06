@@ -1,0 +1,103 @@
+{
+  "version": "1.0.0",
+  "timestamp": "2025-08-06T07:39:39.384Z",
+  "deploymentId": "live-demo-1754465979386",
+  "originalContract": "LiveDemoContract",
+  "aiAnalysis": {
+    "processingTime": "10.2s",
+    "strategy": "intelligent-domain-based-splitting",
+    "facetsGenerated": 5,
+    "domainsIdentified": [
+      "core",
+      "defi",
+      "governance",
+      "admin",
+      "view"
+    ]
+  },
+  "facets": [
+    {
+      "name": "TokenFacet",
+      "type": "core",
+      "functions": [
+        "transfer",
+        "approve",
+        "transferFrom",
+        "mint",
+        "burn"
+      ],
+      "estimatedGas": 175000,
+      "predictedAddress": "0xaf4189a56ace2",
+      "storageSlot": "payrox.facet.storage.tokenfacet.v1"
+    },
+    {
+      "name": "StakingFacet",
+      "type": "defi",
+      "functions": [
+        "stake",
+        "unstake",
+        "calculateRewards",
+        "claimRewards",
+        "updateRewardRate"
+      ],
+      "estimatedGas": 175000,
+      "predictedAddress": "0x6e66dc19b62f3",
+      "storageSlot": "payrox.facet.storage.stakingfacet.v1"
+    },
+    {
+      "name": "GovernanceFacet",
+      "type": "governance",
+      "functions": [
+        "createProposal",
+        "vote",
+        "executeProposal",
+        "getProposal"
+      ],
+      "estimatedGas": 160000,
+      "predictedAddress": "0x472d930c154c7",
+      "storageSlot": "payrox.facet.storage.governancefacet.v1"
+    },
+    {
+      "name": "AdminFacet",
+      "type": "admin",
+      "functions": [
+        "pause",
+        "unpause",
+        "transferOwnership",
+        "emergencyWithdraw",
+        "batchTransfer"
+      ],
+      "estimatedGas": 175000,
+      "predictedAddress": "0x203df012ed576",
+      "storageSlot": "payrox.facet.storage.adminfacet.v1"
+    },
+    {
+      "name": "ViewFacet",
+      "type": "view",
+      "functions": [
+        "balanceOf",
+        "allowance",
+        "stakingBalanceOf",
+        "votingPowerOf",
+        "getTotalSupply",
+        "getRewardRate",
+        "getProposalCount",
+        "isPaused",
+        "getOwner"
+      ],
+      "estimatedGas": 235000,
+      "predictedAddress": "0x374504a0aaa87",
+      "storageSlot": "payrox.facet.storage.viewfacet.v1"
+    }
+  ],
+  "factory": {
+    "address": "0x742d35Cc6634C0532925a3b8D8aB4E7f8c642C84",
+    "network": "ethereum-mainnet",
+    "deploymentMethod": "CREATE2-deterministic"
+  },
+  "performance": {
+    "estimatedGasSavings": "52.3%",
+    "deploymentSpeed": "10.2s for 5 facets",
+    "batchOperationEfficiency": "63% improvement"
+  }
+}
