@@ -59,7 +59,6 @@ contract ComplexDeFiProtocol is IERC20, ReentrancyGuard, Ownable, Pausable {
     mapping(address => mapping(uint256 => bool)) public hasVoted;
     mapping(address => uint256) public delegatedVotes;
     uint256 public proposalCount;
-    uint256 public proposalThreshold;
     uint256 public votingDelay;
     uint256 public votingPeriod;
     uint256 public quorumVotes;
@@ -79,13 +78,6 @@ contract ComplexDeFiProtocol is IERC20, ReentrancyGuard, Ownable, Pausable {
     mapping(uint256 => RewardTier) public rewardTiers;
     uint256 public totalRewardsDistributed;
     uint256 public rewardEmissionRate;
-
-    // ============ CONSTRUCTOR ============
-    constructor() Ownable(msg.sender) {
-        // Initialize basic parameters
-        rewardEmissionRate = 1000; // Base emission rate
-        proposalThreshold = 100000; // Minimum tokens to create proposal
-    }
 
     // ============ STRUCTS ============
     
@@ -285,54 +277,6 @@ contract ComplexDeFiProtocol is IERC20, ReentrancyGuard, Ownable, Pausable {
     
     function emergencyWithdraw(address token, uint256 amount) external onlyOwner whenPaused {
         // Emergency fund recovery
-    }
-    
-    // ============ IERC20 IMPLEMENTATION ============
-    
-    uint256 private _totalSupply = 1000000 * 10**18; // 1M tokens
-    mapping(address => uint256) private _balances;
-    mapping(address => mapping(address => uint256)) private _allowances;
-    
-    function totalSupply() external view override returns (uint256) {
-        return _totalSupply;
-    }
-    
-    function balanceOf(address account) external view override returns (uint256) {
-        return _balances[account];
-    }
-    
-    function transfer(address to, uint256 value) external override returns (bool) {
-        require(to != address(0), "ERC20: transfer to zero address");
-        require(_balances[msg.sender] >= value, "ERC20: insufficient balance");
-        
-        _balances[msg.sender] -= value;
-        _balances[to] += value;
-        
-        emit Transfer(msg.sender, to, value);
-        return true;
-    }
-    
-    function allowance(address tokenOwner, address spender) external view override returns (uint256) {
-        return _allowances[tokenOwner][spender];
-    }
-    
-    function approve(address spender, uint256 value) external override returns (bool) {
-        _allowances[msg.sender][spender] = value;
-        emit Approval(msg.sender, spender, value);
-        return true;
-    }
-    
-    function transferFrom(address from, address to, uint256 value) external override returns (bool) {
-        require(to != address(0), "ERC20: transfer to zero address");
-        require(_balances[from] >= value, "ERC20: insufficient balance");
-        require(_allowances[from][msg.sender] >= value, "ERC20: insufficient allowance");
-        
-        _balances[from] -= value;
-        _balances[to] += value;
-        _allowances[from][msg.sender] -= value;
-        
-        emit Transfer(from, to, value);
-        return true;
     }
     
     // ... 25+ more complex functions for complete 150KB+ contract

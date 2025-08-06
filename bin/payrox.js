@@ -77,11 +77,6 @@ Cross-Chain Ready: ${this.config.classification.crossChainReady ? '✅' : '❌'}
         return this.handleSignature(options);
       case 'info':
         return this.displaySystemInfo();
-      case 'generate':
-      case 'facets':
-        return this.handleFacetGeneration(options);
-      case 'scaffold':
-        return this.handleArchitecturalScaffolding(options);
       default:
         return this.displayHelp();
     }
@@ -337,69 +332,6 @@ Cross-Chain Ready: ${this.config.classification.crossChainReady ? '✅' : '❌'}
     }
   }
 
-  handleFacetGeneration(options) {
-    console.log('🤖 Generating AI-Enhanced Diamond Facets...');
-    console.log('💡 Value: Eliminates 3+ weeks Diamond learning curve');
-    
-    let command;
-    if (options.defi) {
-      command = this.config.entryPoints.ai?.facets?.defi || 'npm run ai:facets:defi';
-    } else if (options.scaffold) {
-      command = this.config.entryPoints.ai?.facets?.scaffold || 'npm run ai:facets:scaffold';
-    } else {
-      command = this.config.entryPoints.ai?.facets?.generate || 'npm run ai:facets:generate';
-    }
-
-    console.log(`🎯 Executing: ${command}`);
-    
-    try {
-      const result = execSync(command, { 
-        stdio: 'inherit', 
-        cwd: process.cwd(),
-        env: { ...process.env, PAYROX_AI_MODE: 'facet-generation' }
-      });
-      
-      console.log('🎉 AI Facet Generation Complete!');
-      console.log('✅ Professional Diamond facets ready for business logic implementation');
-      console.log('💡 Developers can now focus on domain logic instead of Diamond complexity');
-      
-      return result;
-    } catch (error) {
-      console.error('❌ AI Facet Generation failed:', error.message);
-      throw error;
-    }
-  }
-
-  handleArchitecturalScaffolding(options) {
-    console.log('🏗️ Creating Professional Architectural Scaffolding...');
-    console.log('🎯 PayRox Value: Professional Diamond patterns + Business logic guidance');
-    
-    const command = this.config.entryPoints.ai?.architecture?.scaffold || 'npm run ai:architecture:scaffold';
-    
-    console.log(`🎯 Executing: ${command}`);
-    
-    try {
-      const result = execSync(command, { 
-        stdio: 'inherit', 
-        cwd: process.cwd(),
-        env: { ...process.env, PAYROX_AI_MODE: 'architectural-scaffolding' }
-      });
-      
-      console.log('🎉 Architectural Scaffolding Complete!');
-      console.log('🏗️ Features Provided:');
-      console.log('   ✅ LibDiamond integration');
-      console.log('   ✅ Isolated storage patterns');
-      console.log('   ✅ Production-ready access controls');
-      console.log('   ✅ Business logic guidance');
-      console.log('   ✅ Professional event patterns');
-      
-      return result;
-    } catch (error) {
-      console.error('❌ Architectural Scaffolding failed:', error.message);
-      throw error;
-    }
-  }
-
   displaySystemInfo() {
     console.log(`
 ℹ️ PayRox Go Beyond - A+ System Information
@@ -424,9 +356,6 @@ ${this.config.certification.compliance.map(standard => `   ✅ ${standard}`).joi
    payrox status --full                  # Complete system status
    payrox learn                          # AI learning from history
    payrox validate --cross-chain         # Cross-chain validation
-   payrox generate --defi                # Generate AI DeFi facets
-   payrox facets --scaffold              # Generate facet scaffolding
-   payrox scaffold                       # Create architectural scaffolding
    payrox signature --operation init     # Generate EIP-712 signatures
    payrox info                           # This information
 

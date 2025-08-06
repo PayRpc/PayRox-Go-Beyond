@@ -28,6 +28,34 @@ contract FacetInteractionValidator {
     string[] public testNames;
     
     /**
+     * @notice Validate Trading Facet functionality
+     * @dev Tests actual trading operations through facet routing
+     */
+    function validateTradingFacet(address diamond, address tokenA, address tokenB, uint256 amount) 
+        external returns (bool) {
+        uint256 gasStart = gasleft();
+        
+        try this._testTradingExecution(diamond, tokenA, tokenB, amount) {
+            uint256 gasUsed = gasStart - gasleft();
+            
+            _recordTest("TradingFacet_ExecuteTrade", true, gasUsed, "Trade executed successfully through facet");
+            emit FacetInteractionTest("TradingFacet_ExecuteTrade", true, gasUsed);
+            return true;
+        } catch Error(string memory reason) {
+            _recordTest("TradingFacet_ExecuteTrade", false, 0, reason);
+            emit FacetInteractionTest("TradingFacet_ExecuteTrade", false, 0);
+            return false;
+        }
+    }
+    
+    function _testTradingExecution(address diamond, address tokenA, address tokenB, uint256 amount) external {
+        // Call trading function through diamond proxy
+        bytes memory data = abi.encodeWithSignature("executeTrade(address,address,uint256)", tokenA, tokenB, amount);
+        (bool success, bytes memory result) = diamond.call(data);
+        require(success, "Trading facet call failed");
+    }
+    
+    /**
      * @notice Validate Staking-to-Rewards cross-facet communication
      * @dev Tests that staking operations properly trigger rewards calculations
      */
@@ -184,11 +212,11 @@ contract FacetInteractionValidator {
     function runComprehensiveValidation(address diamond) external returns (bool) {
         uint256 totalGasStart = gasleft();
         
-        // Test 1: Cross-facet communication
-        bool test1 = this.validateStakingRewardsCommunication(diamond, 5000);
+        // Test 1: Basic facet functionality
+        bool test1 = this.validateTradingFacet(diamond, address(0x1), address(0x2), 1000);
         
-        // Test 2: Storage pattern validation
-        bool test2 = true; // Placeholder for storage validation test
+        // Test 2: Cross-facet communication
+        bool test2 = this.validateStakingRewardsCommunication(diamond, 5000);
         
         // Test 3: Complex integration
         bool test3 = this.validateGovernanceStakingIntegration(diamond, "Test proposal");

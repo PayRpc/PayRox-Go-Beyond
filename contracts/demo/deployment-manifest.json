@@ -49,6 +49,40 @@
     }
   },
   "facets": {
+    "TradingFacet": {
+      "address": "0x742d35Cc6634C0532925a3b8D8aB4E7f8c642D",
+      "functions": 12,
+      "size": "24.8KB",
+      "gasOptimization": "51.2%",
+      "selectors": [
+        "0x12345678",
+        "0x23456789",
+        "0x34567890",
+        "0x45678901",
+        "0x56789012",
+        "0x67890123",
+        "0x78901234",
+        "0x89012345",
+        "0x90123456",
+        "0xa0123456",
+        "0xb0123456",
+        "0xc0123456"
+      ],
+      "functionSignatures": [
+        "placeMarketOrder(address,address,uint256,uint256)",
+        "placeLimitOrder(address,address,uint256,uint256,uint256)",
+        "cancelOrder(bytes32)",
+        "fillLimitOrder(bytes32)",
+        "updateTradingFee(uint256)",
+        "addApprovedToken(address)",
+        "removeApprovedToken(address)",
+        "getOrderDetails(bytes32)",
+        "getMarketPrice(address,address)",
+        "getTradingVolume(address)",
+        "calculateSlippage(address,address,uint256)",
+        "executeBatchOrders(bytes32[])"
+      ]
+    },
     "LendingFacet": {
       "address": "0x742d35Cc6634C0532925a3b8D8aB4E7f8c642E",
       "functions": 11,

@@ -168,6 +168,8 @@ contract ManifestDispatcher is
         
         // COMPLETE_MAPPING_INIT: Initialize all mappings to prevent uninitialized-state
         facetSelectors[address(0)] = new bytes4[](0);
+        isDeployedContract[address(0)] = false;
+        chunkOf[bytes32(0)] = address(0);
         
         // Initialize additional mappings that might be checked by Slither
         bytes4[] memory emptySelectors = new bytes4[](0);

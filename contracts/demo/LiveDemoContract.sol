@@ -211,8 +211,8 @@ contract LiveDemoContract {
         return balances[account];
     }
     
-    function allowance(address tokenOwner, address spender) external view returns (uint256) {
-        return allowances[tokenOwner][spender];
+    function allowance(address owner, address spender) external view returns (uint256) {
+        return allowances[owner][spender];
     }
     
     function stakingBalanceOf(address account) external view returns (uint256) {
