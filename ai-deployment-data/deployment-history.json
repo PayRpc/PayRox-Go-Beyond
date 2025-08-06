@@ -1,0 +1,38 @@
+[
+  {
+    "timestamp": "2025-08-06T03:44:57.976Z",
+    "contractName": "MockFacetCoreFacet",
+    "network": "hardhat",
+    "gasUsed": "0",
+    "gasLimit": "5000000",
+    "gasEfficiency": 0,
+    "deploymentTime": 0,
+    "success": true,
+    "optimizationLevel": "standard",
+    "saltPattern": "0xabcdef.."
+  },
+  {
+    "timestamp": "2025-08-06T03:45:15.389Z",
+    "contractName": "ChunkFactoryFacet",
+    "network": "hardhat",
+    "gasUsed": "0",
+    "gasLimit": "5000000",
+    "gasEfficiency": 0,
+    "deploymentTime": 0,
+    "success": true,
+    "optimizationLevel": "standard",
+    "saltPattern": "0xabcdef.."
+  },
+  {
+    "timestamp": "2025-08-06T03:51:28.719Z",
+    "contractName": "ChunkFactoryFacet",
+    "network": "hardhat",
+    "gasUsed": "0",
+    "gasLimit": "5000000",
+    "gasEfficiency": 0,
+    "deploymentTime": 0,
+    "success": true,
+    "optimizationLevel": "standard",
+    "saltPattern": "0xabcdef.."
+  }
+]

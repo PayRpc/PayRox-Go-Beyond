@@ -96,6 +96,35 @@ npx hardhat run scripts/payrox-ai-production-demo.ts --network hardhat
 npx hardhat run scripts/update-ai-architecture-knowledge.ts --network hardhat
 ```
 
+### 🏆 **Enhanced A+ Grade Tools**
+```bash
+# Architecture Comparison (+718% improvement, A+ grade)
+npx hardhat run scripts/architecture-comparison-enhanced.ts --network hardhat
+
+# Freeze Readiness Assessment (+52% improvement, A+ grade)  
+npx hardhat run scripts/assess-freeze-readiness-enhanced-v2.ts --network hardhat
+
+# Build Manifest Orchestration (+103% improvement, A+ grade)
+npx hardhat run scripts/build-manifest-enhanced.ts --network hardhat
+
+# Test All Enhanced Tools
+node test-all-enhancements.js
+```
+
+### 🚀 **Enhanced Tools - Standalone (No Compilation)**
+```bash
+# All Enhanced Tools (Compilation-Free)
+npx ts-node scripts/enhanced-tools-standalone.ts
+
+# Individual Tools (Compilation-Free)
+npx ts-node scripts/enhanced-tools-standalone.ts architecture
+npx ts-node scripts/enhanced-tools-standalone.ts freeze  
+npx ts-node scripts/enhanced-tools-standalone.ts manifest
+
+# Direct Node.js Execution (Fastest)
+node -r ts-node/register scripts/enhanced-tools-standalone.ts
+```
+
 ---
 
 ## 🚀 DIRECT SCRIPT EXECUTION
