@@ -12,11 +12,11 @@ export class PayRoxUniversalSDK {
   
   private initializeUniversalFacets() {
     // AI-generated facet mappings
-    this.facets.set("facet0", "0x47886a7ac4b6");
-    this.facets.set("facet1", "0xc3d09cb4fb85d");
-    this.facets.set("facet2", "0x81a8ca0be0fdb");
-    this.facets.set("facet3", "0x43f0fa03111b4");
-    this.facets.set("facet4", "0xc046b0043dc26");
+    this.facets.set("facet0", "0x4e15b83c599ff");
+    this.facets.set("facet1", "0x7cd659bc9a07f");
+    this.facets.set("facet2", "0x174e404b1b716");
+    this.facets.set("facet3", "0x1dec50ece8f9a");
+    this.facets.set("facet4", "0xff3fa7eb3b643");
   }
   
   // Universal protocol support

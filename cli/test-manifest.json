@@ -1,0 +1,47 @@
+{
+  "version": "2.0.0",
+  "type": "PayRox CLI Test Manifest",
+  "description": "AI-generated facets for CLI testing and validation",
+  "timestamp": "2025-08-06T13:00:00.000Z",
+  "ai_facets": {
+    "available": [
+      "TradingFacet",
+      "LendingFacet", 
+      "StakingFacet",
+      "GovernanceFacet",
+      "InsuranceFacet",
+      "RewardsFacet"
+    ],
+    "generator": "scripts/real-ai-facet-generator.ts",
+    "type": "architectural_scaffolding",
+    "features": [
+      "LibDiamond integration",
+      "Isolated storage patterns",
+      "Production-ready access controls",
+      "Business logic guidance",
+      "Professional event patterns"
+    ]
+  },
+  "cli_commands": {
+    "generate": "npm run ai:facets:generate",
+    "scaffold": "npm run ai:facets:scaffold",
+    "defi": "npm run ai:facets:defi",
+    "architecture": "npm run ai:architecture:scaffold"
+  },
+  "deployment_config": {
+    "output_directory": "contracts/demo/generated-facets",
+    "manifest_file": "contracts/demo/complex-defi-manifest.json",
+    "source_contract": "contracts/demo/ComplexDeFiProtocol.sol",
+    "configuration_file": "config/app.release.yaml"
+  },
+  "validation": {
+    "minimum_size": "9KB",
+    "maximum_size": "16KB",
+    "required_patterns": [
+      "LibDiamond.enforceIsDispatcher()",
+      "keccak256(\"payrox.facet.storage",
+      "architecturalScaffolding: true",
+      "businessLogicRequired: true"
+    ]
+  }
+}
