@@ -1,5 +1,5 @@
 {
-  "timestamp": "2025-08-06T05:17:58.615Z",
+  "timestamp": "2025-08-06T05:26:17.502Z",
   "version": "1.0.0",
   "summary": {
     "totalIssues": 0,
@@ -17,7 +17,9 @@
       "Security analysis shows low risk, proceed with standard testing"
     ],
     "deploymentSafety": true,
-    "estimatedFixTime": 0
+    "estimatedFixTime": 0,
+    "automatedFixes": [],
+    "fixableIssues": 0
   },
   "detailedFindings": {
     "slither": [],
