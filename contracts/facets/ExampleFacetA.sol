@@ -3,6 +3,7 @@ pragma solidity 0.8.30;
 
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
+import {GasOptimizationUtils} from "../utils/GasOptimizationUtils.sol";
 
 /**
  * @title ExampleFacetA
@@ -29,6 +30,8 @@ contract ExampleFacetA {
     event FacetAExecuted(address indexed caller, uint256 indexed value, string message);
     // Gas-efficient event for high-volume execution tracking
     event FacetAExecutedHash(address indexed caller, bytes32 indexed msgHash);
+    // Gas optimization analytics for batch operations
+    event BatchExecutedOptimized(uint256 messageCount, uint256 gasUsed, bytes32 packedMetadata, uint256 timestamp);
 
     /* ─────────────── Diamond‑safe storage (fixed slot) ──────────────── */
     // Unique slot for this facet’s state.
@@ -98,8 +101,13 @@ contract ExampleFacetA {
         Layout storage l = _layout();
         results = new bool[](n);
 
+        // Use GasOptimizationUtils for efficient batch processing
+        uint64[] memory messageLengths = new uint64[](n);
+        uint256 gasBefore = gasleft();
+
         for (uint256 i; i < n; ) {
             if (bytes(messages[i]).length > 0) {
+                messageLengths[i] = uint64(bytes(messages[i]).length);
                 unchecked {
                     l.userCounts[msg.sender] += 1;
                     l.totalExecutions_ += 1;
@@ -115,6 +123,12 @@ contract ExampleFacetA {
         }
 
         l.lastCaller_ = msg.sender;
+
+        // Pack batch metadata for gas optimization analytics
+        bytes32 packedMetadata = GasOptimizationUtils.packStorage(messageLengths);
+        uint256 gasUsed = gasBefore - gasleft();
+        
+        emit BatchExecutedOptimized(n, gasUsed, packedMetadata, block.timestamp);
     }
 
     /// Keccak256 convenience hash.
