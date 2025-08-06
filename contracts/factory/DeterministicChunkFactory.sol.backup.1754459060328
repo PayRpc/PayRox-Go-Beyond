@@ -11,25 +11,6 @@ import {ChunkFactoryLib} from "../utils/ChunkFactoryLib.sol";
 /// @notice Size-optimized version using library delegation
 /// @dev Maintains full IChunkFactory interface while staying under EIP-170 limit
 contract DeterministicChunkFactory is IChunkFactory, AccessControl, ReentrancyGuard, Pausable {
-    // AUTHORIZATION_FIX: Authorized recipients for Ether transfers
-    mapping(address => bool) public authorizedRecipients;
-    uint256 public maxSingleTransfer = 1 ether;
-    address public defaultAdmin;
-    
-    modifier onlyAuthorizedTransfer(address recipient, uint256 amount) {
-        require(authorizedRecipients[recipient] || recipient == defaultAdmin, "Unauthorized recipient");
-        require(amount <= maxSingleTransfer, "Amount exceeds maximum");
-        _;
-    }
-
-    modifier onlyOwner() {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not owner");
-        _;
-    }
-
-    function owner() public view returns (address) {
-        return defaultAdmin;
-    }
 
     // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
     // ROLES & CONSTANTS
@@ -80,8 +61,6 @@ contract DeterministicChunkFactory is IChunkFactory, AccessControl, ReentrancyGu
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(OPERATOR_ROLE, msg.sender);
         _grantRole(FEE_ROLE, msg.sender);
-        defaultAdmin = msg.sender;
-        authorizedRecipients[msg.sender] = true;
 
         feeRecipient = _feeRecipient;
         expectedManifestDispatcher = _manifestDispatcher;
@@ -122,50 +101,41 @@ contract DeterministicChunkFactory is IChunkFactory, AccessControl, ReentrancyGu
         }
     }
 
-    function _stageInternal(bytes calldata data) internal nonReentrant returns (address chunk, bytes32 hash) {
-        // PERFECT_CEI_PATTERN: Complete Checks-Effects-Interactions
-        
-        // ═══ CHECKS PHASE ═══
+    function _stageInternal(bytes calldata data) internal returns (address chunk, bytes32 hash) {
+        // CHECKS: Validate input data
         bytes memory dataMemory = data;
-        require(ChunkFactoryLib.validateData(dataMemory), "DeterministicChunkFactory: invalid chunk data");
-        
+        require(ChunkFactoryLib.validateData(dataMemory), "Invalid data");
+
         bytes32 salt = ChunkFactoryLib.computeSalt(data);
         hash = keccak256(data);
-        
-        // Idempotent check (read-only, no state changes)
+
+        // Check idempotent mode early
         if (idempotentMode && chunkOf[hash] != address(0)) {
             return (chunkOf[hash], hash);
         }
-        
-        // Prepare all deployment data
+
+        // Prepare deployment data
         bytes memory initCode = ChunkFactoryLib.createInitCode(data);
         bytes32 initCodeHash = keccak256(initCode);
         address predicted = ChunkFactoryLib.predictAddress(address(this), salt, initCodeHash);
-        require(predicted != address(0), "DeterministicChunkFactory: invalid predicted address");
-        
-        // ═══ EFFECTS PHASE ═══
-        // Deploy the contract first
-        address deployedChunk;
+
+        // INTERACTIONS: Collect fee before state changes
+        _collectFee();
+
+        // EFFECTS: Deploy contract and update state
         assembly {
-            deployedChunk := create2(0, add(initCode, 0x20), mload(initCode), salt)
-            if iszero(deployedChunk) { revert(0, 0) }
+            chunk := create2(0, add(initCode, 0x20), mload(initCode), salt)
+            if iszero(chunk) { revert(0, 0) }
         }
-        require(deployedChunk == predicted, "DeterministicChunkFactory: deployment address mismatch");
-        
-        // Update ALL state variables BEFORE external interactions
-        chunkOf[hash] = deployedChunk;
-        isDeployedContract[deployedChunk] = true;
+
+        require(chunk == predicted, "Address mismatch");
+
+        // Update state after successful deployment
+        chunkOf[hash] = chunk;
+        isDeployedContract[chunk] = true;
         deploymentCount++;
-        chunk = deployedChunk;
-        
-        // ═══ INTERACTIONS PHASE ═══
-        // External calls LAST to prevent reentrancy
-        _collectProtocolFee();
-        
-        // Emit event (safe external interaction)
+
         emit ChunkStaged(chunk, hash, salt, data.length);
-        
-        return (chunk, hash);
     }
 
     function deployDeterministic(
@@ -383,25 +353,6 @@ contract DeterministicChunkFactory is IChunkFactory, AccessControl, ReentrancyGu
         }
     }
 
-    function _collectProtocolFee() internal {
-        if (!feesEnabled) return;
-        
-        uint256 fee = _getDeploymentFee(msg.sender);
-        require(msg.value >= fee, "Insufficient fee");
-
-        if (fee > 0) {
-            (bool success, ) = payable(feeRecipient).call{value: fee}("");
-            if (!success) {
-                emit FeeCollectionFailed(feeRecipient, fee);
-            }
-        }
-
-        if (msg.value > fee) {
-            (bool refundSuccess, ) = msg.sender.call{value: msg.value - fee}("");
-            require(refundSuccess, "Refund failed");
-        }
-    }
-
     function _getDeploymentFee(address user) internal view returns (uint256) {
         if (!feesEnabled) return 0;
 
@@ -473,41 +424,7 @@ contract DeterministicChunkFactory is IChunkFactory, AccessControl, ReentrancyGu
 
     // Events (inheriting from interface, only additional ones here)
     event ChunkStaged(address indexed chunk, bytes32 indexed hash, bytes32 salt, uint256 size);
-    event FeeCollectionFailed(address indexed collector, uint256 amount);
     event TierFeeSet(uint8 indexed tier, uint256 fee);
     event UserTierSet(address indexed user, uint8 tier);
     event IdempotentModeSet(bool enabled);
-
-    /**
-     * @dev Emergency function to withdraw locked Ether
-     * @notice Only callable by contract owner
-     */
-    function emergencyWithdraw() external onlyOwner {
-        require(address(this).balance > 0, "No Ether to withdraw");
-        uint256 balance = address(this).balance;
-        payable(owner()).transfer(balance);
-        emit EmergencyWithdrawal(owner(), balance);
-    }
-    
-    event EmergencyWithdrawal(address indexed owner, uint256 amount);
-
-    /**
-     * @dev Add an authorized recipient for Ether transfers
-     */
-    function addAuthorizedRecipient(address recipient) external onlyOwner {
-        require(recipient != address(0), "Invalid recipient");
-        authorizedRecipients[recipient] = true;
-        emit AuthorizedRecipientAdded(recipient);
-    }
-    
-    /**
-     * @dev Remove an authorized recipient
-     */
-    function removeAuthorizedRecipient(address recipient) external onlyOwner {
-        authorizedRecipients[recipient] = false;
-        emit AuthorizedRecipientRemoved(recipient);
-    }
-    
-    event AuthorizedRecipientAdded(address indexed recipient);
-    event AuthorizedRecipientRemoved(address indexed recipient);
 }

@@ -11,25 +11,6 @@ import {ChunkFactoryLib} from "../utils/ChunkFactoryLib.sol";
 /// @notice Size-optimized version using library delegation
 /// @dev Maintains full IChunkFactory interface while staying under EIP-170 limit
 contract DeterministicChunkFactory is IChunkFactory, AccessControl, ReentrancyGuard, Pausable {
-    // AUTHORIZATION_FIX: Authorized recipients for Ether transfers
-    mapping(address => bool) public authorizedRecipients;
-    uint256 public maxSingleTransfer = 1 ether;
-    address public defaultAdmin;
-    
-    modifier onlyAuthorizedTransfer(address recipient, uint256 amount) {
-        require(authorizedRecipients[recipient] || recipient == defaultAdmin, "Unauthorized recipient");
-        require(amount <= maxSingleTransfer, "Amount exceeds maximum");
-        _;
-    }
-
-    modifier onlyOwner() {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not owner");
-        _;
-    }
-
-    function owner() public view returns (address) {
-        return defaultAdmin;
-    }
 
     // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
     // ROLES & CONSTANTS
@@ -80,8 +61,6 @@ contract DeterministicChunkFactory is IChunkFactory, AccessControl, ReentrancyGu
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(OPERATOR_ROLE, msg.sender);
         _grantRole(FEE_ROLE, msg.sender);
-        defaultAdmin = msg.sender;
-        authorizedRecipients[msg.sender] = true;
 
         feeRecipient = _feeRecipient;
         expectedManifestDispatcher = _manifestDispatcher;
@@ -383,25 +362,6 @@ contract DeterministicChunkFactory is IChunkFactory, AccessControl, ReentrancyGu
         }
     }
 
-    function _collectProtocolFee() internal {
-        if (!feesEnabled) return;
-        
-        uint256 fee = _getDeploymentFee(msg.sender);
-        require(msg.value >= fee, "Insufficient fee");
-
-        if (fee > 0) {
-            (bool success, ) = payable(feeRecipient).call{value: fee}("");
-            if (!success) {
-                emit FeeCollectionFailed(feeRecipient, fee);
-            }
-        }
-
-        if (msg.value > fee) {
-            (bool refundSuccess, ) = msg.sender.call{value: msg.value - fee}("");
-            require(refundSuccess, "Refund failed");
-        }
-    }
-
     function _getDeploymentFee(address user) internal view returns (uint256) {
         if (!feesEnabled) return 0;
 
@@ -490,24 +450,4 @@ contract DeterministicChunkFactory is IChunkFactory, AccessControl, ReentrancyGu
     }
     
     event EmergencyWithdrawal(address indexed owner, uint256 amount);
-
-    /**
-     * @dev Add an authorized recipient for Ether transfers
-     */
-    function addAuthorizedRecipient(address recipient) external onlyOwner {
-        require(recipient != address(0), "Invalid recipient");
-        authorizedRecipients[recipient] = true;
-        emit AuthorizedRecipientAdded(recipient);
-    }
-    
-    /**
-     * @dev Remove an authorized recipient
-     */
-    function removeAuthorizedRecipient(address recipient) external onlyOwner {
-        authorizedRecipients[recipient] = false;
-        emit AuthorizedRecipientRemoved(recipient);
-    }
-    
-    event AuthorizedRecipientAdded(address indexed recipient);
-    event AuthorizedRecipientRemoved(address indexed recipient);
 }

@@ -26,8 +26,6 @@ contract UniversalStub {
     }
     
     // Universal fallback for any missing functionality
-    fallback() external {} // LOCKED_ETHER_FIX: Non-payable to prevent locked ether
-    receive() external payable { 
-        revert("LOCKED_ETHER_FIX: Direct ETH transfers not allowed");
-    }
+    fallback() external payable {}
+    receive() external payable {}
 }

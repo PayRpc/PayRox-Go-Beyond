@@ -1,0 +1,45 @@
+{
+  "version": "4.0",
+  "created": "2025-08-06T05:57:21.260Z",
+  "aiGenerations": {
+    "v1.0": {
+      "description": "Basic automated fixes",
+      "status": "deprecated"
+    },
+    "v2.0": {
+      "description": "Learning with safety limits",
+      "status": "stable"
+    },
+    "v3.0": {
+      "description": "Slither-aware fixes",
+      "status": "active"
+    },
+    "v3.1": {
+      "description": "Deep pattern learning",
+      "status": "active"
+    },
+    "v4.0": {
+      "description": "Master orchestrator",
+      "status": "current"
+    }
+  },
+  "masterLearning": {
+    "totalPatterns": 3,
+    "successfulFixes": 2,
+    "learningSessions": 1,
+    "evolutionHistory": []
+  },
+  "knowledgeBase": {
+    "reentrancyPatterns": [],
+    "initializationPatterns": [],
+    "lockedEtherPatterns": [],
+    "customPatterns": []
+  },
+  "safetyMetrics": {
+    "maxFixesPerSession": 5,
+    "confidenceThreshold": 95,
+    "backupCreated": true,
+    "rollbackCapable": true
+  },
+  "lastUpdate": "2025-08-06T05:57:58.908Z"
+}

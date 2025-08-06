@@ -1,0 +1,93 @@
+{
+  "version": "3.0",
+  "created": "2025-08-06T05:54:37.652Z",
+  "slitherLearning": {
+    "recognizedPatterns": [
+      {
+        "issueType": "uninitialized-state",
+        "pattern": {
+          "type": "mapping-uninitialized",
+          "description": "Mapping variable never explicitly initialized",
+          "detectedIn": "ManifestDispatcher.facetSelectors (contracts/dispatcher/ManifestDispatcher.sol#76) is never initialized. It is used in:\n- ManifestDispatcher.facetFunctionSelectors(address) (contracts/dispatcher/ManifestDispatcher.sol#270-271)\n- ManifestDispatcher.facets() (contracts/dispatcher/ManifestDispatcher.sol#272-275)\n- ManifestDispatcher._addSelectorToFacet(address,bytes4) (contracts/dispatcher/ManifestDispatcher.sol#421-438)\n- ManifestDispatcher._removeSelectorFromFacet(address,bytes4) (contracts/dispatcher/ManifestDispatcher.sol#438-462)\n- ManifestDispatcher.getFacetInfo(address) (contracts/dispatcher/ManifestDispatcher.sol#853-860)\nReference: https://github.com/crytic/slither/wiki/Detector-Documentation#uninitialized-state-variables",
+          "requiredFix": "constructor-initialization"
+        },
+        "confidence": 95,
+        "timestamp": "2025-08-06T05:54:37.656Z"
+      },
+      {
+        "issueType": "uninitialized-state",
+        "pattern": {
+          "type": "mapping-uninitialized",
+          "description": "Mapping variable never explicitly initialized",
+          "detectedIn": "ManifestDispatcher.facetSelectors (contracts/dispatcher/ManifestDispatcher.sol#76) is never initialized. It is used in:\n- ManifestDispatcher.facetFunctionSelectors(address) (contracts/dispatcher/ManifestDispatcher.sol#270-271)\n- ManifestDispatcher.facets() (contracts/dispatcher/ManifestDispatcher.sol#272-275)\n- ManifestDispatcher._addSelectorToFacet(address,bytes4) (contracts/dispatcher/ManifestDispatcher.sol#421-438)\n- ManifestDispatcher._removeSelectorFromFacet(address,bytes4) (contracts/dispatcher/ManifestDispatcher.sol#438-462)\n- ManifestDispatcher.getFacetInfo(address) (contracts/dispatcher/ManifestDispatcher.sol#853-860)\nReference: https://github.com/crytic/slither/wiki/Detector-Documentation#uninitialized-state-variables",
+          "requiredFix": "constructor-initialization"
+        },
+        "confidence": 95,
+        "timestamp": "2025-08-06T05:54:50.442Z"
+      },
+      {
+        "issueType": "uninitialized-state",
+        "pattern": {
+          "type": "mapping-uninitialized",
+          "description": "Mapping variable never explicitly initialized",
+          "detectedIn": "ManifestDispatcher.facetSelectors (contracts/dispatcher/ManifestDispatcher.sol#76) is never initialized. It is used in:\n- ManifestDispatcher.facetFunctionSelectors(address) (contracts/dispatcher/ManifestDispatcher.sol#270-271)\n- ManifestDispatcher.facets() (contracts/dispatcher/ManifestDispatcher.sol#272-275)\n- ManifestDispatcher._addSelectorToFacet(address,bytes4) (contracts/dispatcher/ManifestDispatcher.sol#421-438)\n- ManifestDispatcher._removeSelectorFromFacet(address,bytes4) (contracts/dispatcher/ManifestDispatcher.sol#438-462)\n- ManifestDispatcher.getFacetInfo(address) (contracts/dispatcher/ManifestDispatcher.sol#853-860)\nReference: https://github.com/crytic/slither/wiki/Detector-Documentation#uninitialized-state-variables",
+          "requiredFix": "constructor-initialization"
+        },
+        "confidence": 95,
+        "timestamp": "2025-08-06T05:55:05.441Z"
+      },
+      {
+        "issueType": "uninitialized-state",
+        "pattern": {
+          "type": "mapping-uninitialized",
+          "description": "Mapping variable never explicitly initialized",
+          "detectedIn": "ManifestDispatcher.facetSelectors (contracts/dispatcher/ManifestDispatcher.sol#76) is never initialized. It is used in:\n- ManifestDispatcher.facetFunctionSelectors(address) (contracts/dispatcher/ManifestDispatcher.sol#270-271)\n- ManifestDispatcher.facets() (contracts/dispatcher/ManifestDispatcher.sol#272-275)\n- ManifestDispatcher._addSelectorToFacet(address,bytes4) (contracts/dispatcher/ManifestDispatcher.sol#421-438)\n- ManifestDispatcher._removeSelectorFromFacet(address,bytes4) (contracts/dispatcher/ManifestDispatcher.sol#438-462)\n- ManifestDispatcher.getFacetInfo(address) (contracts/dispatcher/ManifestDispatcher.sol#853-860)\nReference: https://github.com/crytic/slither/wiki/Detector-Documentation#uninitialized-state-variables",
+          "requiredFix": "constructor-initialization"
+        },
+        "confidence": 95,
+        "timestamp": "2025-08-06T05:55:12.674Z"
+      },
+      {
+        "issueType": "uninitialized-state",
+        "pattern": {
+          "type": "mapping-uninitialized",
+          "description": "Mapping variable never explicitly initialized",
+          "detectedIn": "ManifestDispatcher.facetSelectors (contracts/dispatcher/ManifestDispatcher.sol#76) is never initialized. It is used in:\n- ManifestDispatcher.facetFunctionSelectors(address) (contracts/dispatcher/ManifestDispatcher.sol#268-274)\n- ManifestDispatcher.facets() (contracts/dispatcher/ManifestDispatcher.sol#274-278)\n- ManifestDispatcher._addSelectorToFacet(address,bytes4) (contracts/dispatcher/ManifestDispatcher.sol#419-438)\n- ManifestDispatcher._removeSelectorFromFacet(address,bytes4) (contracts/dispatcher/ManifestDispatcher.sol#438-461)\n- ManifestDispatcher.getFacetInfo(address) (contracts/dispatcher/ManifestDispatcher.sol#855-860)\nReference: https://github.com/crytic/slither/wiki/Detector-Documentation#uninitialized-state-variables",
+          "requiredFix": "constructor-initialization"
+        },
+        "confidence": 100,
+        "timestamp": "2025-08-06T05:57:41.916Z"
+      },
+      {
+        "issueType": "uninitialized-state",
+        "pattern": {
+          "type": "mapping-uninitialized",
+          "description": "Mapping variable never explicitly initialized",
+          "detectedIn": "ManifestDispatcher.facetSelectors (contracts/dispatcher/ManifestDispatcher.sol#76) is never initialized. It is used in:\n- ManifestDispatcher.facetFunctionSelectors(address) (contracts/dispatcher/ManifestDispatcher.sol#268-274)\n- ManifestDispatcher.facets() (contracts/dispatcher/ManifestDispatcher.sol#274-278)\n- ManifestDispatcher._addSelectorToFacet(address,bytes4) (contracts/dispatcher/ManifestDispatcher.sol#419-438)\n- ManifestDispatcher._removeSelectorFromFacet(address,bytes4) (contracts/dispatcher/ManifestDispatcher.sol#438-461)\n- ManifestDispatcher.getFacetInfo(address) (contracts/dispatcher/ManifestDispatcher.sol#855-860)\nReference: https://github.com/crytic/slither/wiki/Detector-Documentation#uninitialized-state-variables",
+          "requiredFix": "constructor-initialization"
+        },
+        "confidence": 100,
+        "timestamp": "2025-08-06T05:57:41.991Z"
+      }
+    ],
+    "successfulSlitherFixes": [
+      {
+        "timestamp": "2025-08-06T05:55:12.680Z",
+        "fix": "Advanced State Initialization - Constructor Method",
+        "patternType": "mapping-uninitialized",
+        "confidence": 95
+      }
+    ],
+    "failedSlitherAttempts": []
+  },
+  "advancedFixes": {
+    "reentrancyPatterns": [],
+    "initializationPatterns": [],
+    "lockedEtherPatterns": []
+  },
+  "statistics": {
+    "totalLearningRuns": 6,
+    "slitherRecognizedFixes": 1,
+    "patternMatches": 0
+  }
+}
