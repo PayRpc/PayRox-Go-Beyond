@@ -1,0 +1,47 @@
+{
+  "version": "1.0.0",
+  "timestamp": "2025-08-06T22:11:21.412Z",
+  "facets": [
+    {
+      "name": "GovernanceCoreFacet",
+      "status": "READY",
+      "score": 85,
+      "file": "./contracts/ai-refactored-facets/GovernanceCoreFacet.sol"
+    },
+    {
+      "name": "InsuranceProtectionFacet",
+      "status": "READY",
+      "score": 100,
+      "file": "./contracts/ai-refactored-facets/InsuranceProtectionFacet.sol"
+    },
+    {
+      "name": "LendingProtocolFacet",
+      "status": "READY",
+      "score": 100,
+      "file": "./contracts/ai-refactored-facets/LendingProtocolFacet.sol"
+    },
+    {
+      "name": "StakingRewardsFacet",
+      "status": "READY",
+      "score": 100,
+      "file": "./contracts/ai-refactored-facets/StakingRewardsFacet.sol"
+    },
+    {
+      "name": "TradingCoreFacet",
+      "status": "READY",
+      "score": 100,
+      "file": "./contracts/ai-refactored-facets/TradingCoreFacet.sol"
+    }
+  ],
+  "deployment": {
+    "compiler": "0.8.20",
+    "optimizer": true,
+    "deterministic": true,
+    "manifest_router": true
+  },
+  "validation": {
+    "total_facets": 5,
+    "passed": 5,
+    "average_score": 97
+  }
+}

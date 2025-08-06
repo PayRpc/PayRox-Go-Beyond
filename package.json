@@ -64,6 +64,8 @@
     "ai:learning:status": "echo 'Checking AI learning status...' && npm run ai:manifest:validate",
     "ai:yaml:validate": "npx ts-node scripts/ai-yaml-entry-point-validator.ts",
     "ai:compilation:validate": "npx ts-node scripts/ai-compilation-validator.ts",
+    "ai:security:analyze": "npx ts-node scripts/targeted-security-analysis.ts",
+    "ai:security:full": "npx ts-node scripts/security-analysis.ts",
     "ai:learn:interactive": "node scripts/payrox-ai-v3-slither-learning.js --interactive",
     "ai:learn:advanced": "node scripts/payrox-ai-v3-slither-learning.js --confidence=98",
     "ai:master": "node scripts/payrox-master-ai.js --learn",
