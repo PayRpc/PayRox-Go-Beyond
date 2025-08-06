@@ -1,0 +1,221 @@
+{
+  "timestamp": "2025-08-06T21:30:29.061Z",
+  "realLibDiamondFunctions": [
+    {
+      "name": "diamondStorage",
+      "signature": "function diamondStorage() internal pure returns (DiamondStorage storage ds)",
+      "returnType": "returns (DiamondStorage storage ds)",
+      "visibility": "internal",
+      "exists": true
+    },
+    {
+      "name": "initializeDiamond",
+      "signature": "function initializeDiamond(address _manifestDispatcher) internal ",
+      "returnType": "void",
+      "visibility": "internal",
+      "exists": true
+    },
+    {
+      "name": "isInitialized",
+      "signature": "function isInitialized() internal view returns (bool)",
+      "returnType": "returns (bool)",
+      "visibility": "internal",
+      "exists": true
+    },
+    {
+      "name": "requireInitialized",
+      "signature": "function requireInitialized() internal view ",
+      "returnType": "void",
+      "visibility": "internal",
+      "exists": true
+    },
+    {
+      "name": "getManifestDispatcher",
+      "signature": "function getManifestDispatcher() internal view returns (address)",
+      "returnType": "returns (address)",
+      "visibility": "internal",
+      "exists": true
+    },
+    {
+      "name": "getDeploymentEpoch",
+      "signature": "function getDeploymentEpoch() internal view returns (uint64)",
+      "returnType": "returns (uint64)",
+      "visibility": "internal",
+      "exists": true
+    },
+    {
+      "name": "verifyManifestCall",
+      "signature": "function verifyManifestCall() internal view ",
+      "returnType": "void",
+      "visibility": "internal",
+      "exists": true
+    },
+    {
+      "name": "updateManifestDispatcher",
+      "signature": "function updateManifestDispatcher(address _newDispatcher) internal ",
+      "returnType": "void",
+      "visibility": "internal",
+      "exists": true
+    },
+    {
+      "name": "generateStorageSlot",
+      "signature": "function generateStorageSlot(\r\n        string memory facetName,\r\n        uint256 version\r\n    ) internal pure returns (bytes32)",
+      "returnType": "returns (bytes32)",
+      "visibility": "internal",
+      "exists": true
+    },
+    {
+      "name": "generateNamespacedStorageSlot",
+      "signature": "function generateNamespacedStorageSlot(\r\n        string memory facetName,\r\n        string memory namespace,\r\n        uint256 version\r\n    ) internal pure returns (bytes32)",
+      "returnType": "returns (bytes32)",
+      "visibility": "internal",
+      "exists": true
+    },
+    {
+      "name": "hasRole",
+      "signature": "function hasRole(bytes32 role, address account) internal view returns (bool)",
+      "returnType": "returns (bool)",
+      "visibility": "internal",
+      "exists": true
+    },
+    {
+      "name": "requireRole",
+      "signature": "function requireRole(bytes32 role) internal view ",
+      "returnType": "void",
+      "visibility": "internal",
+      "exists": true
+    },
+    {
+      "name": "contractAddress",
+      "signature": "function contractAddress() internal view returns (address)",
+      "returnType": "returns (address)",
+      "visibility": "internal",
+      "exists": true
+    },
+    {
+      "name": "isDelegateCall",
+      "signature": "function isDelegateCall() internal view returns (bool)",
+      "returnType": "returns (bool)",
+      "visibility": "internal",
+      "exists": true
+    },
+    {
+      "name": "enforceManifestCall",
+      "signature": "function enforceManifestCall() internal view ",
+      "returnType": "void",
+      "visibility": "internal",
+      "exists": true
+    },
+    {
+      "name": "getTimestamp",
+      "signature": "function getTimestamp() internal view returns (uint256)",
+      "returnType": "returns (uint256)",
+      "visibility": "internal",
+      "exists": true
+    },
+    {
+      "name": "generateDeploymentSalt",
+      "signature": "function generateDeploymentSalt(\r\n        address deployer,\r\n        string memory facetName,\r\n        bytes memory initData\r\n    ) internal pure returns (bytes32)",
+      "returnType": "returns (bytes32)",
+      "visibility": "internal",
+      "exists": true
+    },
+    {
+      "name": "enforceIsDispatcher",
+      "signature": "function enforceIsDispatcher() [NON-EXISTENT]",
+      "returnType": "void",
+      "visibility": "internal",
+      "exists": false
+    },
+    {
+      "name": "enforceRole",
+      "signature": "function enforceRole() [NON-EXISTENT]",
+      "returnType": "void",
+      "visibility": "internal",
+      "exists": false
+    },
+    {
+      "name": "enforceIsContractOwner",
+      "signature": "function enforceIsContractOwner() [NON-EXISTENT]",
+      "returnType": "void",
+      "visibility": "internal",
+      "exists": false
+    },
+    {
+      "name": "onlyOwner",
+      "signature": "function onlyOwner() [NON-EXISTENT]",
+      "returnType": "void",
+      "visibility": "internal",
+      "exists": false
+    },
+    {
+      "name": "onlyRole",
+      "signature": "function onlyRole() [NON-EXISTENT]",
+      "returnType": "void",
+      "visibility": "internal",
+      "exists": false
+    }
+  ],
+  "commonModifierStacks": [
+    "onlyRole",
+    "onlyAuthorized",
+    "onlyAuthorized whenNotPaused",
+    "onlyOperator",
+    "whenInitialized",
+    "whenInitialized whenNotPaused",
+    "nonce",
+    "onlyDispatcher",
+    "onlyDispatcher onlyPauser",
+    "nonReentrant whenNotPaused onlyInitialized",
+    "nonReentrant onlyInitialized",
+    "onlyInitialized whenNotPaused nonReentrant",
+    "onlyInitialized onlyDispatcher",
+    "nonReentrant whenNotPaused",
+    "nonReentrant",
+    "onlyOwner",
+    "onlyInitialized onlyDispatcher whenNotPaused nonReentrant",
+    "onlyInitialized",
+    "whenNotPaused nonReentrant",
+    "onlyAdmin",
+    "onlyAuth",
+    "onlyAuth whenNotEmergencyPaused"
+  ],
+  "accessControlMechanisms": [
+    "role: COMMIT_ROLE",
+    "role: APPLY_ROLE",
+    "role: EMERGENCY_ROLE",
+    "check: onlyRole",
+    "check: hasRole",
+    "role: PAUSER_ROLE",
+    "check: onlyDispatcher",
+    "check: requireRole",
+    "role: OPERATOR_ROLE",
+    "role: FEE_ROLE",
+    "check: onlyOwner",
+    "role: DEFAULT_ADMIN_ROLE",
+    "role: AUDITOR_ROLE",
+    "role: AUDIT_ADMIN_ROLE",
+    "role: PROPOSER_ROLE",
+    "check: onlyAdmin"
+  ],
+  "storageLayoutPatterns": [
+    "library: ExchangeBeyondFacetStorage",
+    "library: TestFacetStorage",
+    "slot: payrox.trading.facet.storage",
+    "library: TradingFacetStorage",
+    "slot: payrox.diamond.secure_test_facet.storage",
+    "library: SecureTestFacetStorage"
+  ],
+  "architectureInvariants": [
+    "PayRox is NOT EIP-2535 Diamond - uses manifest-based routing",
+    "All state-changing functions must go through manifest dispatcher",
+    "Each facet has isolated storage using unique keccak256 slots",
+    "No shared diamond storage between facets",
+    "LibDiamond.enforceManifestCall() is the correct dispatcher check",
+    "LibDiamond.hasRole() and LibDiamond.requireRole() exist for access control",
+    "Initialization functions should be dispatcher-gated",
+    "Reentrancy protection uses dedicated storage fields",
+    "Custom errors preferred over require() statements"
+  ],
+  "learningCompleted": true
+}

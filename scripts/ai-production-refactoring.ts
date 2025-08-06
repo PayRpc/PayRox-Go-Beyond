@@ -37,13 +37,13 @@ class PayRoxAIProductionRefactoring {
         
         console.log("📊 Contract Analysis:");
         console.log(`   Size: ${Math.round(this.contractContent.length / 1024)}KB`);
-        console.log(`   Lines: ${this.contractContent.split('\\n').length}`);
+        console.log(`   Lines: ${this.contractContent.split('\n').length}`);
         console.log(`   Functions: ${(this.contractContent.match(/function \\w+/g) || []).length}`);
         console.log(`   State Variables: ${(this.contractContent.match(/mapping\\([^)]+\\)|uint256|bool|address/g) || []).length}`);
     }
 
     private async extractDomainsWithAI(): Promise<void> {
-        console.log("\\n🧠 AI Domain Extraction:");
+        console.log("\n🧠 AI Domain Extraction:");
         
         // Define functional domains based on state variable patterns
         const domains = [
@@ -100,7 +100,7 @@ class PayRoxAIProductionRefactoring {
     }
 
     private extractStateVariables(pattern: RegExp): string[] {
-        const lines = this.contractContent.split('\\n');
+        const lines = this.contractContent.split('\n');
         const stateVars: string[] = [];
         
         for (const line of lines) {
@@ -126,17 +126,17 @@ class PayRoxAIProductionRefactoring {
     }
 
     private extractStructs(domain: string): string[] {
-        const structMatches = this.contractContent.match(/struct \\w+[^}]+}/g) || [];
+        const structMatches = this.contractContent.match(/struct \w+[^}]+}/g) || [];
         return structMatches.filter(struct => struct.toLowerCase().includes(domain));
     }
 
     private extractEvents(domain: string): string[] {
-        const eventMatches = this.contractContent.match(/event \\w+[^;]+;/g) || [];
+        const eventMatches = this.contractContent.match(/event \w+[^;]+;/g) || [];
         return eventMatches.filter(event => event.toLowerCase().includes(domain));
     }
 
     private async generateProductionFacets(): Promise<void> {
-        console.log("\\n🏭 Generating Production Facets:");
+        console.log("\n🏭 Generating Production Facets:");
         
         const outputDir = path.join(process.cwd(), 'contracts', 'generated-facets-v2');
         if (!fs.existsSync(outputDir)) {
@@ -303,11 +303,11 @@ ${this.generateCoreFunctions(domain, facetName)}
         if (domain.structs.length === 0) {
             return `// No domain-specific structs extracted for ${domain.name}`;
         }
-        return domain.structs.join('\\n\\n');
+        return domain.structs.join('\n\n');
     }
 
     private generateStorageLayout(domain: any): string {
-        const stateVars = domain.stateVars.map(sv => `        ${sv}`).join('\\n');
+        const stateVars = domain.stateVars.map((sv: string) => `        ${sv}`).join('\n');
         return stateVars || `        // Core ${domain.name.toLowerCase()} state variables
         mapping(address => uint256) balances;
         uint256 totalSupply;`;
@@ -318,7 +318,7 @@ ${this.generateCoreFunctions(domain, facetName)}
             return `    // Core ${domain.name} events
     event ${domain.name}ActionExecuted(address indexed user, uint256 amount, uint256 timestamp);`;
         }
-        return domain.events.map(e => `    ${e}`).join('\\n');
+        return domain.events.map((e: string) => `    ${e}`).join('\n');
     }
 
     private generateCoreFunctions(domain: any, facetName: string): string {
@@ -326,7 +326,7 @@ ${this.generateCoreFunctions(domain, facetName)}
             return this.generateSkeletonFunction(domain.name, facetName);
         }
 
-        return domain.functions.map(func => {
+        return domain.functions.map((func: string) => {
             const funcName = this.extractFunctionName(func);
             const params = this.extractFunctionParams(func);
             
@@ -347,7 +347,7 @@ ${this.generateCoreFunctions(domain, facetName)}
         // - Event emission
         // - Follow checks-effects-interactions pattern
     }`;
-        }).join('\\n\\n');
+        }).join('\n\n');
     }
 
     private generateSkeletonFunction(domainName: string, facetName: string): string {
@@ -371,17 +371,17 @@ ${this.generateCoreFunctions(domain, facetName)}
     }
 
     private extractFunctionName(funcCode: string): string {
-        const match = funcCode.match(/function (\\w+)/);
+        const match = funcCode.match(/function (\w+)/);
         return match ? match[1] : 'unknownFunction';
     }
 
     private extractFunctionParams(funcCode: string): string {
-        const match = funcCode.match(/function \\w+\\(([^)]*)\\)/);
+        const match = funcCode.match(/function \w+\(([^)]*)\)/);
         return match ? match[1] : '';
     }
 
     private async createProductionManifest(): Promise<void> {
-        console.log("\\n📋 Creating Production Deployment Manifest:");
+        console.log("\n📋 Creating Production Deployment Manifest:");
         
         const manifest = {
             version: "3.0.0",
@@ -423,7 +423,7 @@ ${this.generateCoreFunctions(domain, facetName)}
     }
 
     private async validateAgainstStandards(): Promise<void> {
-        console.log("\\n🛡️ Production Standards Validation:");
+        console.log("\n🛡️ Production Standards Validation:");
         
         const outputDir = path.join(process.cwd(), 'contracts', 'generated-facets-v2');
         const facetFiles = fs.readdirSync(outputDir).filter(f => f.endsWith('.sol'));
@@ -438,13 +438,13 @@ ${this.generateCoreFunctions(domain, facetName)}
                 console.log(`   ✅ ${file}: PRODUCTION READY (${result.score}/100)`);
             } else {
                 console.log(`   ❌ ${file}: BLOCKED (${result.score}/100)`);
-                result.blockers.forEach(b => console.log(`      ${b}`));
+                result.blockers.forEach((b: string) => console.log(`      ${b}`));
                 allPassed = false;
             }
         }
         
         if (allPassed) {
-            console.log("\\n🎉 ALL FACETS PASS PRODUCTION STANDARDS - ZERO BLOCKERS!");
+            console.log("\n🎉 ALL FACETS PASS PRODUCTION STANDARDS - ZERO BLOCKERS!");
         }
     }
 
@@ -453,13 +453,13 @@ ${this.generateCoreFunctions(domain, facetName)}
         
         // Check 1: No duplicate storage fields
         const storageMatches = content.match(/mapping\\([^)]+\\)\\s+(\\w+);/g) || [];
-        const fieldNames = storageMatches.map(m => m.match(/\\)\\s+(\\w+);/)?.[1]).filter(Boolean);
+        const fieldNames = storageMatches.map(m => m.match(/\)\s+(\w+);/)?.[1]).filter(Boolean);
         const duplicates = fieldNames.filter((name, index) => fieldNames.indexOf(name) !== index);
         if (duplicates.length === 0) result.score += 20;
         else result.blockers.push("Duplicate storage fields");
 
         // Check 2: All state-changing functions have onlyDispatcher
-        const stateChangingFunctions = content.match(/function\\s+\\w+\\([^)]*\\)\\s+external[^{]*{/g) || [];
+        const stateChangingFunctions = content.match(/function\s+\w+\([^)]*\)\s+external[^{]*{/g) || [];
         const allGated = stateChangingFunctions.every(func => {
             const funcText = func + content.split(func)[1]?.split('}')[0] || '';
             return funcText.includes('onlyDispatcher') || funcText.includes('view') || funcText.includes('pure');
@@ -474,7 +474,7 @@ ${this.generateCoreFunctions(domain, facetName)}
         if (hasModifiers) result.score += 15;
 
         // Check 4: ASCII only
-        const asciiOnly = /^[\\x20-\\x7E\\s]*$/.test(content);
+        const asciiOnly = /^[\x20-\x7E\s]*$/.test(content);
         if (asciiOnly) result.score += 15;
         else result.blockers.push("Non-ASCII characters");
 

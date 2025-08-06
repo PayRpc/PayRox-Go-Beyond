@@ -46,6 +46,10 @@ entryPoints:
     demo: "npm run ai:refactor-demo"
     analysis: "npm run ai:oz-analysis"
     system: "npm run ai:system"
+    manifestLearning: "npx ts-node scripts/ai-manifest-aware-validator.ts"
+    facetValidation: "npx ts-node scripts/ai-complete-facet-fixer.ts"
+    architectureMastery: "echo 'AI Architecture Learning Complete - See AI_COMPLETE_ARCHITECTURE_MASTERY.md'"
+    yamlConnection: "npx ts-node scripts/ai-yaml-entry-point-validator.ts"
   
   openZeppelin:
     check: "npm run oz:check"
