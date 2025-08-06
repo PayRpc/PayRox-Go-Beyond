@@ -116,6 +116,32 @@
         },
         "enforceGuardrails": true
       }
+    },
+    "SecurityFacet": {
+      "archetype": "core",
+      "version": "2.0.0",
+      "templateHash": "a9b76ab3494936c74aad285542e73903c610b17d9e1ae6755c26513a39a60c74",
+      "generatedAt": "2025-08-06T22:46:53.644Z",
+      "config": {
+        "facetName": "SecurityFacet",
+        "archetype": "core",
+        "outputDir": "./contracts/generated-facets",
+        "customizations": {},
+        "enforceGuardrails": true
+      }
+    },
+    "TokenGovernanceFacet": {
+      "archetype": "governance",
+      "version": "2.0.0",
+      "templateHash": "76fff98e5a7b0ef05ff36ea21f037cbaaf855885fbd25a2b9e620767b6a8b9c9",
+      "generatedAt": "2025-08-06T22:47:09.104Z",
+      "config": {
+        "facetName": "TokenGovernanceFacet",
+        "archetype": "governance",
+        "outputDir": "./contracts/generated-facets",
+        "customizations": {},
+        "enforceGuardrails": true
+      }
     }
   }
 }

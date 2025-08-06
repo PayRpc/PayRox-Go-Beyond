@@ -2,8 +2,8 @@
 pragma solidity ^0.8.20;
 
 // Template: Facet.Core@2.0.0
-// Hash: {{TEMPLATE_HASH}}
-// Generated: {{TIMESTAMP}}
+// Hash: a9b76ab3494936c7
+// Generated: 2025-08-06T22:46:53.641Z
 
 import "../utils/LibDiamond.sol";
 
@@ -16,11 +16,11 @@ error InvalidParam();
 error Reentrancy();
 
 /// ---------- Storage (namespaced, collision-safe) ----------
-bytes32 constant {{FACET_NAME_UPPER}}_SLOT = keccak256("payrox.facet.{{FACET_NAME_LOWER}}.v1");
+bytes32 constant SECURITY_SLOT = keccak256("payrox.facet.security.v1");
 
-struct {{FacetName}}Layout {
+struct SecurityFacetLayout {
     // Custom storage fields (filled by generator)
-    {{CUSTOM_STORAGE_FIELDS}}
+    // Custom storage fields will be added here
     
     // Standard lifecycle & security (always present)
     bool initialized;
@@ -31,24 +31,24 @@ struct {{FacetName}}Layout {
     uint256 nonce;       // For unique ID generation
 }
 
-function _s() pure returns ({{FacetName}}Layout storage l) {
-    bytes32 slot = {{FACET_NAME_UPPER}}_SLOT;
+function _s() pure returns (SecurityFacetLayout storage l) {
+    bytes32 slot = SECURITY_SLOT;
     assembly { l.slot := slot }
 }
 
 /**
- * @title {{FacetName}}
- * @notice {{FACET_DESCRIPTION}}
+ * @title SecurityFacet
+ * @notice Minimal facet archetype with initialization, pause, and reentrancy protection
  * @dev Facet-safe: namespaced storage, custom reentrancy, dispatcher gating
  * @custom:archetype core
  * @custom:version 2.0.0
  */
-contract {{FacetName}} {
+contract SecurityFacet {
     
     /// ---------- Events ----------
-    event {{FacetName}}Initialized(address indexed operator, uint256 timestamp);
+    event SecurityFacetInitialized(address indexed operator, uint256 timestamp);
     event PauseStatusChanged(bool paused);
-    {{CUSTOM_EVENTS}}
+    // Custom events will be added here
 
     /// ---------- Modifiers (security-first) ----------
     modifier onlyDispatcher() {
@@ -72,7 +72,7 @@ contract {{FacetName}} {
     }
     
     modifier nonReentrant() {
-        {{FacetName}}Layout storage l = _s();
+        SecurityFacetLayout storage l = _s();
         if (l._reentrancy == 2) revert Reentrancy();
         l._reentrancy = 2;
         _;
@@ -80,13 +80,13 @@ contract {{FacetName}} {
     }
 
     /// ---------- Initialization (no constructor pattern) ----------
-    function initialize{{FacetName}}(
+    function initializeSecurityFacet(
         address operator_
-        {{CUSTOM_INIT_PARAMS}}
+        
     ) external onlyDispatcher {
         if (operator_ == address(0)) revert Unauthorized();
         
-        {{FacetName}}Layout storage l = _s();
+        SecurityFacetLayout storage l = _s();
         if (l.initialized) revert AlreadyInitialized();
 
         l.initialized = true;
@@ -95,9 +95,9 @@ contract {{FacetName}} {
         l.paused = false;
         l._reentrancy = 1;
         
-        {{CUSTOM_INIT_LOGIC}}
+        // Custom initialization logic here
 
-        emit {{FacetName}}Initialized(operator_, block.timestamp);
+        emit SecurityFacetInitialized(operator_, block.timestamp);
     }
 
     /// ---------- Admin Functions (operator-gated via dispatcher) ----------
@@ -106,25 +106,25 @@ contract {{FacetName}} {
         emit PauseStatusChanged(paused_);
     }
 
-    {{CUSTOM_ADMIN_FUNCTIONS}}
+    // Custom admin functions will be added here
 
     /// ---------- Core Business Logic (filled by generator) ----------
-    {{CUSTOM_CORE_FUNCTIONS}}
+    // Custom core functions will be added here
 
     /// ---------- View Functions ----------
-    function is{{FacetName}}Initialized() external view returns (bool) {
+    function isSecurityFacetInitialized() external view returns (bool) {
         return _s().initialized;
     }
     
-    function get{{FacetName}}Version() external view returns (uint8) {
+    function getSecurityFacetVersion() external view returns (uint8) {
         return _s().version;
     }
     
-    function is{{FacetName}}Paused() external view returns (bool) {
+    function isSecurityFacetPaused() external view returns (bool) {
         return _s().paused;
     }
 
-    {{CUSTOM_VIEW_FUNCTIONS}}
+    // Custom view functions will be added here
 
     /// ---------- Manifest Integration (REQUIRED) ----------
     function getFacetInfo()
@@ -132,20 +132,20 @@ contract {{FacetName}} {
         pure
         returns (string memory name, string memory version, bytes4[] memory selectors)
     {
-        name = "{{FACET_NAME_CLEAN}}";
+        name = "Security";
         version = "2.0.0";
 
         // Exact selector count (no zeros, prevents manifest failures)
-        selectors = new bytes4[]({{SELECTOR_COUNT}});
+        selectors = new bytes4[](5);
         uint256 i = 0;
         
         // Standard selectors (always present)
-        selectors[i++] = this.initialize{{FacetName}}.selector;
+        selectors[i++] = this.initializeSecurityFacet.selector;
         selectors[i++] = this.setPaused.selector;
-        selectors[i++] = this.is{{FacetName}}Initialized.selector;
-        selectors[i++] = this.get{{FacetName}}Version.selector;
-        selectors[i++] = this.is{{FacetName}}Paused.selector;
+        selectors[i++] = this.isSecurityFacetInitialized.selector;
+        selectors[i++] = this.getSecurityFacetVersion.selector;
+        selectors[i++] = this.isSecurityFacetPaused.selector;
         
-        {{CUSTOM_SELECTORS}}
+        
     }
 }

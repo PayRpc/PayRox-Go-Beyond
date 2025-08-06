@@ -75,6 +75,9 @@ class PayRoxTemplateGenerator {
     // Update lockfile
     await this.updateLockfile(config, archetype, templateHash);
     
+    // Run MUST-FIX validation
+    await this.runMustFixValidation(outputPath);
+    
     console.log(`✅ Generated: ${outputPath}`);
     console.log(`🧪 Test file: ${config.outputDir}/${config.facetName}.spec.ts`);
     console.log(`🔒 Lockfile updated with template hash: ${templateHash.substring(0, 16)}...`);
@@ -246,11 +249,12 @@ class PayRoxTemplateGenerator {
   }
 
   private calculateSelectorCount(customizations: any): string {
-    const baseCount = 5; // Standard functions: initialize, setPaused, 3 views
-    const adminCount = customizations.adminFunctions?.length || 0;
-    const coreCount = customizations.coreFunctions?.length || 0;
-    const viewCount = customizations.viewFunctions?.length || 0;
-    return (baseCount + adminCount + coreCount + viewCount).toString();
+    // Base count: 5 standard functions (initialize, setPaused, 3 views)
+    const baseCount = 5;
+    const customCount = (customizations.coreFunctions?.length || 0) + 
+                       (customizations.adminFunctions?.length || 0) + 
+                       (customizations.viewFunctions?.length || 0);
+    return (baseCount + customCount).toString();
   }
 
   private generateCustomSelectors(functions: any[]): string {
@@ -261,7 +265,7 @@ class PayRoxTemplateGenerator {
     ).join('\\n');
   }
 
-  private async generateTestFile(config: GenerationConfig, archetype: ArchetypeManifest): Promise<void> {
+  private async generateTestFile(config: GenerationConfig, _archetype: ArchetypeManifest): Promise<void> {
     const testTemplate = `
 import { expect } from "chai";
 import { ethers } from "hardhat";
@@ -334,6 +338,25 @@ describe("${config.facetName}", () => {
   private ensureDirectoryExists(dir: string): void {
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
+    }
+  }
+
+  private async runMustFixValidation(filePath: string): Promise<void> {
+    try {
+      console.log('\\n🔍 Running MUST-FIX validation...');
+      const { MustFixValidator } = await import('../../../scripts/must-fix-validator');
+      const validator = new MustFixValidator();
+      const result = await validator.validateFacet(filePath);
+      
+      if (result.passed) {
+        console.log(`✅ MUST-FIX validation passed (${result.score}%)`);
+      } else {
+        console.log(`❌ MUST-FIX validation failed (${result.score}%)`);
+        result.violations.forEach(v => console.log(`   • ${v}`));
+        console.log('\\n⚠️  Generated facet needs fixes before production use');
+      }
+    } catch (error) {
+      console.log('⚠️  MUST-FIX validation unavailable:', (error as Error).message);
     }
   }
 
