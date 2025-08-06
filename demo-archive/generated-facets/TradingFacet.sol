@@ -1,306 +1,275 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/Pausable.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "../utils/LibDiamond.sol";
 
 /**
  * @title TradingFacet
- * @notice PayRox AI-Generated Professional Diamond Facet
- * @dev Production-ready architectural scaffolding for TradingFacet domain
- * 
- * 🎯 PAYROX VALUE PROPOSITION:
- * ════════════════════════════════════════════════════════════════════
- * ✅ Eliminates 3+ weeks Diamond pattern learning curve
- * ✅ Automatic storage isolation (prevents conflicts)
- * ✅ Professional LibDiamond integration
- * ✅ Production-ready access controls
- * ✅ Intelligent function signature extraction
- * ✅ Gas-optimized facet organization
- * 
- * 👨‍💻 DEVELOPER FOCUS AREAS:
- * ════════════════════════════════════════════════════════════════════
- * PayRox handles the complex architectural plumbing.
- * You focus on implementing your domain-specific business logic.
- * 
- * 🏗️ ARCHITECTURAL FEATURES PROVIDED:
- * ════════════════════════════════════════════════════════════════════
- * - Isolated storage: payrox.facet.storage.tradingfacet.v1
- * - Manifest routing: All calls via dispatcher
- * - Access control: Via LibDiamond enforceIsDispatcher
- * - Deployment: CREATE2 content-addressed
- * - Initialization: Proper facet lifecycle management
- * - Events: Professional monitoring patterns
- * - Modifiers: Production-ready safety checks
- * 
- * 📚 IMPLEMENTATION GUIDANCE:
- * ════════════════════════════════════════════════════════════════════
- * 1. Review the TODO sections in each function
- * 2. Implement your domain-specific business logic
- * 3. Add your custom events and error types
- * 4. Test your implementations thoroughly
- * 5. Deploy using PayRox deterministic deployment
+ * @notice Production-safe Diamond facet scaffolding with isolated storage and role-gated admin.
+ * @dev AI-generated facet following PayRox production standards
  */
-contract TradingFacet is ReentrancyGuard, Ownable, Pausable {
-    using LibDiamond for LibDiamond.DiamondStorage;
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    // ISOLATED STORAGE (PayRox Diamond Pattern)
-    // ═══════════════════════════════════════════════════════════════════════════
+/// ------------------------
+/// Errors (gas-efficient)
+/// ------------------------
+error NotInit();
+error AlreadyInit();
+error Paused();
+error Reentrancy();
+error InvalidToken();
+error InsufficientBalance();
+error OrderNotFound();
+error NotOrderOwner();
 
-    /// @dev PayRox isolated storage slot: payrox.facet.storage.tradingfacet.v1
-    bytes32 private constant STORAGE_POSITION = 
-        keccak256("payrox.facet.storage.tradingfacet.v1");
+/// ------------------------
+/// Types
+/// ------------------------
+struct Order {
+    address trader;
+    address tokenIn;
+    address tokenOut;
+    uint256 amountIn;
+    uint256 targetRate;
+    uint256 deadline;
+    bool filled;
+}
 
-    struct TradingFacetStorage {
-        // State variables from ComplexDeFiProtocol
-        mapping(address => uint256) public userBalances;
-    mapping(address => mapping(address => uint256)) public tokenBalances;
-    mapping(address => bool) public approvedTokens;
-    mapping(bytes32 => Order) public orders;
-    mapping(address => uint256) public tradingFees;
-    uint256 public totalTradingVolume;
-    uint256 public tradingFeeRate;
+enum OrderType { MARKET, LIMIT, STOP_LOSS }
+
+/// ------------------------
+/// Roles
+/// ------------------------
+bytes32 constant PAUSER_ROLE = keccak256("TRADINGFACET_PAUSER_ROLE");
+
+library TradingFacetStorage {
+    bytes32 internal constant SLOT = keccak256("payrox.gobeyond.facet.storage.tradingfacet.v2");
+
+    struct Layout {
+        // Core state (scaffold) - NO DUPLICATES
+        mapping(address => uint256) userBalances;
+        mapping(address => mapping(address => uint256)) tokenBalances;
+        mapping(address => bool) approvedTokens;
+        mapping(bytes32 => Order) orders;
+        mapping(address => uint256) tradingFees;
+        uint256 totalTradingVolume;
+        uint256 tradingFeeRate;
         
-        // Common facet storage
+        // Ordering
+        uint256 orderNonce;
+        
+        // Lifecycle
         bool initialized;
-        uint256 version;
+        uint8 version;
+        
+        // Security
+        uint256 _reentrancy; // 1=unlocked, 2=locked
+        bool paused;
     }
 
-    function tradingfacetStorage() internal pure returns (TradingFacetStorage storage ds) {
-        bytes32 position = STORAGE_POSITION;
-        assembly {
-            ds.slot := position
-        }
+    function layout() internal pure returns (Layout storage l) {
+        bytes32 slot = SLOT;
+        assembly { l.slot := slot }
     }
+}
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    // EXTRACTED STRUCTS AND ENUMS
-    // ═══════════════════════════════════════════════════════════════════════════
+contract TradingFacet {
+    using SafeERC20 for IERC20;
 
-    struct Order {
-        address trader;
-        address tokenIn;
-        address tokenOut;
-        uint256 amountIn;
-        uint256 amountOut;
-        uint256 deadline;
-        bool filled;
-        OrderType orderType;
-    }
-
-    enum OrderType { MARKET, LIMIT, STOP_LOSS }
-
-    enum ProposalType { PARAMETER_CHANGE, UPGRADE, EMERGENCY }
-
-    enum PolicyType { SMART_CONTRACT, LIQUIDATION, ORACLE }
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // EXTRACTED EVENTS
-    // ═══════════════════════════════════════════════════════════════════════════
-
+    /// ------------------------
+    /// Events
+    /// ------------------------
     event OrderPlaced(bytes32 indexed orderId, address indexed trader, address tokenIn, address tokenOut, uint256 amountIn);
     event OrderFilled(bytes32 indexed orderId, address indexed trader, uint256 amountOut);
     event TradeExecuted(address indexed trader, address tokenIn, address tokenOut, uint256 amountIn, uint256 amountOut);
+    event PausedSet(bool paused);
+    event TokenApprovalSet(address indexed token, bool approved);
+    event TradingFacetInitialized(address indexed dispatcher, uint256 timestamp);
+    event TradingFacetFunctionCalled(bytes4 indexed selector, address indexed caller);
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    // PAYRIX DISPATCHER INTEGRATION
-    // ═══════════════════════════════════════════════════════════════════════════
-
+    /// ------------------------
+    /// Modifiers (CONSISTENT PATTERN)
+    /// ------------------------
     modifier onlyDispatcher() {
         LibDiamond.enforceIsDispatcher();
         _;
     }
 
+    modifier onlyPauser() {
+        LibDiamond.enforceRole(PAUSER_ROLE, msg.sender);
+        _;
+    }
+
+    modifier nonReentrant() {
+        TradingFacetStorage.Layout storage ds = TradingFacetStorage.layout();
+        if (ds._reentrancy == 2) revert Reentrancy();
+        ds._reentrancy = 2;
+        _;
+        ds._reentrancy = 1;
+    }
+
     modifier whenNotPaused() {
-        require(!LibDiamond.diamondStorage().paused, "TradingFacet: paused");
+        if (TradingFacetStorage.layout().paused) revert Paused();
         _;
     }
 
     modifier onlyInitialized() {
-        require(tradingfacetStorage().initialized, "TradingFacet: not initialized");
+        if (!TradingFacetStorage.layout().initialized) revert NotInit();
         _;
     }
 
-    constructor() Ownable(msg.sender) {}
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // INITIALIZATION
-    // ═══════════════════════════════════════════════════════════════════════════
-
+    /// ------------------------
+    /// Initialization (no constructor)
+    /// ------------------------
     function initializeTradingFacet() external onlyDispatcher {
-        TradingFacetStorage storage ds = tradingfacetStorage();
-        require(!ds.initialized, "TradingFacet: already initialized");
-        
+        TradingFacetStorage.Layout storage ds = TradingFacetStorage.layout();
+        if (ds.initialized) revert AlreadyInit();
         ds.initialized = true;
-        ds.version = 1;
-        
+        ds.version = 2;
+        ds._reentrancy = 1;
         emit TradingFacetInitialized(msg.sender, block.timestamp);
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    // REAL EXTRACTED FUNCTIONS FROM COMPLEXDEFIPROTOCOL
-    // ═══════════════════════════════════════════════════════════════════════════
+    /// ------------------------
+    /// Admin (role-gated via dispatcher)
+    /// ------------------------
+    function setPaused(bool _paused) external onlyDispatcher onlyPauser {
+        TradingFacetStorage.layout().paused = _paused;
+        emit PausedSet(_paused);
+    }
 
-    /**
-     * @notice placeMarketOrder - Professional Diamond facet implementation
-     * @dev PayRox-generated scaffolding with LibDiamond integration
-     * 
-     * 🏗️ ARCHITECTURAL SCAFFOLDING PROVIDED:
-     * ✅ Storage isolation (conflict-free)
-     * ✅ Access controls (LibDiamond dispatcher)
-     * ✅ Error handling patterns
-     * ✅ Event emission structure
-     * 
-     * 👨‍💻 DEVELOPER TODO: Implement your business logic below
-     */
-    function placeMarketOrder(address tokenIn, address tokenOut, uint256 amountIn, uint256 minAmountOut) external nonReentrant whenNotPaused {
-        // 🔒 PayRox Professional Access Control (saves weeks of Diamond learning)
-        LibDiamond.enforceIsDispatcher();
-        
-        // 🗄️ PayRox Isolated Storage Access (prevents storage conflicts)
-        TradingFacetStorage storage ds = tradingfacetStorage();
-        require(ds.initialized, "TradingFacet: not initialized");
-        
-        // 📊 PayRox Event Pattern (professional monitoring)
+    function setTokenApproved(address token, bool approved) external onlyDispatcher onlyPauser {
+        if (token == address(0)) revert InvalidToken();
+        TradingFacetStorage.layout().approvedTokens[token] = approved;
+        emit TokenApprovalSet(token, approved);
+    }
+
+    /// ------------------------
+    /// Core Functions - PROPERLY GATED
+    /// ------------------------
+    function placeMarketOrder(
+        address tokenIn,
+        address tokenOut,
+        uint256 amountIn,
+        uint256 minAmountOut
+    )
+        external
+        onlyDispatcher      // CRITICAL: Must go through dispatcher
+        onlyInitialized     // CONSISTENT: Use modifier not inline check
+        whenNotPaused       // SECURITY: Respect pause state
+        nonReentrant        // SECURITY: Prevent reentrancy
+    {
         emit TradingFacetFunctionCalled(msg.sig, msg.sender);
         
+        TradingFacetStorage.Layout storage ds = TradingFacetStorage.layout();
         
-        // 👨‍💻 IMPLEMENT YOUR TRADING LOGIC:
-        // 1. Validate tokenIn and tokenOut are approved
-        // 2. Check user has sufficient balance
-        // 3. Calculate exchange rate and slippage
-        // 4. Execute the trade
-        // 5. Update user balances
-        // 
-        // Example:
-        // require(ds.approvedTokens[tokenIn], "Token not approved");
-        // require(ds.userBalances[msg.sender] >= amountIn, "Insufficient balance");
-        // uint256 amountOut = calculateMarketPrice(tokenIn, tokenOut, amountIn);
-        // require(amountOut >= minAmountOut, "Slippage exceeded");
+        // TODO: implement production logic (checks-effects-interactions + SafeERC20)
+        // - validate approvals: ds.approvedTokens[tokenIn/out]
+        // - compute amountOut via oracle/AMM hook: _quote(tokenIn, tokenOut, amountIn)
+        // - update totals: ds.totalTradingVolume += amountIn;
+        // - transfer: IERC20(tokenIn).safeTransferFrom(...); IERC20(tokenOut).safeTransfer(...);
+        
+        // Example implementation skeleton:
+        // if (!ds.approvedTokens[tokenIn] || !ds.approvedTokens[tokenOut]) revert InvalidToken();
+        // if (ds.userBalances[msg.sender] < amountIn) revert InsufficientBalance();
+        // uint256 amountOut = _quote(tokenIn, tokenOut, amountIn);
+        // if (amountOut < minAmountOut) revert InsufficientBalance();
         // 
         // ds.userBalances[msg.sender] -= amountIn;
         // ds.tokenBalances[msg.sender][tokenOut] += amountOut;
         // ds.totalTradingVolume += amountIn;
-        
-        // 🎯 PayRox Success Pattern
-        // emit SpecificplaceMarketOrderEvent(params...); // Add your specific event
+        // 
+        // emit TradeExecuted(msg.sender, tokenIn, tokenOut, amountIn, amountOut);
     }
 
-    /**
-     * @notice placeLimitOrder - Professional Diamond facet implementation
-     * @dev PayRox-generated scaffolding with LibDiamond integration
-     * 
-     * 🏗️ ARCHITECTURAL SCAFFOLDING PROVIDED:
-     * ✅ Storage isolation (conflict-free)
-     * ✅ Access controls (LibDiamond dispatcher)
-     * ✅ Error handling patterns
-     * ✅ Event emission structure
-     * 
-     * 👨‍💻 DEVELOPER TODO: Implement your business logic below
-     */
-    function placeLimitOrder(address tokenIn, address tokenOut, uint256 amountIn, uint256 targetRate, uint256 deadline) external nonReentrant whenNotPaused {
-        // 🔒 PayRox Professional Access Control (saves weeks of Diamond learning)
-        LibDiamond.enforceIsDispatcher();
-        
-        // 🗄️ PayRox Isolated Storage Access (prevents storage conflicts)
-        TradingFacetStorage storage ds = tradingfacetStorage();
-        require(ds.initialized, "TradingFacet: not initialized");
-        
-        // 📊 PayRox Event Pattern (professional monitoring)
+    function placeLimitOrder(
+        address tokenIn,
+        address tokenOut,
+        uint256 amountIn,
+        uint256 targetRate,
+        uint256 deadline
+    )
+        external
+        onlyDispatcher      // CRITICAL: All state changes must be gated
+        onlyInitialized
+        whenNotPaused
+        nonReentrant
+    {
         emit TradingFacetFunctionCalled(msg.sig, msg.sender);
         
-        
-        // 👨‍💻 IMPLEMENT YOUR LIMIT ORDER LOGIC:
-        // 1. Create order struct with parameters
-        // 2. Generate unique order ID
-        // 3. Store order in order book
-        // 4. Lock user funds in escrow
-        // 
-        // Example:
-        // bytes32 orderId = keccak256(abi.encodePacked(msg.sender, block.timestamp, amountIn));
-        // ds.orders[orderId] = Order({
+        // TODO: create order with unique ID using _newOrderId(...)
+        // bytes32 id = _newOrderId(msg.sender, tokenIn, tokenOut, amountIn);
+        // TradingFacetStorage.Layout storage ds = TradingFacetStorage.layout();
+        // ds.orders[id] = Order({
         //     trader: msg.sender,
         //     tokenIn: tokenIn,
         //     tokenOut: tokenOut,
         //     amountIn: amountIn,
-        //     amountOut: (amountIn * targetRate) / 1e18,
+        //     targetRate: targetRate,
         //     deadline: deadline,
-        //     filled: false,
-        //     orderType: OrderType.LIMIT
+        //     filled: false
         // });
-        
-        // 🎯 PayRox Success Pattern
-        // emit SpecificplaceLimitOrderEvent(params...); // Add your specific event
+        // IERC20(tokenIn).safeTransferFrom(msg.sender, address(this), amountIn);
+        // emit OrderPlaced(id, msg.sender, tokenIn, tokenOut, amountIn);
     }
 
-    /**
-     * @notice cancelOrder - Professional Diamond facet implementation
-     * @dev PayRox-generated scaffolding with LibDiamond integration
-     * 
-     * 🏗️ ARCHITECTURAL SCAFFOLDING PROVIDED:
-     * ✅ Storage isolation (conflict-free)
-     * ✅ Access controls (LibDiamond dispatcher)
-     * ✅ Error handling patterns
-     * ✅ Event emission structure
-     * 
-     * 👨‍💻 DEVELOPER TODO: Implement your business logic below
-     */
-    function cancelOrder(bytes32 orderId) external nonReentrant {
-        // 🔒 PayRox Professional Access Control (saves weeks of Diamond learning)
-        LibDiamond.enforceIsDispatcher();
-        
-        // 🗄️ PayRox Isolated Storage Access (prevents storage conflicts)
-        TradingFacetStorage storage ds = tradingfacetStorage();
-        require(ds.initialized, "TradingFacet: not initialized");
-        
-        // 📊 PayRox Event Pattern (professional monitoring)
+    function cancelOrder(bytes32 orderId)
+        external
+        onlyDispatcher      // CRITICAL: All state changes must be gated
+        onlyInitialized
+        whenNotPaused
+        nonReentrant
+    {
         emit TradingFacetFunctionCalled(msg.sig, msg.sender);
         
+        TradingFacetStorage.Layout storage ds = TradingFacetStorage.layout();
+        Order storage order = ds.orders[orderId];
         
-        // 👨‍💻 IMPLEMENT YOUR TRADINGFACET BUSINESS LOGIC HERE:
-        // 
-        // PayRox has provided the architectural scaffolding:
-        // ✅ Storage isolation (ds.tradingfacetStorage)
-        // ✅ Access controls (LibDiamond.enforceIsDispatcher)
-        // ✅ Error handling patterns
-        // ✅ Event emission structure
-        // 
-        // Add your domain-specific implementation:
-        // 1. Input validation
-        // 2. Business logic execution  
-        // 3. State updates
-        // 4. Event emissions
-        //
-        // Example pattern:
-        // require(condition, "TradingFacet: validation message");
-        // // Your business logic here
-        // ds.someStateVariable = newValue;
-        // emit SomeEvent(params);
+        if (order.trader == address(0)) revert OrderNotFound();
+        if (order.trader != msg.sender) revert NotOrderOwner();
+        if (order.filled) revert OrderNotFound(); // Already filled
         
-        // 🎯 PayRox Success Pattern
-        // emit SpecificcancelOrderEvent(params...); // Add your specific event
+        // TODO: implement cancellation logic
+        // - refund locked tokens: IERC20(order.tokenIn).safeTransfer(order.trader, order.amountIn);
+        // - mark order as cancelled/delete: delete ds.orders[orderId];
+        // - emit cancellation event
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    // VIEW FUNCTIONS
-    // ═══════════════════════════════════════════════════════════════════════════
+    /// ------------------------
+    /// Internal hooks
+    /// ------------------------
+    function _quote(address /*tokenIn*/, address /*tokenOut*/, uint256 amountIn) internal pure returns (uint256) {
+        // TODO: wire oracle/AMM; revert on stale/invalid prices
+        return amountIn; // placeholder 1:1
+    }
 
+    function _newOrderId(
+        address user,
+        address tokenIn,
+        address tokenOut,
+        uint256 amountIn
+    ) internal returns (bytes32) {
+        TradingFacetStorage.Layout storage ds = TradingFacetStorage.layout();
+        return keccak256(abi.encodePacked(block.chainid, user, tokenIn, tokenOut, amountIn, ds.orderNonce++));
+    }
+
+    /// ------------------------
+    /// Views (no gating needed)
+    /// ------------------------
     function isTradingFacetInitialized() external view returns (bool) {
-        return tradingfacetStorage().initialized;
+        return TradingFacetStorage.layout().initialized;
     }
 
     function getTradingFacetVersion() external view returns (uint256) {
-        return tradingfacetStorage().version;
+        return TradingFacetStorage.layout().version;
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    // EVENTS
-    // ═══════════════════════════════════════════════════════════════════════════
+    function isTradingFacetPaused() external view returns (bool) {
+        return TradingFacetStorage.layout().paused;
+    }
 
-    event TradingFacetInitialized(address indexed dispatcher, uint256 timestamp);
-    event TradingFacetFunctionCalled(bytes4 indexed selector, address indexed caller);
+    function getOrder(bytes32 orderId) external view returns (Order memory) {
+        return TradingFacetStorage.layout().orders[orderId];
+    }
 }
