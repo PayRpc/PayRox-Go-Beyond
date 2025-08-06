@@ -119,7 +119,8 @@ class AISecurityBridge {
       const outputPath = path.join(this.securityReportsDir, 'slither-report.json');
       
       const slitherCmd = [
-        'slither',
+        '"C:/Program Files/Python313/python.exe"',
+        '-m slither',
         '.',
         `--config-file ${configPath}`,
         `--json ${outputPath}`,
