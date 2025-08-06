@@ -114,12 +114,12 @@ contract ExchangeBeyondFacet {
     // Modifiers
     // ───────────────
     modifier onlyDispatcher() {
-        LibDiamond.enforceIsDispatcher();
+        LibDiamond.enforceManifestCall();
         _;
     }
 
     modifier onlyPauser() {
-        LibDiamond.enforceRole(PAUSER_ROLE, msg.sender);
+        LibDiamond.requireRole(PAUSER_ROLE);
         _;
     }
 
@@ -255,16 +255,16 @@ contract ExchangeBeyondFacet {
         if (tokensIn.length == 0 || tokensIn.length > 10) revert InvalidParam();
 
         // Use GasOptimizationUtils for batch processing efficiency
-        bytes[] memory callData = new bytes[](tokensIn.length * 4);
+        address[] memory targets = new address[](tokensIn.length);
+        bytes[] memory callData = new bytes[](tokensIn.length);
         for (uint256 i = 0; i < tokensIn.length; i++) {
-            callData[i * 4] = abi.encode(tokensIn[i]);
-            callData[i * 4 + 1] = abi.encode(tokensOut[i]);
-            callData[i * 4 + 2] = abi.encode(amountsIn[i]);
-            callData[i * 4 + 3] = abi.encode(minAmountsOut[i]);
+            targets[i] = address(this);
+            callData[i] = abi.encodeWithSignature("singleTradeOperation(address,address,uint256,uint256)", 
+                tokensIn[i], tokensOut[i], amountsIn[i], minAmountsOut[i]);
         }
 
-        // Batch call optimization
-        GasOptimizationUtils.batchCall(callData);
+        // Batch call optimization (commented out for scaffold)
+        // GasOptimizationUtils.batchCall(targets, callData);
 
         // Example batch execution logic (scaffold - implement your DEX logic)
         for (uint256 i = 0; i < tokensIn.length; i++) {
@@ -279,9 +279,11 @@ contract ExchangeBeyondFacet {
         }
 
         uint256 gasUsed = startGas - gasleft();
-        bytes32 packedMetadata = GasOptimizationUtils.packStorage(
-            abi.encode(tokensIn.length, block.timestamp, msg.sender)
-        );
+        uint64[] memory packData = new uint64[](3);
+        packData[0] = uint64(tokensIn.length);
+        packData[1] = uint64(block.timestamp);
+        packData[2] = uint64(uint160(msg.sender));
+        bytes32 packedMetadata = GasOptimizationUtils.packStorage(packData);
 
         emit BatchTradesExecuted(tokensIn.length, gasUsed, packedMetadata, block.timestamp);
     }
