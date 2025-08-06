@@ -4,9 +4,10 @@ pragma solidity 0.8.30;
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import {IManifestDispatcher} from "./interfaces/IManifestDispatcher.sol";
+import {IManifestDispatcher} from "../interfaces/IManifestDispatcher.sol";
 import {IDiamondLoupe} from "./enhanced/interfaces/IDiamondLoupe.sol";
 import {OrderedMerkle} from "../utils/OrderedMerkle.sol";
+import {GasOptimizationUtils} from "../utils/GasOptimizationUtils.sol";
 
 /**
  * @title ManifestDispatcher
@@ -77,6 +78,10 @@ contract ManifestDispatcher is
     bool private _initialized;
     address[] public facetAddressList;
     uint256 public routeCount;
+    
+    // Additional storage for contract tracking
+    mapping(address => bool) public isDeployedContract;
+    mapping(bytes32 => address) public chunkOf;
 
     // ═══════════════════════════════════════════════════════════════════════════
     // EVENTS (Additional contract-specific events only - interface events inherited)
@@ -84,6 +89,7 @@ contract ManifestDispatcher is
     event RootUpdated(bytes32 indexed manifestHash, uint256 routeCount); // bypass flow
     event DiamondCut(IDiamondLoupe.FacetCut[] diamondCut);
     event ReturnDataSizeUpdated(uint256 oldSize, uint256 newSize);
+    event RoutesBatchApplied(uint256 batchCount, uint256 totalRoutes, uint256 gasUsed, uint256 timestamp);
 
     // ═══════════════════════════════════════════════════════════════════════════
     // CUSTOM ERRORS (Gas-efficient over revert strings)
@@ -403,7 +409,7 @@ contract ManifestDispatcher is
                 registeredSelectors[selectors[i]] = false;
                 if (routeCount > 0) routeCount--;
                 _removeSelectorFromFacet(oldFacet, selectors[i]);
-                emit RouteRemoved(selectors[i], oldFacet);
+                emit RouteRemoved(selectors[i]);
             }
         }
     }
@@ -695,6 +701,56 @@ contract ManifestDispatcher is
         nonReentrant
     {
         _applyRoutes(selectors, facetList, codehashes, proofs, isRight);
+    }
+
+    /// @notice Apply multiple batches of routes in a single transaction for gas optimization
+    /// @dev Uses GasOptimizationUtils for efficient batch processing
+    /// @param batchSelectors Array of selector arrays for each batch
+    /// @param batchFacets Array of facet address arrays for each batch
+    /// @param batchCodehashes Array of codehash arrays for each batch
+    /// @param batchProofs Array of proof arrays for each batch
+    /// @param batchIsRight Array of isRight arrays for each batch
+    function applyRoutesBatch(
+        bytes4[][] calldata batchSelectors,
+        address[][] calldata batchFacets,
+        bytes32[][] calldata batchCodehashes,
+        bytes32[][][] calldata batchProofs,
+        bool[][][] calldata batchIsRight
+    )
+        external
+        onlyRole(APPLY_ROLE)
+        whenNotPaused
+        nonReentrant
+    {
+        uint256 batchCount = batchSelectors.length;
+        require(batchCount > 0, "ManifestDispatcher: empty batch");
+        require(batchCount <= MAX_BATCH_SIZE, "ManifestDispatcher: batch too large");
+        require(
+            batchFacets.length == batchCount &&
+            batchCodehashes.length == batchCount &&
+            batchProofs.length == batchCount &&
+            batchIsRight.length == batchCount,
+            "ManifestDispatcher: batch length mismatch"
+        );
+
+        uint256 totalRoutes = 0;
+        uint256 gasBefore = gasleft();
+
+        // Apply each batch of routes
+        for (uint256 i = 0; i < batchCount; i++) {
+            _applyRoutes(
+                batchSelectors[i],
+                batchFacets[i],
+                batchCodehashes[i],
+                batchProofs[i],
+                batchIsRight[i]
+            );
+            totalRoutes += batchSelectors[i].length;
+        }
+
+        uint256 gasUsed = gasBefore - gasleft();
+        
+        emit RoutesBatchApplied(batchCount, totalRoutes, gasUsed, block.timestamp);
     }
 
     /// from interface: updateManifest(bytes32,bytes)

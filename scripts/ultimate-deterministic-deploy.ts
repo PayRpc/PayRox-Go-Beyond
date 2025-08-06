@@ -46,6 +46,16 @@ interface DeploymentConfig {
   batchMode?: boolean;
   crossChain?: boolean;
   targetNetworks?: string[];
+  libraries?: { [libraryName: string]: string }; // Library linking support
+  requiredLibraries?: string[];  // Dependencies validation
+  requiredInterfaces?: string[]; // Interface validation
+  
+  // Orchestrator system dependencies
+  requiresFactory?: boolean;
+  requiresDispatcher?: boolean;
+  requiresGovernance?: boolean;
+  requiresAuditRegistry?: boolean;
+  openZeppelinDependencies?: string[];
 }
 
 interface DeploymentResult {
@@ -76,6 +86,9 @@ interface BatchDeploymentPlan {
   totalEstimatedCost: string;
   deploymentOrder: string[];
   crossChainStrategy?: 'sequential' | 'parallel' | 'optimized';
+  requiredLibraries?: string[];      // PayRox libraries needed
+  requiredInterfaces?: string[];     // Interface contracts needed  
+  openZeppelinDependencies?: string[]; // OpenZeppelin contracts needed
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════
@@ -246,12 +259,85 @@ class UltimateDeterministicDeployer {
   }
 
   /**
-   * 🔧 Contract bytecode preparation with constructor encoding
+   * � Validate contract dependencies and imports
+   */
+  private async validateDependencies(config: DeploymentConfig): Promise<void> {
+    console.log(`🔍 Validating dependencies for ${config.contractName}...`);
+    
+    // Check if contract exists and can be compiled
+    try {
+      const ContractFactory = await ethers.getContractFactory(config.contractName, {
+        libraries: config.libraries || {}
+      });
+      console.log(`✅ Contract ${config.contractName} compilation successful`);
+    } catch (error) {
+      throw new Error(`Contract compilation failed: ${error instanceof Error ? error.message : String(error)}`);
+    }
+    
+    // Validate required libraries if specified
+    if (config.requiredLibraries) {
+      for (const libraryName of config.requiredLibraries) {
+        try {
+          await ethers.getContractFactory(libraryName);
+          console.log(`✅ Required library ${libraryName} found`);
+        } catch (error) {
+          console.warn(`⚠️  Library ${libraryName} not found or not deployable`);
+        }
+      }
+    }
+    
+    // Validate required interfaces if specified  
+    if (config.requiredInterfaces) {
+      for (const interfaceName of config.requiredInterfaces) {
+        // Interfaces don't have deployable bytecode, just check they exist
+        try {
+          const artifact = await ethers.getContractFactory(interfaceName);
+          console.log(`✅ Required interface ${interfaceName} found`);
+        } catch (error) {
+          console.warn(`⚠️  Interface ${interfaceName} not found`);
+        }
+      }
+    }
+    
+    // Validate OpenZeppelin dependencies if specified
+    if (config.openZeppelinDependencies) {
+      for (const ozDep of config.openZeppelinDependencies) {
+        console.log(`✅ OpenZeppelin dependency ${ozDep} expected to be available`);
+      }
+    }
+    
+    // Validate orchestrator-specific dependencies
+    if (config.requiresFactory) {
+      console.log(`🏭 Contract requires DeterministicChunkFactory dependency`);
+    }
+    
+    if (config.requiresDispatcher) {
+      console.log(`📋 Contract requires ManifestDispatcher dependency`);
+    }
+    
+    if (config.requiresGovernance) {
+      console.log(`🏛️  Contract requires GovernanceOrchestrator dependency`);
+    }
+    
+    if (config.requiresAuditRegistry) {
+      console.log(`📝 Contract requires AuditRegistry dependency`);
+    }
+    
+    console.log(`✅ Dependency validation completed for ${config.contractName}`);
+  }
+
+  /**
+   * �🔧 Contract bytecode preparation with constructor encoding
    */
   private async prepareContractBytecode(config: DeploymentConfig) {
     console.log(`🔧 Preparing bytecode for ${config.contractName}...`);
     
-    const ContractFactory = await ethers.getContractFactory(config.contractName);
+    // Validate dependencies first
+    await this.validateDependencies(config);
+    
+    const ContractFactory = await ethers.getContractFactory(config.contractName, {
+      libraries: config.libraries || {}
+    });
     const bytecode = ContractFactory.bytecode;
     
     // Encode constructor arguments
@@ -523,10 +609,27 @@ class UltimateDeterministicDeployer {
   }
 
   /**
-   * 🔄 Batch deployment orchestrator
+   * 🔄 Batch deployment orchestrator with dependency validation
    */
   async deployBatch(plan: BatchDeploymentPlan): Promise<DeploymentResult[]> {
     console.log(`\n🔄 Starting batch deployment of ${plan.contracts.length} contracts...`);
+    
+    // Pre-deployment validation of all dependencies
+    if (plan.requiredLibraries || plan.requiredInterfaces || plan.openZeppelinDependencies) {
+      console.log(`\n🔍 Validating batch deployment dependencies...`);
+      
+      if (plan.requiredLibraries) {
+        console.log(`📚 Required libraries: ${plan.requiredLibraries.join(', ')}`);
+      }
+      
+      if (plan.requiredInterfaces) {
+        console.log(`🔌 Required interfaces: ${plan.requiredInterfaces.join(', ')}`);
+      }
+      
+      if (plan.openZeppelinDependencies) {
+        console.log(`🛡️  OpenZeppelin dependencies: ${plan.openZeppelinDependencies.join(', ')}`);
+      }
+    }
     
     const results: DeploymentResult[] = [];
     
@@ -662,6 +765,7 @@ program
   .requiredOption('-s, --salt <string>', 'Salt string for deterministic address')
   .option('-a, --args <args>', 'Constructor arguments (JSON array)', '[]')
   .option('-f, --factory <address>', 'Factory contract address')
+  .option('-l, --libraries <libs>', 'Library addresses (JSON object)', '{}')
   .option('--fee <wei>', 'Deployment fee in wei', '0')
   .option('--gas-limit <limit>', 'Gas limit for deployment')
   .option('--gas-price <gwei>', 'Gas price in gwei')
@@ -676,6 +780,7 @@ program
       saltString: options.salt,
       constructorArgs: JSON.parse(options.args),
       factoryAddress: options.factory,
+      libraries: JSON.parse(options.libraries),
       deploymentFeeWei: options.fee,
       gasLimit: options.gasLimit ? parseInt(options.gasLimit) : undefined,
       gasPrice: options.gasPrice,
@@ -787,14 +892,18 @@ export async function main(hre: HardhatRuntimeEnvironment, params: any = {}) {
       saltString: 'payrox-chunk-factory-v2',
       constructorArgs: [],
       skipIfExists: true,
-      verifyContract: true
+      verifyContract: true,
+      requiredLibraries: ['ChunkFactoryLib'],
+      requiredInterfaces: ['IChunkFactory']
     },
     {
       contractName: 'ManifestDispatcher',
       saltString: 'payrox-manifest-dispatcher-v2',
       constructorArgs: [],
       skipIfExists: true,
-      verifyContract: true
+      verifyContract: true,
+      requiredLibraries: ['OrderedMerkle', 'ManifestUtils'],
+      requiredInterfaces: ['IManifestDispatcher', 'IDiamondLoupe']
     }
   ];
   

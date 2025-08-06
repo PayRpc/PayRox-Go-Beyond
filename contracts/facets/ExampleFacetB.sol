@@ -2,6 +2,7 @@
 pragma solidity 0.8.30;
 
 import {SignatureChecker} from "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
+import {GasOptimizationUtils} from "../utils/GasOptimizationUtils.sol";
 
 /**
  * @title ExampleFacetB
@@ -59,6 +60,7 @@ contract ExampleFacetB {
     event Initialized(address operator);
     event GovernanceRotated(address indexed oldGovernance, address indexed newGovernance);
     event OperatorRotated(address indexed oldOperator, address indexed newOperator);
+    event BatchOptimizationAnalytics(uint256 operationCount, uint256 successCount, uint256 gasUsed, bytes32 packedMetadata, uint256 timestamp);
 
     /* ─────────────── Diamond‑safe storage (fixed slot) ─────────────── */
     // Unique slot for this facet’s state.
@@ -344,6 +346,10 @@ contract ExampleFacetB {
         uint256 successCount = 0; // Initialize to prevent uninitialized variable warning
 
         Layout storage l = _layout();
+        
+        // Use GasOptimizationUtils for efficient batch processing
+        uint64[] memory dataLengths = new uint64[](n);
+        uint256 gasBefore = gasleft();
 
         for (uint256 i; i < n; ) {
             uint256 op = operations[i];
@@ -355,6 +361,8 @@ contract ExampleFacetB {
                 dat.length > 0 &&
                 dat.length <= MAX_DATA_BYTES
             ) {
+                dataLengths[i] = uint64(dat.length);
+                
                 // Inline the single‑call logic for gas: avoid external self‑calls.
                 unchecked { l.operationCounter += 1; }
                 uint256 ctr = l.operationCounter;
@@ -394,7 +402,13 @@ contract ExampleFacetB {
         }
 
         l.lastExecutor = msg.sender;
+        
+        // Pack batch metadata for gas optimization analytics
+        bytes32 packedMetadata = GasOptimizationUtils.packStorage(dataLengths);
+        uint256 gasUsed = gasBefore - gasleft();
+        
         emit BatchOperationCompleted(n, successCount, msg.sender);
+        emit BatchOptimizationAnalytics(n, successCount, gasUsed, packedMetadata, block.timestamp);
     }
 
     /**

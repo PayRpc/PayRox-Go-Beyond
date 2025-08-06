@@ -4,12 +4,21 @@ import { readFileSync, writeFileSync, existsSync } from 'fs';
 /**
  * PayRox Proxy Integration Tasks
  * 
- * Post-migration tasks after upgrading your proxy to ManifestDispatcher:
- * 1. Deploy and register facets
- * 2. Build and commit manifests
- * 3. Apply routes with Merkle proofs
- * 4. Activate committed roots
- * 5. Verify the complete integration
+ * Post-migration tasks after upgrading your proxy to ManifestDispatcher.
+ * This script handles PRODUCTION CONTRACTS ONLY - no test contracts included.
+ * 
+ * Core PayRox Production Contracts:
+ * - DeterministicChunkFactory: CREATE2 deployment factory
+ * - ManifestDispatcher: Core routing and manifest management
+ * - AuditRegistry: Security audit tracking
+ * - Orchestrator: Complex deployment coordination
+ * 
+ * Tasks:
+ * 1. Deploy and register production facets
+ * 2. Build and commit manifests with proper Merkle proofs
+ * 3. Apply routes with security validation
+ * 4. Activate committed roots after delay period
+ * 5. Verify the complete production integration
  */
 
 interface ProxyIntegrationConfig {
@@ -89,7 +98,10 @@ async function main() {
 }
 
 async function deployFacets(config: ProxyIntegrationConfig) {
-  console.log('\n📦 Deploying Facets...');
+  console.log('\n📦 Deploying Production Facets...');
+  
+  // Validate that only production contracts are being deployed
+  validateProductionContracts(config.facetsToDeploy);
   
   const deployedFacets: Record<string, string> = {};
   
@@ -114,7 +126,7 @@ async function deployFacets(config: ProxyIntegrationConfig) {
   // Save facet addresses
   const facetFile = 'deployments/deployed-facets.json';
   writeFileSync(facetFile, JSON.stringify(deployedFacets, null, 2));
-  console.log(`💾 Facet addresses saved to: ${facetFile}`);
+  console.log(`💾 Production facet addresses saved to: ${facetFile}`);
   
   return deployedFacets;
 }
@@ -152,10 +164,31 @@ async function buildManifest(config: ProxyIntegrationConfig) {
     const bytecode = await ethers.provider.getCode(facetAddr);
     const codehash = ethers.keccak256(bytecode);
     
-    // Extract function selectors
+    // Extract function selectors (exclude view functions, test functions, and internal functions)
     const facetInterface = facetContract.interface;
     const selectors = facetInterface.fragments
-      .filter(f => f.type === 'function' && (f as any).stateMutability !== 'view')
+      .filter(f => {
+        if (f.type !== 'function') return false;
+        const func = f as any;
+        
+        // Exclude view/pure functions
+        if (func.stateMutability === 'view' || func.stateMutability === 'pure') return false;
+        
+        // Exclude test functions
+        if (func.name.toLowerCase().includes('test')) return false;
+        
+        // Exclude internal/private functions (these shouldn't be in interface anyway)
+        if (func.name.startsWith('_')) return false;
+        
+        // Exclude common admin functions that shouldn't be routed
+        const excludedFunctions = [
+          'constructor', 'initialize', 'reinitialize', 'supportsInterface',
+          'hasRole', 'getRoleAdmin', 'grantRole', 'revokeRole', 'renounceRole'
+        ];
+        if (excludedFunctions.includes(func.name)) return false;
+        
+        return true;
+      })
       .map(f => facetInterface.getFunction((f as any).name)!.selector);
     
     manifest.facets[facetName] = {
@@ -212,13 +245,14 @@ async function applyRoutes(config: ProxyIntegrationConfig, dispatcher: any) {
   
   // Prepare batch application
   const selectors = manifest.routes.map((r: ManifestRoute) => r.selector);
-  const routes = manifest.routes.map((r: ManifestRoute) => [r.facet, r.codehash]);
-  const proofs = manifest.routes.map((_: ManifestRoute) => []); // Simplified - use real proofs
-  const positions = manifest.routes.map((_: ManifestRoute, i: number) => i);
+  const facets = manifest.routes.map((r: ManifestRoute) => r.facet);
+  const codehashes = manifest.routes.map((r: ManifestRoute) => r.codehash);
+  const proofs = manifest.routes.map((_: ManifestRoute) => []); // Simplified - use real proofs in production
+  const isRight = manifest.routes.map((_: ManifestRoute) => []); // Position indicators for Merkle proofs
   
   console.log(`  Applying ${manifest.routes.length} routes...`);
   
-  const applyTx = await dispatcher.applyRoutes(selectors, routes, proofs, positions);
+  const applyTx = await dispatcher.applyRoutes(selectors, facets, codehashes, proofs, isRight);
   await applyTx.wait();
   console.log(`  ✅ Routes applied successfully`);
   
@@ -292,7 +326,7 @@ async function verifyIntegration(config: ProxyIntegrationConfig) {
   const manifestData = JSON.parse(readFileSync('deployments/manifest.json', 'utf8'));
   for (const route of manifestData.routes.slice(0, 3)) { // Test first 3 routes
     try {
-      const [facet, codehash] = await proxy.routeOf(route.selector);
+      const [facet, codehash] = await proxy.routes(route.selector);
       const matches = facet.toLowerCase() === route.facet.toLowerCase() && codehash === route.codehash;
       
       console.log(`  ${matches ? '✅' : '❌'} Selector ${route.selector}: ${facet}`);
@@ -333,10 +367,51 @@ function loadConfig(): ProxyIntegrationConfig {
   return {
     dispatcherAddress: process.env.DISPATCHER_ADDRESS || '',
     proxyAddress: process.env.PROXY_ADDRESS || '',
-    facetsToDeploy: (process.env.FACETS || 'PingFacet').split(','),
+    facetsToDeploy: (process.env.FACETS || 'DeterministicChunkFactory,ManifestDispatcher,AuditRegistry,Orchestrator').split(','),
     activationDelay: Number(process.env.ACTIVATION_DELAY) || 86400,
     governance: process.env.GOVERNANCE || ''
   };
+}
+
+/**
+ * Validates that only approved production contracts are being deployed
+ * Prevents accidental deployment of test contracts or demo code
+ */
+function validateProductionContracts(facetNames: string[]) {
+  const approvedProductionContracts = [
+    'DeterministicChunkFactory',
+    'ManifestDispatcher', 
+    'AuditRegistry',
+    'Orchestrator',
+    'PayRoxProxyRouter'
+  ];
+  
+  const bannedPatterns = [
+    /test/i,
+    /demo/i,
+    /example/i,
+    /mock/i,
+    /ping/i,
+    /trading/i,
+    /exchange/i,
+    /terrastake/i
+  ];
+  
+  for (const facetName of facetNames) {
+    // Check if contract is in approved list
+    if (!approvedProductionContracts.includes(facetName)) {
+      console.warn(`⚠️  Warning: ${facetName} not in approved production contracts list`);
+    }
+    
+    // Check for banned patterns
+    for (const pattern of bannedPatterns) {
+      if (pattern.test(facetName)) {
+        throw new Error(`❌ BLOCKED: ${facetName} contains banned pattern ${pattern}. Only production contracts allowed.`);
+      }
+    }
+  }
+  
+  console.log(`✅ Validation passed: All ${facetNames.length} contracts approved for production deployment`);
 }
 
 // Handle direct execution

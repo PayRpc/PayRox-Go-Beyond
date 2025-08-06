@@ -75,8 +75,8 @@ npx ts-node scripts/ultimate-deterministic-deploy.ts deploy \
 ```bash
 # Deploy with all options
 npx ts-node scripts/ultimate-deterministic-deploy.ts deploy \
-  --contract "TerraStakeNFTCoreFacet" \
-  --salt "terrastake-nft-core-v1.0.0" \
+  --contract "MyDeFiFacet" \
+  --salt "my-defi-facet-v1.0.0" \
   --args '[1000, "0x123..."]' \
   --factory "0xYourFactoryAddress" \
   --fee "1000000000000000000" \
@@ -91,8 +91,8 @@ npx ts-node scripts/ultimate-deterministic-deploy.ts deploy \
 ```bash
 # Predict deployment address without deploying
 npx ts-node scripts/ultimate-deterministic-deploy.ts predict \
-  --contract "TerraStakeNFTCoreFacet" \
-  --salt "terrastake-nft-core-v1.0.0" \
+  --contract "MyDeFiFacet" \
+  --salt "my-defi-facet-v1.0.0" \
   --args '[1000, "0x123..."]'
 ```
 
@@ -149,8 +149,8 @@ const deployer = new UltimateDeterministicDeployer();
 
 // Single deployment
 const result = await deployer.deployContract({
-  contractName: 'TerraStakeNFTCoreFacet',
-  saltString: 'terrastake-nft-core-v1.0.0',
+  contractName: 'MyDeFiFacet',
+  saltString: 'my-defi-facet-v1.0.0',
   constructorArgs: [],
   verifyContract: true,
   skipIfExists: true
@@ -219,7 +219,7 @@ const initCode = bytecode; // Use bytecode directly
 ```json
 {
   "success": true,
-  "contractName": "TerraStakeNFTCoreFacet",
+  "contractName": "MyDeFiFacet",
   "predictedAddress": "0xDDa0648FA8c9cD593416EC37089C2a2E6060B45c",
   "deployedAddress": "0xDDa0648FA8c9cD593416EC37089C2a2E6060B45c",
   "transactionHash": "0xabcdef123456...",
@@ -250,7 +250,7 @@ const initCode = bytecode; // Use bytecode directly
 Deployments:
 ✅ DeterministicChunkFactory: 0xFactory123...
 ✅ ManifestDispatcher: 0xDispatcher456...
-✅ TerraStakeNFTCoreFacet: 0xFacet789...
+✅ MyDeFiFacet: 0xFacet789...
 ```
 
 ## 🔒 Security Features
@@ -287,8 +287,8 @@ Deployments:
 ```typescript
 const crossChainResults = await deployer.deployCrossChain(
   {
-    contractName: 'TerraStakeNFTCoreFacet',
-    saltString: 'terrastake-nft-core-v1.0.0',
+    contractName: 'MyDeFiFacet',
+    saltString: 'my-defi-facet-v1.0.0',
     constructorArgs: []
   },
   ['localhost', 'sepolia', 'polygon']

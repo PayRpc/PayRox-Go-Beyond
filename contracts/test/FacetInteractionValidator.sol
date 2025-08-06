@@ -28,31 +28,31 @@ contract FacetInteractionValidator {
     string[] public testNames;
     
     /**
-     * @notice Validate Trading Facet functionality
-     * @dev Tests actual trading operations through facet routing
+     * @notice Validate Governance Facet functionality
+     * @dev Tests actual governance operations through facet routing
      */
-    function validateTradingFacet(address diamond, address tokenA, address tokenB, uint256 amount) 
+    function validateGovernanceFacet(address diamond, bytes32 proposalId, bool support) 
         external returns (bool) {
         uint256 gasStart = gasleft();
         
-        try this._testTradingExecution(diamond, tokenA, tokenB, amount) {
+        try this._testGovernanceExecution(diamond, proposalId, support) {
             uint256 gasUsed = gasStart - gasleft();
             
-            _recordTest("TradingFacet_ExecuteTrade", true, gasUsed, "Trade executed successfully through facet");
-            emit FacetInteractionTest("TradingFacet_ExecuteTrade", true, gasUsed);
+            _recordTest("GovernanceFacet_CastVote", true, gasUsed, "Vote cast successfully through facet");
+            emit FacetInteractionTest("GovernanceFacet_CastVote", true, gasUsed);
             return true;
         } catch Error(string memory reason) {
-            _recordTest("TradingFacet_ExecuteTrade", false, 0, reason);
-            emit FacetInteractionTest("TradingFacet_ExecuteTrade", false, 0);
+            _recordTest("GovernanceFacet_CastVote", false, 0, reason);
+            emit FacetInteractionTest("GovernanceFacet_CastVote", false, 0);
             return false;
         }
     }
     
-    function _testTradingExecution(address diamond, address tokenA, address tokenB, uint256 amount) external {
-        // Call trading function through diamond proxy
-        bytes memory data = abi.encodeWithSignature("executeTrade(address,address,uint256)", tokenA, tokenB, amount);
+    function _testGovernanceExecution(address diamond, bytes32 proposalId, bool support) external {
+        // Call governance function through diamond proxy
+        bytes memory data = abi.encodeWithSignature("castVote(bytes32,bool)", proposalId, support);
         (bool success, bytes memory result) = diamond.call(data);
-        require(success, "Trading facet call failed");
+        require(success, "Governance facet call failed");
     }
     
     /**
@@ -180,10 +180,10 @@ contract FacetInteractionValidator {
         (bool pauseSuccess,) = diamond.call(pauseData);
         require(pauseSuccess, "Emergency pause failed");
         
-        // Step 2: Try trading operation (should fail)
-        bytes memory tradeData = abi.encodeWithSignature("executeTrade(address,address,uint256)", 
-                                                        address(0x1), address(0x2), 100);
-        (bool tradeSuccess,) = diamond.call(tradeData);
+        // Step 2: Try governance operation (should fail)
+        bytes memory govData = abi.encodeWithSignature("castVote(bytes32,bool)", 
+                                                      bytes32(uint256(1)), true);
+        (bool govSuccess,) = diamond.call(govData);
         
         // Step 3: Try staking operation (should fail)
         bytes memory stakeData = abi.encodeWithSignature("stakeTokens(uint256)", 100);
@@ -197,7 +197,7 @@ contract FacetInteractionValidator {
         uint256 gasUsed = gasStart - gasleft();
         
         // Validation: Operations should fail when paused
-        bool pauseWorksCorrectly = !tradeSuccess && !stakeSuccess;
+        bool pauseWorksCorrectly = !govSuccess && !stakeSuccess;
         
         _recordTest("CrossFacet_EmergencyPause", pauseWorksCorrectly, gasUsed, 
                    "Pause correctly blocks operations across all facets");
@@ -213,7 +213,7 @@ contract FacetInteractionValidator {
         uint256 totalGasStart = gasleft();
         
         // Test 1: Basic facet functionality
-        bool test1 = this.validateTradingFacet(diamond, address(0x1), address(0x2), 1000);
+        bool test1 = this.validateGovernanceFacet(diamond, bytes32(uint256(1)), true);
         
         // Test 2: Cross-facet communication
         bool test2 = this.validateStakingRewardsCommunication(diamond, 5000);

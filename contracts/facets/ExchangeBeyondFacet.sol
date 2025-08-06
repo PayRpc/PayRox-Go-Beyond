@@ -70,9 +70,9 @@ library ExchangeBeyondFacetStorage {
         uint256 orderNonce;
 
         // Metrics / fees
-        mapping(address => uint256) tradingFees;
-        uint256 totalTradingVolume;
-        uint256 tradingFeeRate;
+        mapping(address => uint256) exchangeFees;
+        uint256 totalExchangeVolume;
+        uint256 exchangeFeeRate;
 
         // Lifecycle
         bool initialized;

@@ -4,12 +4,15 @@ import { writeFileSync } from 'fs';
 /**
  * PayRox Proxy-Router Migration Script
  * 
- * This script implements the "Proxy-Router" pattern where:
- * 1. Keep your existing proxy address (Transparent/UUPS/Beacon)
- * 2. Upgrade proxy implementation to ManifestDispatcher
- * 3. Configure routes to facets via manifest system
+ * This script implements the "Proxy-Router" pattern for PRODUCTION CONTRACTS ONLY.
+ * No test contracts or demo functionality included.
  * 
- * Flow: EOA -> Proxy -> (delegatecall) Dispatcher -> (delegatecall) Facet
+ * Migration Flow:
+ * 1. Keep your existing proxy address (Transparent/UUPS/Beacon)
+ * 2. Upgrade proxy implementation to PayRox ManifestDispatcher
+ * 3. Configure routes to production facets via manifest system
+ * 
+ * Flow: EOA -> Proxy -> (delegatecall) Dispatcher -> (delegatecall) ProductionFacet
  * Benefits: Preserves address, msg.sender, storage safety, defense in depth
  */
 
