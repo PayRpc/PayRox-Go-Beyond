@@ -3,16 +3,16 @@ pragma solidity ^0.8.20;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
 /**
  * @title LendingFacet
  * @notice PayRox facet following native patterns from ExampleFacetA/B
  * @dev Standalone contract for manifest-dispatcher routing
  */
-
-/// ------------------------
-/// Errors (gas-efficient custom errors)
-/// ------------------------
+// ------------------------
+// Errors (gas-efficient custom errors)
+// ------------------------
 error NotInitialized();
 error AlreadyInitialized();
 error ContractPaused();
@@ -20,43 +20,56 @@ error ReentrancyDetected();
 error InvalidTokenAddress();
 error InsufficientBalance();
 error Unauthorized();
+// ------------------------
+// ------------------------
+// Enums
+// ------------------------
+enum LoanStatus {
+    PENDING,
+    ACTIVE,
+    REPAID,
+    DEFAULTED
+}
 
-/// ------------------------
-/// Structs and Types
-/// ------------------------
+enum CollateralType {
+    ETH,
+    TOKEN,
+    NFT
+}
+// Structs and Types
+// ------------------------
 struct LendingPool {
-        IERC20 token;
-        uint256 totalDeposits;
-        uint256 totalBorrows;
-        uint256 interestRate;
-        uint256 collateralRatio;
-        uint256 utilizationRate;
-        bool active;
+    IERC20 token;
+    uint256 totalDeposits;
+    uint256 totalBorrows;
+    uint256 interestRate;
+    uint256 collateralRatio;
+    uint256 utilizationRate;
+    bool active;
     }
-
-/// ------------------------
-/// Roles (production access control)
-/// ------------------------
+// ------------------------
+// Roles (production access control)
+// ------------------------
 bytes32 constant PAUSER_ROLE = keccak256("LENDINGFACET_PAUSER_ROLE");
 
 library LendingFacetStorage {
     bytes32 internal constant STORAGE_SLOT = keccak256("payrox.production.facet.storage.lendingfacet.v3");
 
     struct Layout {
-        mapping(address => uint256) lendingBalances;
-        mapping(address => uint256) borrowingBalances;
-        mapping(address => uint256) collateralBalances;
-        mapping(address => LendingPool) lendingPools;
-        mapping(address => uint256) liquidationThresholds;
-        uint256 collateralRatio;
+    mapping(address => uint256) lendingBalances;
+    mapping(address => uint256) borrowingBalances;
+    mapping(address => uint256) collateralBalances;
+    mapping(address => LendingPool) lendingPools;
+    mapping(address => uint256) liquidationThresholds;
+    uint256 collateralRatio;
         
         // Lifecycle management
-        bool initialized;
-        uint8 version;
+    bool initialized;
+    uint8 version;
         
         // Security controls
-        uint256 _reentrancyStatus; // 1=unlocked, 2=locked
-        bool paused;
+    uint256 _reentrancyStatus; // 1=unlocked, 2=locked
+    bool paused;
     }
     function _layout() private pure returns (Layout storage l) {
         bytes32 slot = STORAGE_SLOT;
@@ -74,18 +87,16 @@ contract LendingFacet {
 
     bytes32 constant STORAGE_SLOT = keccak256("payrox.facet.lending.v1");
     using SafeERC20 for IERC20;
-
-    /// ------------------------
-    /// Events
-    /// ------------------------
+// ------------------------
+// Events
+// ------------------------
     event LendingPoolCreated(address indexed token, uint256 interestRate);
     event LendingFacetInitialized(address indexed dispatcher, uint256 timestamp);
     event LendingFacetFunctionCalled(bytes4 indexed selector, address indexed caller);
     event PauseStatusChanged(bool paused);
-
-    /// ------------------------
-    /// Modifiers (production security stack)
-    /// ------------------------
+// ------------------------
+// Modifiers (production security stack)
+// ------------------------
     modifier onlyDispatcher() {
         
         _;
@@ -113,10 +124,9 @@ contract LendingFacet {
         if (!LendingFacetStorage.layout().initialized) revert NotInitialized();
         _;
     }
-
-    /// ------------------------
-    /// Initialization
-    /// ------------------------
+// ------------------------
+// Initialization
+// ------------------------
     function initializeLendingFacet() external onlyDispatcher {
         LendingFacetStorage.Layout storage ds = LendingFacetStorage.layout();
         if (ds.initialized) revert AlreadyInitialized();
@@ -128,18 +138,16 @@ contract LendingFacet {
         
         emit LendingFacetInitialized(msg.sender, block.timestamp);
     }
-
-    /// ------------------------
-    /// Admin Functions (role-gated)
-    /// ------------------------
+// ------------------------
+// Admin Functions (role-gated)
+// ------------------------
     function setPaused(bool _paused) external onlyDispatcher onlyPauser {
         LendingFacetStorage.layout().paused = _paused;
         emit PauseStatusChanged(_paused);
     }
-
-    /// ------------------------
-    /// Core Business Logic (properly gated)
-    /// ------------------------
+// ------------------------
+// Core Business Logic (properly gated)
+// ------------------------
     function placeMarketOrder(address tokenIn, address tokenOut, uint256 amountIn, uint256 minAmountOut)
         external
         onlyDispatcher
@@ -157,10 +165,9 @@ contract LendingFacet {
         // - Event emission
         // - Follow checks-effects-interactions pattern
     }
-
-    /// ------------------------
-    /// View Functions
-    /// ------------------------
+// ------------------------
+// View Functions
+// ------------------------
     function isLendingFacetInitialized() external view returns (bool) {
         return LendingFacetStorage.layout().initialized;
     }
@@ -172,10 +179,9 @@ contract LendingFacet {
     function isLendingFacetPaused() external view returns (bool) {
         return LendingFacetStorage.layout().paused;
     }
-
-    /// ------------------------
-    /// Manifest Integration (REQUIRED for PayRox deployment)
-    /// ------------------------
+// ------------------------
+// Manifest Integration (REQUIRED for PayRox deployment)
+// ------------------------
     function getFacetInfo()
         external
         pure

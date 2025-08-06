@@ -63,6 +63,7 @@
     "ai:architecture:mastery": "echo 'AI Architecture Learning Complete - See AI_COMPLETE_ARCHITECTURE_MASTERY.md'",
     "ai:learning:status": "echo 'Checking AI learning status...' && npm run ai:manifest:validate",
     "ai:yaml:validate": "npx ts-node scripts/ai-yaml-entry-point-validator.ts",
+    "ai:compilation:validate": "npx ts-node scripts/ai-compilation-validator.ts",
     "ai:learn:interactive": "node scripts/payrox-ai-v3-slither-learning.js --interactive",
     "ai:learn:advanced": "node scripts/payrox-ai-v3-slither-learning.js --confidence=98",
     "ai:master": "node scripts/payrox-master-ai.js --learn",

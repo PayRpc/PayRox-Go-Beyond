@@ -3,16 +3,16 @@ pragma solidity ^0.8.20;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
 /**
  * @title StakingFacet
  * @notice PayRox facet following native patterns from ExampleFacetA/B
  * @dev Standalone contract for manifest-dispatcher routing
  */
-
-/// ------------------------
-/// Errors (gas-efficient custom errors)
-/// ------------------------
+// ------------------------
+// Errors (gas-efficient custom errors)
+// ------------------------
 error NotInitialized();
 error AlreadyInitialized();
 error ContractPaused();
@@ -20,42 +20,54 @@ error ReentrancyDetected();
 error InvalidTokenAddress();
 error InsufficientBalance();
 error Unauthorized();
+// ------------------------
+// ------------------------
+// Enums
+// ------------------------
+enum StakeStatus {
+    ACTIVE,
+    UNSTAKING,
+    WITHDRAWN
+}
 
-/// ------------------------
-/// Structs and Types
-/// ------------------------
+enum RewardType {
+    TOKEN,
+    ETH,
+    POINTS
+}
+// Structs and Types
+// ------------------------
 struct StakingTier {
-        uint256 tier;
-        uint256 multiplier;
-        uint256 minStake;
+    uint256 tier;
+    uint256 multiplier;
+    uint256 minStake;
     }
-
-/// ------------------------
-/// Roles (production access control)
-/// ------------------------
+// ------------------------
+// Roles (production access control)
+// ------------------------
 bytes32 constant PAUSER_ROLE = keccak256("STAKINGFACET_PAUSER_ROLE");
 
 library StakingFacetStorage {
     bytes32 internal constant STORAGE_SLOT = keccak256("payrox.production.facet.storage.stakingfacet.v3");
 
     struct Layout {
-        mapping(address => uint256) stakingBalances;
-        mapping(address => uint256) stakingRewards;
-        mapping(address => uint256) lastStakeTime;
-        mapping(address => StakingTier) userTiers;
-        uint256 totalStaked;
-        uint256 stakingAPY;
-        uint256 stakingPenalty;
-        uint256 totalRewardsDistributed;
-        uint256 minStake;
+    mapping(address => uint256) stakingBalances;
+    mapping(address => uint256) stakingRewards;
+    mapping(address => uint256) lastStakeTime;
+    mapping(address => StakingTier) userTiers;
+    uint256 totalStaked;
+    uint256 stakingAPY;
+    uint256 stakingPenalty;
+    uint256 totalRewardsDistributed;
+    uint256 minStake;
         
         // Lifecycle management
-        bool initialized;
-        uint8 version;
+    bool initialized;
+    uint8 version;
         
         // Security controls
-        uint256 _reentrancyStatus; // 1=unlocked, 2=locked
-        bool paused;
+    uint256 _reentrancyStatus; // 1=unlocked, 2=locked
+    bool paused;
     }
     function _layout() private pure returns (Layout storage l) {
         bytes32 slot = STORAGE_SLOT;
@@ -73,18 +85,16 @@ contract StakingFacet {
 
     bytes32 constant STORAGE_SLOT = keccak256("payrox.facet.staking.v1");
     using SafeERC20 for IERC20;
-
-    /// ------------------------
-    /// Events
-    /// ------------------------
+// ------------------------
+// Events
+// ------------------------
     event StakingRewardClaimed(address indexed user, uint256 reward);
     event StakingFacetInitialized(address indexed dispatcher, uint256 timestamp);
     event StakingFacetFunctionCalled(bytes4 indexed selector, address indexed caller);
     event PauseStatusChanged(bool paused);
-
-    /// ------------------------
-    /// Modifiers (production security stack)
-    /// ------------------------
+// ------------------------
+// Modifiers (production security stack)
+// ------------------------
     modifier onlyDispatcher() {
         
         _;
@@ -112,10 +122,9 @@ contract StakingFacet {
         if (!StakingFacetStorage.layout().initialized) revert NotInitialized();
         _;
     }
-
-    /// ------------------------
-    /// Initialization
-    /// ------------------------
+// ------------------------
+// Initialization
+// ------------------------
     function initializeStakingFacet() external onlyDispatcher {
         StakingFacetStorage.Layout storage ds = StakingFacetStorage.layout();
         if (ds.initialized) revert AlreadyInitialized();
@@ -127,18 +136,16 @@ contract StakingFacet {
         
         emit StakingFacetInitialized(msg.sender, block.timestamp);
     }
-
-    /// ------------------------
-    /// Admin Functions (role-gated)
-    /// ------------------------
+// ------------------------
+// Admin Functions (role-gated)
+// ------------------------
     function setPaused(bool _paused) external onlyDispatcher onlyPauser {
         StakingFacetStorage.layout().paused = _paused;
         emit PauseStatusChanged(_paused);
     }
-
-    /// ------------------------
-    /// Core Business Logic (properly gated)
-    /// ------------------------
+// ------------------------
+// Core Business Logic (properly gated)
+// ------------------------
     function placeMarketOrder(address tokenIn, address tokenOut, uint256 amountIn, uint256 minAmountOut)
         external
         onlyDispatcher
@@ -156,10 +163,9 @@ contract StakingFacet {
         // - Event emission
         // - Follow checks-effects-interactions pattern
     }
-
-    /// ------------------------
-    /// View Functions
-    /// ------------------------
+// ------------------------
+// View Functions
+// ------------------------
     function isStakingFacetInitialized() external view returns (bool) {
         return StakingFacetStorage.layout().initialized;
     }
@@ -171,10 +177,9 @@ contract StakingFacet {
     function isStakingFacetPaused() external view returns (bool) {
         return StakingFacetStorage.layout().paused;
     }
-
-    /// ------------------------
-    /// Manifest Integration (REQUIRED for PayRox deployment)
-    /// ------------------------
+// ------------------------
+// Manifest Integration (REQUIRED for PayRox deployment)
+// ------------------------
     function getFacetInfo()
         external
         pure

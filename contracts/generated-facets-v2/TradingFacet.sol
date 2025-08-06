@@ -3,23 +3,21 @@ pragma solidity ^0.8.20;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
 /**
  * @title TradingFacet
  * @notice PayRox facet following native patterns from ExampleFacetA/B
  */
-
-/// Errors (gas-efficient)
+// Errors (gas-efficient)
 error NotInitialized();
 error AlreadyInitialized();
 error ContractPaused();
 error ReentrancyDetected();
 error InvalidTokenAddress();
-
-/// Roles
+// Roles
 bytes32 constant PAUSER_ROLE = keccak256("TRADINGFACET_PAUSER_ROLE");
-
-/// Minimal order type (expand as needed)
+// Minimal order type (expand as needed)
 struct Order {
     address user;
     address tokenIn;
@@ -35,19 +33,19 @@ library TradingFacetStorage {
         keccak256("payrox.production.facet.storage.tradingfacet.v3");
 
     struct Layout {
-        mapping(bytes32 => Order) orders;
-        mapping(address => uint256) tradingFees;
-        uint256 totalTradingVolume;
-        uint256 tradingFeeRate;
-        uint256 orderNonce;
+    mapping(bytes32 => Order) orders;
+    mapping(address => uint256) tradingFees;
+    uint256 totalTradingVolume;
+    uint256 tradingFeeRate;
+    uint256 orderNonce;
 
         // lifecycle
-        bool initialized;
-        uint8 version;
+    bool initialized;
+    uint8 version;
 
         // security
-        uint256 _reentrancyStatus; // 1=unlocked, 2=locked
-        bool paused;
+    uint256 _reentrancyStatus; // 1=unlocked, 2=locked
+    bool paused;
     }
     function _layout() private pure returns (Layout storage l) {
         bytes32 slot = STORAGE_SLOT;
@@ -65,14 +63,12 @@ contract TradingFacet {
 
     bytes32 constant STORAGE_SLOT = keccak256("payrox.facet.trading.v1");
     using SafeERC20 for IERC20;
-
-    /// Events
+// Events
     event TradingActionExecuted(address indexed user, uint256 amount, uint256 timestamp);
     event TradingFacetInitialized(address indexed dispatcher, uint256 timestamp);
     event TradingFacetFunctionCalled(bytes4 indexed selector, address indexed caller);
     event PauseStatusChanged(bool paused);
-
-    /// Modifiers
+// Modifiers
     modifier onlyDispatcher() {
         
         _;
@@ -100,8 +96,7 @@ contract TradingFacet {
         if (!TradingFacetStorage.layout().initialized) revert NotInitialized();
         _;
     }
-
-    /// Initialization (no constructor)
+// Initialization (no constructor)
     function initializeTradingFacet() external onlyDispatcher {
         TradingFacetStorage.Layout storage ds = TradingFacetStorage.layout();
         if (ds.initialized) revert AlreadyInitialized();
@@ -111,14 +106,12 @@ contract TradingFacet {
         ds.paused = false;
         emit TradingFacetInitialized(msg.sender, block.timestamp);
     }
-
-    /// Admin
+// Admin
     function setPaused(bool _paused) external onlyDispatcher onlyPauser {
         TradingFacetStorage.layout().paused = _paused;
         emit PauseStatusChanged(_paused);
     }
-
-    /// Core (scaffold)
+// Core (scaffold)
     function placeMarketOrder(
         address tokenIn,
         address tokenOut,
@@ -162,8 +155,7 @@ contract TradingFacet {
 
         emit TradingActionExecuted(msg.sender, amountIn, block.timestamp);
     }
-
-    /// Views
+// Views
     function isTradingFacetInitialized() external view returns (bool) {
         return TradingFacetStorage.layout().initialized;
     }
@@ -175,10 +167,9 @@ contract TradingFacet {
     function isTradingFacetPaused() external view returns (bool) {
         return TradingFacetStorage.layout().paused;
     }
-
-    /// ------------------------
-    /// Manifest Integration (REQUIRED for PayRox deployment)
-    /// ------------------------
+// ------------------------
+// Manifest Integration (REQUIRED for PayRox deployment)
+// ------------------------
     function getFacetInfo()
         external
         pure

@@ -3,16 +3,11 @@ pragma solidity ^0.8.20;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
-/**
- * @title RewardsFacet
- * @notice PayRox facet following native patterns from ExampleFacetA/B
- * @dev Standalone contract for manifest-dispatcher routing
- */
-
-/// ------------------------
-/// Errors (gas-efficient custom errors)
-/// ------------------------
+// ------------------------
+// Errors (gas-efficient custom errors)
+// ------------------------
 error NotInitialized();
 error AlreadyInitialized();
 error ContractPaused();
@@ -20,37 +15,55 @@ error ReentrancyDetected();
 error InvalidTokenAddress();
 error InsufficientBalance();
 error Unauthorized();
+// ------------------------
+// ------------------------
+// Enums
+// ------------------------
+enum RewardStatus {
+    PENDING,
+    CLAIMABLE,
+    CLAIMED
+}
 
-/// ------------------------
-/// Structs and Types
-/// ------------------------
-// No domain-specific structs extracted for Rewards
+enum RewardType {
+    STAKING,
+    TRADING,
+    GOVERNANCE
+}
+// Structs and Types
+// ------------------------
+struct RewardTier {
+    uint256 minPoints;
+    uint256 multiplier;
+    string tierName;
+    bool active;
+}
 
-/// ------------------------
-/// Roles (production access control)
-/// ------------------------
+// ------------------------
+// Roles (production access control)
+// ------------------------
 bytes32 constant PAUSER_ROLE = keccak256("REWARDSFACET_PAUSER_ROLE");
 
 library RewardsFacetStorage {
     bytes32 internal constant STORAGE_SLOT = keccak256("payrox.production.facet.storage.rewardsfacet.v3");
 
     struct Layout {
-        mapping(address => uint256) stakingRewards;
-        mapping(address => uint256) rewardPoints;
-        mapping(address => uint256) rewardMultipliers;
-        mapping(address => uint256) lastRewardClaim;
-        mapping(uint256 => RewardTier) rewardTiers;
-        uint256 totalRewardsDistributed;
-        uint256 rewardEmissionRate;
-        uint256 minPoints;
+    mapping(address => uint256) stakingRewards;
+    mapping(address => uint256) rewardPoints;
+    mapping(address => uint256) rewardMultipliers;
+    mapping(address => uint256) lastRewardClaim;
+    mapping(uint256 => RewardTier) rewardTiers;
+    uint256 totalRewardsDistributed;
+    uint256 rewardEmissionRate;
+    uint256 minPoints;
         
         // Lifecycle management
-        bool initialized;
-        uint8 version;
+    bool initialized;
+    uint8 version;
         
         // Security controls
-        uint256 _reentrancyStatus; // 1=unlocked, 2=locked
-        bool paused;
+    uint256 _reentrancyStatus; // 1=unlocked, 2=locked
+    bool paused;
     }
     function _layout() private pure returns (Layout storage l) {
         bytes32 slot = STORAGE_SLOT;
@@ -63,23 +76,26 @@ library RewardsFacetStorage {
     }
 }
 
+/**
+ * @title RewardsFacet
+ * @notice PayRox facet following native patterns from ExampleFacetA/B
+ * @dev Standalone contract for manifest-dispatcher routing
+ */
 contract RewardsFacet {
     using SafeERC20 for IERC20;
 
     bytes32 constant STORAGE_SLOT = keccak256("payrox.facet.rewards.v1");
     using SafeERC20 for IERC20;
-
-    /// ------------------------
-    /// Events
-    /// ------------------------
+// ------------------------
+// Events
+// ------------------------
     event RewardsClaimed(address indexed user, uint256 amount, uint256 points);
     event RewardsFacetInitialized(address indexed dispatcher, uint256 timestamp);
     event RewardsFacetFunctionCalled(bytes4 indexed selector, address indexed caller);
     event PauseStatusChanged(bool paused);
-
-    /// ------------------------
-    /// Modifiers (production security stack)
-    /// ------------------------
+// ------------------------
+// Modifiers (production security stack)
+// ------------------------
     modifier onlyDispatcher() {
         
         _;
@@ -107,10 +123,9 @@ contract RewardsFacet {
         if (!RewardsFacetStorage.layout().initialized) revert NotInitialized();
         _;
     }
-
-    /// ------------------------
-    /// Initialization
-    /// ------------------------
+// ------------------------
+// Initialization
+// ------------------------
     function initializeRewardsFacet() external onlyDispatcher {
         RewardsFacetStorage.Layout storage ds = RewardsFacetStorage.layout();
         if (ds.initialized) revert AlreadyInitialized();
@@ -122,18 +137,16 @@ contract RewardsFacet {
         
         emit RewardsFacetInitialized(msg.sender, block.timestamp);
     }
-
-    /// ------------------------
-    /// Admin Functions (role-gated)
-    /// ------------------------
+// ------------------------
+// Admin Functions (role-gated)
+// ------------------------
     function setPaused(bool _paused) external onlyDispatcher onlyPauser {
         RewardsFacetStorage.layout().paused = _paused;
         emit PauseStatusChanged(_paused);
     }
-
-    /// ------------------------
-    /// Core Business Logic (properly gated)
-    /// ------------------------
+// ------------------------
+// Core Business Logic (properly gated)
+// ------------------------
     function placeMarketOrder(address tokenIn, address tokenOut, uint256 amountIn, uint256 minAmountOut)
         external
         onlyDispatcher
@@ -151,10 +164,9 @@ contract RewardsFacet {
         // - Event emission
         // - Follow checks-effects-interactions pattern
     }
-
-    /// ------------------------
-    /// View Functions
-    /// ------------------------
+// ------------------------
+// View Functions
+// ------------------------
     function isRewardsFacetInitialized() external view returns (bool) {
         return RewardsFacetStorage.layout().initialized;
     }
@@ -166,10 +178,9 @@ contract RewardsFacet {
     function isRewardsFacetPaused() external view returns (bool) {
         return RewardsFacetStorage.layout().paused;
     }
-
-    /// ------------------------
-    /// Manifest Integration (REQUIRED for PayRox deployment)
-    /// ------------------------
+// ------------------------
+// Manifest Integration (REQUIRED for PayRox deployment)
+// ------------------------
     function getFacetInfo()
         external
         pure

@@ -3,26 +3,41 @@ pragma solidity ^0.8.20;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
 /**
  * @title GovernanceFacet
  * @notice PayRox facet following native patterns from ExampleFacetA/B
  * @dev Standalone contract for manifest-dispatcher routing
  */
-
-/// ------------------------
-/// Errors (gas-efficient custom errors)
-/// ------------------------
+// ------------------------
+// Errors (gas-efficient custom errors)
+// ------------------------
 error NotInitialized();
 error AlreadyInitialized();
 error Paused();
 error Unauthorized();
 error InvalidTokenAddress();
 error InsufficientBalance();
+// ------------------------
+// ------------------------
+// Enums
+// ------------------------
+enum ProposalStatus {
+    PENDING,
+    ACTIVE,
+    SUCCEEDED,
+    DEFEATED,
+    EXECUTED
+}
 
-/// ------------------------
-/// Structs and Types (define before usage, NO visibility keywords)
-/// ------------------------
+enum VoteType {
+    FOR,
+    AGAINST,
+    ABSTAIN
+}
+// Structs and Types (define before usage, NO visibility keywords)
+// ------------------------
 struct Proposal {
     uint256 id;
     address proposer;
@@ -33,10 +48,9 @@ struct Proposal {
     bool executed;
     string description;
 }
-
-/// ------------------------
-/// Storage (native pattern: direct slots, no LibDiamond)
-/// ------------------------
+// ------------------------
+// Storage (native pattern: direct slots, no LibDiamond)
+// ------------------------
 bytes32 constant STORAGE_SLOT = keccak256("payrox.facet.governance.v1");
 
 struct Layout {
@@ -62,17 +76,15 @@ contract GovernanceFacet {
         bytes32 slot = STORAGE_SLOT;
         assembly { l.slot := slot }
     }
-
-    /// ------------------------
-    /// Events
-    /// ------------------------
+// ------------------------
+// Events
+// ------------------------
     event GovernanceActionExecuted(address indexed user, uint256 amount, uint256 timestamp);
     event GovernanceFacetInitialized(address indexed operator, uint256 timestamp);
     event PauseStatusChanged(bool paused);
-
-    /// ------------------------
-    /// Modifiers (native PayRox pattern - facet-owned)
-    /// ------------------------
+// ------------------------
+// Modifiers (native PayRox pattern - facet-owned)
+// ------------------------
     modifier whenInitialized() {
         if (!_layout().initialized) revert NotInitialized();
         _;
@@ -87,10 +99,9 @@ contract GovernanceFacet {
         if (msg.sender != _layout().operator) revert Unauthorized();
         _;
     }
-
-    /// ------------------------
-    /// Initialization (no dispatcher enforcement like natives)
-    /// ------------------------
+// ------------------------
+// Initialization (no dispatcher enforcement like natives)
+// ------------------------
     function initializeGovernanceFacet(address operator_) external {
         if (operator_ == address(0)) revert Unauthorized();
         
@@ -104,18 +115,16 @@ contract GovernanceFacet {
         
         emit GovernanceFacetInitialized(operator_, block.timestamp);
     }
-
-    /// ------------------------
-    /// Admin Functions (operator-gated like ExampleFacetB)
-    /// ------------------------
+// ------------------------
+// Admin Functions (operator-gated like ExampleFacetB)
+// ------------------------
     function setPaused(bool _paused) external onlyOperator {
         _layout().paused = _paused;
         emit PauseStatusChanged(_paused);
     }
-
-    /// ------------------------
-    /// Core Business Logic (native security patterns)
-    /// ------------------------
+// ------------------------
+// Core Business Logic (native security patterns)
+// ------------------------
     function createProposal(string calldata description, uint256 votingPeriod_)
         external
         whenInitialized
@@ -139,10 +148,9 @@ contract GovernanceFacet {
         
         emit GovernanceActionExecuted(msg.sender, l.proposalCount, block.timestamp);
     }
-
-    /// ------------------------
-    /// View Functions
-    /// ------------------------
+// ------------------------
+// View Functions
+// ------------------------
     function isGovernanceFacetInitialized() external view returns (bool) {
         return _layout().initialized;
     }
@@ -158,10 +166,9 @@ contract GovernanceFacet {
     function getProposal(uint256 proposalId) external view returns (Proposal memory) {
         return _layout().proposals[proposalId];
     }
-
-    /// ------------------------
-    /// Manifest Integration (REQUIRED for PayRox deployment)
-    /// ------------------------
+// ------------------------
+// Manifest Integration (REQUIRED for PayRox deployment)
+// ------------------------
     function getFacetInfo()
         external
         pure

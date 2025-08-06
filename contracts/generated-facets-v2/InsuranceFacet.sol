@@ -3,16 +3,16 @@ pragma solidity ^0.8.20;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
 /**
  * @title InsuranceFacet
  * @notice PayRox facet following native patterns from ExampleFacetA/B
  * @dev Standalone contract for manifest-dispatcher routing
  */
-
-/// ------------------------
-/// Errors (gas-efficient custom errors)
-/// ------------------------
+// ------------------------
+// Errors (gas-efficient custom errors)
+// ------------------------
 error NotInitialized();
 error AlreadyInitialized();
 error ContractPaused();
@@ -20,53 +20,66 @@ error ReentrancyDetected();
 error InvalidTokenAddress();
 error InsufficientBalance();
 error Unauthorized();
+// ------------------------
+// ------------------------
+// Enums
+// ------------------------
+enum PolicyType {
+    BASIC,
+    PREMIUM,
+    ENTERPRISE
+}
 
-/// ------------------------
-/// Structs and Types
-/// ------------------------
+enum ClaimStatus {
+    PENDING,
+    APPROVED,
+    REJECTED,
+    PAID
+}
+// Structs and Types
+// ------------------------
 struct InsurancePolicy {
-        uint256 coverage;
-        uint256 premium;
-        uint256 expiry;
-        bool active;
-        PolicyType policyType;
+    uint256 coverage;
+    uint256 premium;
+    uint256 expiry;
+    bool active;
+    PolicyType policyType;
     }
 
 struct InsuranceClaim {
-        address claimer;
-        uint256 amount;
-        string reason;
-        bool approved;
-        bool paid;
-        uint256 timestamp;
+    address claimer;
+    uint256 amount;
+    string reason;
+    bool approved;
+    bool paid;
+    uint256 timestamp;
     }
-
-/// ------------------------
-/// Roles (production access control)
-/// ------------------------
+// ------------------------
+// Roles (production access control)
+// ------------------------
 bytes32 constant PAUSER_ROLE = keccak256("INSURANCEFACET_PAUSER_ROLE");
 
 library InsuranceFacetStorage {
     bytes32 internal constant STORAGE_SLOT = keccak256("payrox.production.facet.storage.insurancefacet.v3");
 
     struct Layout {
-        mapping(address => uint256) insuranceCoverage;
-        mapping(address => InsurancePolicy[]) userPolicies;
-        mapping(uint256 => InsuranceClaim) claims;
-        uint256 totalInsuranceFund;
-        uint256 claimCount;
-        uint256 premiumRate;
-        mapping(address => uint256) lastRewardClaim;
-        uint256 premium;
-        address claimer;
+    mapping(address => uint256) insuranceCoverage;
+    mapping(address => InsurancePolicy[]) userPolicies;
+    mapping(uint256 => InsuranceClaim) claims;
+    uint256 totalInsuranceFund;
+    uint256 claimCount;
+    uint256 premiumRate;
+    mapping(address => uint256) lastRewardClaim;
+    uint256 premium;
+    address claimer;
         
         // Lifecycle management
-        bool initialized;
-        uint8 version;
+    bool initialized;
+    uint8 version;
         
         // Security controls
-        uint256 _reentrancyStatus; // 1=unlocked, 2=locked
-        bool paused;
+    uint256 _reentrancyStatus; // 1=unlocked, 2=locked
+    bool paused;
     }
     function _layout() private pure returns (Layout storage l) {
         bytes32 slot = STORAGE_SLOT;
@@ -84,19 +97,17 @@ contract InsuranceFacet {
 
     bytes32 constant STORAGE_SLOT = keccak256("payrox.facet.insurance.v1");
     using SafeERC20 for IERC20;
-
-    /// ------------------------
-    /// Events
-    /// ------------------------
+// ------------------------
+// Events
+// ------------------------
     // Core Insurance events
     event InsuranceActionExecuted(address indexed user, uint256 amount, uint256 timestamp);
     event InsuranceFacetInitialized(address indexed dispatcher, uint256 timestamp);
     event InsuranceFacetFunctionCalled(bytes4 indexed selector, address indexed caller);
     event PauseStatusChanged(bool paused);
-
-    /// ------------------------
-    /// Modifiers (production security stack)
-    /// ------------------------
+// ------------------------
+// Modifiers (production security stack)
+// ------------------------
     modifier onlyDispatcher() {
         
         _;
@@ -124,10 +135,9 @@ contract InsuranceFacet {
         if (!InsuranceFacetStorage.layout().initialized) revert NotInitialized();
         _;
     }
-
-    /// ------------------------
-    /// Initialization
-    /// ------------------------
+// ------------------------
+// Initialization
+// ------------------------
     function initializeInsuranceFacet() external onlyDispatcher {
         InsuranceFacetStorage.Layout storage ds = InsuranceFacetStorage.layout();
         if (ds.initialized) revert AlreadyInitialized();
@@ -139,18 +149,16 @@ contract InsuranceFacet {
         
         emit InsuranceFacetInitialized(msg.sender, block.timestamp);
     }
-
-    /// ------------------------
-    /// Admin Functions (role-gated)
-    /// ------------------------
+// ------------------------
+// Admin Functions (role-gated)
+// ------------------------
     function setPaused(bool _paused) external onlyDispatcher onlyPauser {
         InsuranceFacetStorage.layout().paused = _paused;
         emit PauseStatusChanged(_paused);
     }
-
-    /// ------------------------
-    /// Core Business Logic (properly gated)
-    /// ------------------------
+// ------------------------
+// Core Business Logic (properly gated)
+// ------------------------
     function placeMarketOrder(address tokenIn, address tokenOut, uint256 amountIn, uint256 minAmountOut)
         external
         onlyDispatcher
@@ -168,10 +176,9 @@ contract InsuranceFacet {
         // - Event emission
         // - Follow checks-effects-interactions pattern
     }
-
-    /// ------------------------
-    /// View Functions
-    /// ------------------------
+// ------------------------
+// View Functions
+// ------------------------
     function isInsuranceFacetInitialized() external view returns (bool) {
         return InsuranceFacetStorage.layout().initialized;
     }
@@ -183,10 +190,9 @@ contract InsuranceFacet {
     function isInsuranceFacetPaused() external view returns (bool) {
         return InsuranceFacetStorage.layout().paused;
     }
-
-    /// ------------------------
-    /// Manifest Integration (REQUIRED for PayRox deployment)
-    /// ------------------------
+// ------------------------
+// Manifest Integration (REQUIRED for PayRox deployment)
+// ------------------------
     function getFacetInfo()
         external
         pure
