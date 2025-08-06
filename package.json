@@ -50,6 +50,8 @@
     "ai:demo": "hardhat run scripts/ai-deployment-demo.ts --network hardhat",
     "ai:refactor-demo": "hardhat run scripts/ai-refactoring-intelligence-demo.ts --network hardhat",
     "ai:status": "hardhat run scripts/ai-status-check.ts --network hardhat",
+    "ai:security": "npx hardhat run scripts/ai-security-integration.ts --network hardhat",
+    "ai:security:local": "npx hardhat run scripts/ai-security-integration.ts --network localhost",
     "web:test": "node scripts/test-web-integration.js",
     "web:setup": "npm run contracts:bundle && npm run web:test",
     "verify:unified": "node scripts/unified-verification.js",

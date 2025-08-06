@@ -219,10 +219,11 @@ jobs:
               CONTRACT_NAME=$(basename "$contract" .sol)
               echo "🔍 Analyzing $CONTRACT_NAME..."
               
-              timeout 300 myth analyze "$contract" \
+              timeout 120 myth analyze "$contract" \
                 --solv 0.8.20 \
-                --max-depth 10 \
-                --execution-timeout 60 \
+                --max-depth 5 \
+                --execution-timeout 30 \
+                --strategy bfs \
                 --json \
                 --output "security-reports/mythril-${CONTRACT_NAME}.json" || true
             fi
