@@ -1,0 +1,39 @@
+{
+  "contracts": [
+    {
+      "contractName": "DeterministicChunkFactory",
+      "saltString": "payrox-chunk-factory-v2.0.0",
+      "constructorArgs": [],
+      "deploymentFeeWei": "0",
+      "verifyContract": true,
+      "saveDeployment": true,
+      "skipIfExists": true
+    },
+    {
+      "contractName": "ManifestDispatcher",
+      "saltString": "payrox-manifest-dispatcher-v2.0.0",
+      "constructorArgs": [],
+      "deploymentFeeWei": "0",
+      "verifyContract": true,
+      "saveDeployment": true,
+      "skipIfExists": true
+    },
+    {
+      "contractName": "TerraStakeNFTCoreFacet",
+      "saltString": "terrastake-nft-core-facet-v1.0.0",
+      "constructorArgs": [],
+      "deploymentFeeWei": "0",
+      "verifyContract": true,
+      "saveDeployment": true,
+      "skipIfExists": true
+    }
+  ],
+  "totalEstimatedGas": 5000000,
+  "totalEstimatedCost": "0.05",
+  "deploymentOrder": [
+    "DeterministicChunkFactory",
+    "ManifestDispatcher",
+    "TerraStakeNFTCoreFacet"
+  ],
+  "crossChainStrategy": "sequential"
+}

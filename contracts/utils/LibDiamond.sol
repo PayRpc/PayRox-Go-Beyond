@@ -42,8 +42,10 @@ library LibDiamond {
         uint64 deploymentEpoch;
         // Facet initialization state
         bool initialized;
+        // Pause state for emergency controls
+        bool paused;
         // Reserved for future use
-        uint256[10] reserved;
+        uint256[9] reserved;
     }
     
     // ═══════════════════════════════════════════════════════════════════════════
@@ -287,6 +289,25 @@ library LibDiamond {
         requireInitialized();
         
         if (msg.sender != diamondStorage().manifestDispatcher) {
+            revert UnauthorizedAccess();
+        }
+    }
+    
+    /**
+     * @notice Enforce that this function is called through the dispatcher (alias for enforceManifestCall)
+     * @dev Provides compatibility with generated facets
+     */
+    function enforceIsDispatcher() internal view {
+        enforceManifestCall();
+    }
+    
+    /**
+     * @notice Enforce that the caller has a specific role (alias for requireRole)
+     * @param role The required role
+     * @param account The account to check (if different from msg.sender)
+     */
+    function enforceRole(bytes32 role, address account) internal view {
+        if (!hasRole(role, account)) {
             revert UnauthorizedAccess();
         }
     }
