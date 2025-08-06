@@ -15,12 +15,23 @@ error Unauthorized();
 error InvalidParam();
 error Reentrancy();
 
-/// ---------- Storage (namespaced, collision-safe) ----------
+// Storage (namespaced, collision-safe)
 bytes32 constant ADVANCED_TRADING_SLOT = keccak256("payrox.facet.advanced_trading.v1");
+
+struct Order {
+    address trader;
+    uint256 amount;
+    uint256 price;
+    bool active;
+    uint256 timestamp;
+}
 
 struct AdvancedTradingFacetLayout {
     // Custom storage fields (filled by generator)
-        mapping(address => uint256) userBalances; // User token balances\n    mapping(bytes32 => Order) orders; // Active orders by ID\n    uint256 totalVolume; // Total trading volume\n    uint256 feeRate; // Trading fee rate (basis points)
+    mapping(address => uint256) userBalances; // User token balances
+    mapping(bytes32 => Order) orders; // Active orders by ID
+    uint256 totalVolume; // Total trading volume
+    uint256 feeRate; // Trading fee rate (basis points)
     
     // Standard lifecycle & security (always present)
     bool initialized;
@@ -47,7 +58,9 @@ contract AdvancedTradingFacet {
     /// ---------- Events ----------
     event AdvancedTradingFacetInitialized(address indexed operator, uint256 timestamp);
     event PauseStatusChanged(bool paused);
-        event OrderPlaced(bytes32 indexed orderId, address indexed trader, uint256 amount);\n    event OrderFilled(bytes32 indexed orderId, uint256 fillAmount);\n    event FeeRateUpdated(uint256 oldRate, uint256 newRate);
+    event OrderPlaced(bytes32 indexed orderId, address indexed trader, uint256 amount);
+    event OrderFilled(bytes32 indexed orderId, uint256 fillAmount);
+    event FeeRateUpdated(uint256 oldRate, uint256 newRate);
 
     /// ---------- Modifiers (security-first) ----------
     modifier onlyDispatcher() {
@@ -80,8 +93,8 @@ contract AdvancedTradingFacet {
 
     /// ---------- Initialization (no constructor pattern) ----------
     function initializeAdvancedTradingFacet(
-        address operator_
-        ,\n        uint256 initialFeeRate_
+        address operator_,
+        uint256 initialFeeRate_
     ) external onlyDispatcher {
         if (operator_ == address(0)) revert Unauthorized();
         
@@ -124,7 +137,8 @@ contract AdvancedTradingFacet {
         bytes32 orderId = keccak256(abi.encodePacked(msg.sender, block.timestamp, amount));
         // Order placement logic here
         emit OrderPlaced(orderId, msg.sender, amount);
-    }\n
+    }
+    
     function fillOrder(bytes32 orderId, uint256 fillAmount) external onlyDispatcher whenInitialized whenNotPaused nonReentrant {
         
         if (fillAmount == 0) revert InvalidParam();
@@ -148,7 +162,8 @@ contract AdvancedTradingFacet {
     
     function getFeeRate() external view returns (uint256) {
         return _s().feeRate;
-    }\n
+    }
+    
     function getTotalVolume() external view returns (uint256) {
         return _s().totalVolume;
     }
@@ -173,6 +188,8 @@ contract AdvancedTradingFacet {
         selectors[i++] = this.getAdvancedTradingFacetVersion.selector;
         selectors[i++] = this.isAdvancedTradingFacetPaused.selector;
         
-                selectors[i++] = this.placeOrder.selector;\n        selectors[i++] = this.fillOrder.selector;
+        selectors[i++] = this.placeOrder.selector;
+        selectors[i++] = this.fillOrder.selector;
     }
 }
+

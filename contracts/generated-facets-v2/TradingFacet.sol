@@ -6,9 +6,7 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
 /**
- * @title TradingFacet
- * @notice PayRox facet following native patterns from ExampleFacetA/B
- */
+ * * */
 // Errors (gas-efficient)
 error NotInitialized();
 error AlreadyInitialized();

@@ -15,7 +15,7 @@ error Unauthorized();
 error InvalidParam();
 error Reentrancy();
 
-/// ---------- Storage (namespaced, collision-safe) ----------
+// Storage (namespaced, collision-safe)
 bytes32 constant VAULT_SLOT = keccak256("payrox.facet.vault.v1");
 
 struct VaultFacetLayout {
@@ -148,3 +148,4 @@ contract VaultFacet {
         
     }
 }
+

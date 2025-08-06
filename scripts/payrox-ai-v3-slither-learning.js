@@ -530,6 +530,9 @@ async function main() {
     console.log(`📊 Slither-recognized fixes: ${ai.learningData.statistics.slitherRecognizedFixes}`);
     console.log('✅ PayRox AI v3.0 Advanced Learning Complete');
     
+    // Ensure clean exit
+    process.exit(0);
+    
   } catch (error) {
     console.error('\n❌ Advanced learning failed:', error.message);
     process.exit(1);
@@ -537,5 +540,8 @@ async function main() {
 }
 
 if (require.main === module) {
-  main().catch(console.error);
+  main().catch((error) => {
+    console.error('Unhandled error:', error);
+    process.exit(1);
+  });
 }

@@ -64,7 +64,7 @@ contract SecureTestFacet {
     
     // Admin function with all security modifiers (per Fix #1) 
     function adminFunction(address target) external onlyInitialized onlyDispatcher whenNotPaused nonReentrant {
-        LibDiamond.enforceIsContractOwner();
+        LibDiamond.enforceManifestCall();
         SecureTestFacetStorage.layout().authorized[target] = true;
     }
     

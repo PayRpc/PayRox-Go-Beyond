@@ -28,7 +28,7 @@ struct Proposal {
     ProposalStatus status;
 }
 
-/// ---------- Storage ----------
+// Storage
 bytes32 constant GOVERNANCE_SLOT = keccak256("payrox.facet.governance.v1");
 
 struct GovernanceLayout {
@@ -265,3 +265,4 @@ contract GovernanceFacet {
         selectors[i++] = this.hasVoted.selector;
     }
 }
+

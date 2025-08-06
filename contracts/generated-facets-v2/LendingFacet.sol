@@ -5,11 +5,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
-/**
- * @title LendingFacet
- * @notice PayRox facet following native patterns from ExampleFacetA/B
- * @dev Standalone contract for manifest-dispatcher routing
- */
+
 // ------------------------
 // Errors (gas-efficient custom errors)
 // ------------------------
