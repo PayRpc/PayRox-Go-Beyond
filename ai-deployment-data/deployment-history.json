@@ -34,5 +34,17 @@
     "success": true,
     "optimizationLevel": "standard",
     "saltPattern": "0xabcdef.."
+  },
+  {
+    "timestamp": "2025-08-06T20:17:43.202Z",
+    "contractName": "MockFacetCoreFacet",
+    "network": "hardhat",
+    "gasUsed": "0",
+    "gasLimit": "5000000",
+    "gasEfficiency": 0,
+    "deploymentTime": 0,
+    "success": true,
+    "optimizationLevel": "standard",
+    "saltPattern": "0xabcdef.."
   }
 ]

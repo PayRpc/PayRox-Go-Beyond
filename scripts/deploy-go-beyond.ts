@@ -366,9 +366,8 @@ async function main() {
     );
     
     const dispatcherArgs = [
-      deployer.address, // governance
-      deployer.address, // guardian
-      3600 // minDelay (1 hour in seconds)
+      deployer.address, // admin
+      3600 // activationDelaySeconds (1 hour in seconds)
     ];
 
     // Deploy deterministically
