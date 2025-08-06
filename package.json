@@ -157,6 +157,14 @@
     "_comment_facet_integration": "=== FACET INTEGRATION ===",
     "test:chunk-factory-integration": "hardhat run scripts/test-chunk-factory-integration.ts --network localhost",
     "deploy:chunk-factory-facet": "hardhat run scripts/deploy-chunk-factory-facet.ts --network localhost",
+    "_comment_value_proposition": "=== PAYROX VALUE PROPOSITION DEMOS ===",
+    "value:demo-architectural-scaffolding": "hardhat run demo-value-proposition/architectural-scaffolding-demo.ts --network hardhat",
+    "value:demo-refactoring-live": "hardhat run demo-value-proposition/architectural-refactoring-demo.ts --network hardhat",
+    "value:analysis-comparison": "hardhat run demo-value-proposition/value-proposition-analysis.ts --network hardhat",
+    "value:quick-demo": "npm run value:demo-architectural-scaffolding && npm run value:analysis-comparison",
+    "value:roi-analysis": "hardhat run demo-value-proposition/value-proposition-analysis.ts --network hardhat",
+    "value:separation-demo": "hardhat run demo-value-proposition/architectural-scaffolding-demo.ts --network hardhat",
+    "value:full-demo": "npm run value:demo-architectural-scaffolding && npm run value:demo-refactoring-live && npm run value:analysis-comparison",
     "_comment_cross_network": "=== CROSS-NETWORK DEPLOYMENT ===",
     "deploy:cross-network": "npx ts-node scripts/deploy-cross-network.ts",
     "deploy:all-networks": "npx ts-node scripts/deploy-cross-network.ts all",
@@ -186,7 +194,13 @@
     "_comment_cleanup": "=== CLEANUP & MAINTENANCE ===",
     "clean:deployments": "rimraf deployments/* reports/*",
     "clean:cache": "npx hardhat clean && rimraf cache artifacts",
-    "clean:all": "npm run clean:deployments && npm run clean:cache"
+    "clean:all": "npm run clean:deployments && npm run clean:cache",
+    "quick-test": "node scripts/quick-compile-test.js",
+    "warm-cache": "node scripts/warm-cache.js",
+    "dev-ready": "npm run warm-cache && npm run quick-test",
+    "fix-compile": "rm -rf artifacts cache && npm run dev-ready",
+    "oz:check": "node scripts/oz-dynamic-resolver.js",
+    "oz:validate": "node scripts/validate-oz-config.js"
   },
   "keywords": [
     "blockchain",
@@ -250,5 +264,12 @@
     "merkletreejs": "^0.5.2",
     "ora": "^8.2.0",
     "yargs": "^17.7.2"
+  },
+  "payrox": {
+    "ozDynamic": {
+      "enabled": true,
+      "version": "^5.4.0",
+      "lastUpdated": "2025-08-06T19:42:49.613Z"
+    }
   }
 }

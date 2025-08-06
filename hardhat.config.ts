@@ -3,6 +3,15 @@ import * as dotenv from 'dotenv';
 import 'hardhat-contract-sizer';
 import { HardhatUserConfig } from 'hardhat/config';
 import 'solidity-coverage';
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// PAYROX WORKING CONFIGURATION LOCK
+// ═══════════════════════════════════════════════════════════════════════════════
+// This configuration has been tested and works with all PayRox contracts
+// DO NOT MODIFY without running ./scripts/quick-compile-test.js first
+// Last verified: 2025-08-06 with ManifestDispatcher v2.0 and Phase 2 gas optimization
+// ═══════════════════════════════════════════════════════════════════════════════
+
 // Import tasks
 import './tasks/crosschain-deployment';
 import './tasks/crosschain-simple';
@@ -19,19 +28,19 @@ dotenv.config();
 const config: HardhatUserConfig = {
   defaultNetwork: 'hardhat', // Always use hardhat as default for development
   solidity: {
+    // LOCKED WORKING CONFIGURATION - DO NOT MODIFY
     compilers: [
       {
-        version: '0.8.30', // Main version - works perfectly
+        version: '0.8.30', // ✅ VERIFIED WORKING - All contracts compile successfully
         settings: {
           optimizer: {
             enabled: true,
-            runs: 200,
+            runs: 200, // ✅ Optimal for most contracts
           },
-          viaIR: true, // Keep current setting - contracts compile fine
-          evmVersion: 'cancun', // Support OpenZeppelin v5.x contracts
+          viaIR: true, // ✅ Required for complex contracts
+          evmVersion: 'cancun', // ✅ Latest supported version
           metadata: {
-            // Include source in metadata for better debugging
-            bytecodeHash: 'none', // Deterministic builds
+            bytecodeHash: 'none', // ✅ Deterministic builds
           },
           outputSelection: {
             '*': {

@@ -18,10 +18,18 @@ export async function main(hre: HardhatRuntimeEnvironment, params?: any) {
 
   // Deploy contract
   console.log('📡 Deploying contract...');
+  
+  // Generate placeholder hashes for the constructor
+  const manifestHash = ethers.keccak256(ethers.toUtf8Bytes("PayRoxManifest_v1.0"));
+  const factoryBytecodeHash = ethers.keccak256(ethers.toUtf8Bytes("PayRoxFactory_v1.0"));
+  
   const factory = await FactoryContract.deploy(
-    deployer.address, // admin
-    deployer.address, // feeRecipient
-    ethers.parseEther('0.0007') // baseFeeWei (0.0007 ETH)
+    deployer.address, // _feeRecipient
+    deployer.address, // _manifestDispatcher (placeholder for now)
+    manifestHash,     // _manifestHash
+    factoryBytecodeHash, // _factoryBytecodeHash
+    ethers.parseEther('0.0007'), // _baseFeeWei (0.0007 ETH)
+    true              // _feesEnabled
   );
   await factory.waitForDeployment();
 
