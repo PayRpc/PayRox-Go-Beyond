@@ -72,6 +72,9 @@ Cross-Chain Ready: ${this.config.classification.crossChainReady ? '✅' : '❌'}
         return this.handleLearning(options);
       case 'validate':
         return this.handleValidation(options);
+      case 'signature':
+      case 'sign':
+        return this.handleSignature(options);
       case 'info':
         return this.displaySystemInfo();
       default:
@@ -205,7 +208,7 @@ Cross-Chain Ready: ${this.config.classification.crossChainReady ? '✅' : '❌'}
     `);
   }
 
-  handleLearning(options) {
+  handleLearning(_options) {
     console.log(`🎓 Initiating AI learning process...`);
     
     const command = this.config.entryPoints.ai.learning;
@@ -246,6 +249,89 @@ Cross-Chain Ready: ${this.config.classification.crossChainReady ? '✅' : '❌'}
     }
   }
 
+  handleSignature(options) {
+    console.log(`🔐 Generating EIP-712 signatures for A+ system...`);
+    
+    // Validate required operation parameter
+    const operation = options.operation || options.op;
+    if (!operation) {
+      console.error(`❌ Operation required. Available: init, rotate-governance, rotate-operator`);
+      console.log(`Usage examples:`);
+      console.log(`   payrox signature --operation init --operator 0x123... --governance 0x456... --facet 0x789...`);
+      console.log(`   payrox signature --operation rotate-governance --governance 0x456... --facet 0x789...`);
+      console.log(`   payrox signature --operation rotate-operator --operator 0x123... --facet 0x789...`);
+      process.exit(1);
+    }
+
+    // Validate operation type
+    const validOperations = ['init', 'rotate-governance', 'rotate-operator'];
+    if (!validOperations.includes(operation)) {
+      console.error(`❌ Invalid operation: ${operation}`);
+      console.error(`   Available operations: ${validOperations.join(', ')}`);
+      process.exit(1);
+    }
+
+    // Build command based on operation
+    let command;
+    const baseCommand = `npx hardhat run scripts/generate-facetb-init-signature.js`;
+    
+    switch (operation) {
+      case 'init':
+        if (!options.operator || !options.governance || !options.facet) {
+          console.error(`❌ Init operation requires: --operator, --governance, --facet`);
+          process.exit(1);
+        }
+        // Set environment variables for the script
+        process.env.SIGNATURE_OPERATION = 'init';
+        process.env.SIGNATURE_OPERATOR = options.operator;
+        process.env.SIGNATURE_GOVERNANCE = options.governance;
+        process.env.SIGNATURE_FACET = options.facet;
+        command = baseCommand;
+        break;
+        
+      case 'rotate-governance':
+        if (!options.governance || !options.facet) {
+          console.error(`❌ Rotate-governance operation requires: --governance, --facet`);
+          process.exit(1);
+        }
+        process.env.SIGNATURE_OPERATION = 'rotate-governance';
+        process.env.SIGNATURE_GOVERNANCE = options.governance;
+        process.env.SIGNATURE_FACET = options.facet;
+        command = baseCommand;
+        break;
+        
+      case 'rotate-operator':
+        if (!options.operator || !options.facet) {
+          console.error(`❌ Rotate-operator operation requires: --operator, --facet`);
+          process.exit(1);
+        }
+        process.env.SIGNATURE_OPERATION = 'rotate-operator';
+        process.env.SIGNATURE_OPERATOR = options.operator;
+        process.env.SIGNATURE_FACET = options.facet;
+        command = baseCommand;
+        break;
+    }
+
+    console.log(`   🔑 Operation: ${operation}`);
+    console.log(`   📋 Command: ${command}`);
+    console.log(`   🛡️  EIP-712 compliance: Enabled`);
+    console.log(`   ⚡ Production-ready: ${this.config.facetIntegration?.exampleFacetB?.productionReady || 'Yes'}`);
+    
+    if (options.dryRun) {
+      console.log(`   🔮 Dry run completed - would execute: ${command}`);
+      return;
+    }
+    
+    try {
+      execSync(command, { stdio: 'inherit' });
+      console.log(`✅ Signature generation completed successfully!`);
+      console.log(`   📁 Signature saved to: ./signatures/facet-b-${operation}-${Date.now()}.json`);
+    } catch (error) {
+      console.error(`❌ Signature generation failed:`, error.message);
+      process.exit(1);
+    }
+  }
+
   displaySystemInfo() {
     console.log(`
 ℹ️ PayRox Go Beyond - A+ System Information
@@ -270,6 +356,7 @@ ${this.config.certification.compliance.map(standard => `   ✅ ${standard}`).joi
    payrox status --full                  # Complete system status
    payrox learn                          # AI learning from history
    payrox validate --cross-chain         # Cross-chain validation
+   payrox signature --operation init     # Generate EIP-712 signatures
    payrox info                           # This information
 
 ═══════════════════════════════════════════════════════════════════

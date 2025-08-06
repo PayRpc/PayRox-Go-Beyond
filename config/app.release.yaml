@@ -83,21 +83,32 @@ facets:
     deploymentRisk: "medium"
     crossChainCompatible: true
 
-  # AI-Enhanced Analysis Facets
-  - name: "AIAnalysisFacet"
-    contract: "AIAnalysisFacet"
-    category: "ai"
+  # Standard Example Facets
+  - name: "ExampleFacetA"
+    contract: "ExampleFacetA"
+    category: "example"
     aiOptimized: true
     universalSupport: true
     functions:
-      - "analyzeContract(address)"
-      - "predictGasUsage(bytes)"
-      - "assessDeploymentRisk(bytes32)"
-      - "getOptimizationSuggestions(address)"
-      - "learnFromDeployment(bytes32,uint256,bool)"
-    priority: 3
-    gasLimit: 600000
-    aiPredictedGas: 450000
+      - "executeA(uint256)"
+      - "getData()"
+    priority: 1
+    gasLimit: 300000
+    aiPredictedGas: 250000
+    deploymentRisk: "low"
+    crossChainCompatible: true
+
+  - name: "ExampleFacetB"
+    contract: "ExampleFacetB"
+    category: "example"
+    aiOptimized: true
+    universalSupport: true
+    functions:
+      - "executeB(uint256)"
+      - "initializeFacetB(address,address,uint256,bytes)"
+    priority: 2
+    gasLimit: 400000
+    aiPredictedGas: 350000
     deploymentRisk: "low"
     crossChainCompatible: true
 
