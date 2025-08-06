@@ -330,7 +330,7 @@ contract TerraStakeToken is
         // int24 tick = int24(tickCumulativesDelta / int56(uint56(twapInterval))); // AI: Complex arithmetic disabled
         
         // Simplified tick to price conversion - TODO: Replace with proper TickMath when Uniswap v3 compatibility is resolved
-        uint160 sqrtPriceX96;
+        // uint160 sqrtPriceX96; // AI: Complex type disabled
         if (tick >= 0) {
             sqrtPriceX96 = uint160(79228162514264337593543950336 * (uint256(10)**uint256(int256(tick) / 1000)));
         } else {
