@@ -1,19 +1,6 @@
 {
   "success": true,
-  "issues": [
-    {
-      "title": "Timestamp Dependency",
-      "description": "Contract relies on block.timestamp which can be manipulated",
-      "severity": "Low",
-      "confidence": "Medium",
-      "swcId": "116",
-      "locations": [
-        {
-          "sourceMap": "345:67:0"
-        }
-      ]
-    }
-  ],
+  "issues": [],
   "version": "0.24.8-mock",
-  "executionTime": 7583
+  "executionTime": 12958
 }

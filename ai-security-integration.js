@@ -229,7 +229,7 @@ class AISecurityIntegrator {
             try {
                 await execAsync('node auto-start.js status', { cwd: backendPath, timeout: 10000 });
                 this.successes.push('✅ Auto-start system functional');
-            } catch (error) {
+            } catch {
                 this.warnings.push('⚠️ Auto-start system test failed (may need dependency install)');
             }
 
@@ -237,7 +237,7 @@ class AISecurityIntegrator {
             try {
                 await execAsync('node ai-security-fix-engine.js --help', { cwd: backendPath, timeout: 5000 });
                 this.successes.push('✅ AI Security Fix Engine functional');
-            } catch (error) {
+            } catch {
                 this.warnings.push('⚠️ AI Security Fix Engine test failed');
             }
 
@@ -245,7 +245,7 @@ class AISecurityIntegrator {
             try {
                 await execAsync('node smart-mythril-analyzer.js status', { cwd: backendPath, timeout: 5000 });
                 this.successes.push('✅ Smart Mythril Analyzer functional');
-            } catch (error) {
+            } catch {
                 this.warnings.push('⚠️ Smart Mythril Analyzer test failed');
             }
 

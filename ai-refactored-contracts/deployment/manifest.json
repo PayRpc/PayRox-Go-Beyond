@@ -5,7 +5,7 @@
     "originalContract": "ComplexDeFiProtocol",
     "refactoringStrategy": "sequential",
     "estimatedGasSavings": 125000,
-    "timestamp": "2025-08-07T15:29:09.588Z",
+    "timestamp": "2025-08-07T15:35:52.279Z",
     "aiConfidence": 0.9,
     "protocolType": "DeFi",
     "securityLevel": "Critical",
@@ -14,7 +14,7 @@
   "facets": [
     {
       "name": "TradingFacet",
-      "selector": "0x8f0f8b00",
+      "selector": "0xc1f9d2e4",
       "functions": [],
       "gasEstimate": "TBD",
       "dependencies": [],
@@ -22,7 +22,7 @@
     },
     {
       "name": "LendingFacet",
-      "selector": "0x16ca873a",
+      "selector": "0xd1a1d4e3",
       "functions": [],
       "gasEstimate": "TBD",
       "dependencies": [],
@@ -30,7 +30,7 @@
     },
     {
       "name": "StakingFacet",
-      "selector": "0xa53105d3",
+      "selector": "0x804d401f",
       "functions": [],
       "gasEstimate": "TBD",
       "dependencies": [],
@@ -38,7 +38,7 @@
     },
     {
       "name": "GovernanceFacet",
-      "selector": "0xab1731c3",
+      "selector": "0x23b33057",
       "functions": [],
       "gasEstimate": "TBD",
       "dependencies": [],
@@ -46,7 +46,7 @@
     },
     {
       "name": "InsuranceRewardsFacet",
-      "selector": "0xde22c072",
+      "selector": "0x0f068852",
       "functions": [],
       "gasEstimate": "TBD",
       "dependencies": [],
