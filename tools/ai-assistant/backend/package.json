@@ -20,7 +20,15 @@
     "health-check": "curl -f http://localhost:3001/health || exit 1",
     "crash-protection": "tsx scripts/crash-protection-init.ts",
     "crash-protection:build": "tsc && node dist/scripts/crash-protection-init.js",
-    "simple-protection": "tsx scripts/simple-crash-protection.ts"
+    "simple-protection": "tsx scripts/simple-crash-protection.ts",
+    "templates:validate": "node src/analyzers/template-validator.js",
+    "templates:simulate": "node src/analyzers/FacetSimulator.js",
+    "facet:simulate": "tsx scripts/run-facet-simulator.ts",
+    "must-fix:validate": "tsx scripts/must-fix-validator.ts",
+    "payrox:compliance": "tsx scripts/payrox-compliance-check.ts",
+    "ai:learn": "node test-ai-learning.js",
+    "ai:generate": "node generate-refactored-files.js",
+    "ai:validate": "node validate-fixes.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.27.0",

@@ -1,0 +1,64 @@
+{
+  "version": "1.0.0",
+  "metadata": {
+    "generator": "PayRox AI Refactor Wizard",
+    "originalContract": "ComplexDeFiProtocol",
+    "refactoringStrategy": "sequential",
+    "estimatedGasSavings": 125000,
+    "timestamp": "2025-08-07T14:51:58.579Z",
+    "aiConfidence": 0.9,
+    "protocolType": "DeFi",
+    "securityLevel": "Critical",
+    "crossChainCompatible": true
+  },
+  "facets": [
+    {
+      "name": "TradingFacet",
+      "selector": "0x8189bf77",
+      "functions": [],
+      "gasEstimate": "TBD",
+      "dependencies": [],
+      "securityRating": "High"
+    },
+    {
+      "name": "LendingFacet",
+      "selector": "0xbd6550d7",
+      "functions": [],
+      "gasEstimate": "TBD",
+      "dependencies": [],
+      "securityRating": "High"
+    },
+    {
+      "name": "StakingFacet",
+      "selector": "0xffc177cf",
+      "functions": [],
+      "gasEstimate": "TBD",
+      "dependencies": [],
+      "securityRating": "High"
+    },
+    {
+      "name": "GovernanceFacet",
+      "selector": "0x1627d5bd",
+      "functions": [],
+      "gasEstimate": "TBD",
+      "dependencies": [],
+      "securityRating": "High"
+    },
+    {
+      "name": "InsuranceRewardsFacet",
+      "selector": "0x2105db9c",
+      "functions": [],
+      "gasEstimate": "TBD",
+      "dependencies": [],
+      "securityRating": "High"
+    }
+  ],
+  "deployment": {
+    "strategy": "sequential",
+    "estimatedCost": "TBD",
+    "networkSupport": [
+      "mainnet",
+      "polygon"
+    ]
+  }
+}

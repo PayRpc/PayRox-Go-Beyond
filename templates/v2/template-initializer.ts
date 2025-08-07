@@ -9,6 +9,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import * as yaml from 'js-yaml';
 
 interface InitializationConfig {
   archetypesDir: string;
@@ -20,12 +21,12 @@ interface InitializationConfig {
 export class TemplateInitializer {
   private config: InitializationConfig;
 
-  constructor() {
+  constructor(configFileOverride?: string) {
     this.config = {
-      archetypesDir: process.env.PAYROX_ARCHETYPES_DIR || './templates/v2/archetypes',
-      outputDir: process.env.PAYROX_OUTPUT_DIR || './contracts/generated-facets',
-      configFile: './app.release.yaml',
-      guardrailsEnabled: process.env.TEMPLATE_GENERATOR_ENABLED === 'true'
+      archetypesDir: process.env.PAYROX_ARCHETYPES_DIR || path.resolve(__dirname, '../../templates/v2/archetypes'),
+      outputDir: process.env.PAYROX_OUTPUT_DIR || path.resolve(__dirname, '../../contracts/generated-facets'),
+      configFile: configFileOverride || process.env.PAYROX_CONFIG_FILE || path.resolve(__dirname, '../../config/app.release.yaml'),
+      guardrailsEnabled: process.env.TEMPLATE_GENERATOR_ENABLED !== 'false' // default to enabled
     };
   }
 
@@ -77,59 +78,50 @@ export class TemplateInitializer {
 
   private async createDirectories(): Promise<void> {
     console.log('📁 Creating required directories...');
-    
     const directories = [
       this.config.archetypesDir,
       this.config.outputDir,
       path.join(this.config.archetypesDir, 'basic'),
       path.join(this.config.archetypesDir, 'advanced'),
       path.join(this.config.outputDir, 'validated'),
-      './templates/v2/cache'
+      path.resolve(__dirname, '../../templates/v2/cache')
     ];
-    
     for (const dir of directories) {
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-        console.log(`📂 Created: ${dir}`);
-      } else {
-        console.log(`✓ Exists: ${dir}`);
+      try {
+        if (!fs.existsSync(dir)) {
+          fs.mkdirSync(dir, { recursive: true });
+          console.log(`📂 Created: ${dir}`);
+        } else {
+          console.log(`✓ Exists: ${dir}`);
+        }
+      } catch (err) {
+        console.error(`❌ Failed to create directory ${dir}: ${err}`);
       }
     }
   }
 
   private async validateConfiguration(): Promise<void> {
     console.log('⚙️  Validating configuration...');
-    
     if (!fs.existsSync(this.config.configFile)) {
       console.log(`⚠️  Configuration file not found: ${this.config.configFile}`);
       return;
     }
-    
     try {
       const configContent = fs.readFileSync(this.config.configFile, 'utf8');
-      
-      // Check for Template Generator section
-      if (configContent.includes('templateGenerator:')) {
+      const configYaml = yaml.load(configContent) as any;
+      if (configYaml && configYaml.templateGenerator) {
         console.log('✓ Template Generator configuration found');
+        // Validate required configuration keys
+        const requiredKeys = ['paths', 'features', 'guardrails', 'aiIntegration'];
+        const missingKeys = requiredKeys.filter(key => !(key in configYaml.templateGenerator));
+        if (missingKeys.length > 0) {
+          console.log(`⚠️  Missing configuration keys: ${missingKeys.join(', ')}`);
+        } else {
+          console.log('✓ All configuration keys present');
+        }
       } else {
         console.log('⚠️  Template Generator configuration section missing');
       }
-      
-      // Validate required configuration keys
-      const requiredKeys = [
-        'paths:',
-        'features:',
-        'guardrails:',
-        'aiIntegration:'
-      ];
-      
-      const missingKeys = requiredKeys.filter(key => !configContent.includes(key));
-      if (missingKeys.length > 0) {
-        console.log(`⚠️  Missing configuration keys: ${missingKeys.join(', ')}`);
-      } else {
-        console.log('✓ All configuration keys present');
-      }
-      
     } catch (error) {
       console.error(`❌ Configuration validation failed: ${error}`);
     }
@@ -137,10 +129,8 @@ export class TemplateInitializer {
 
   private async setupTemplateCache(): Promise<void> {
     console.log('💾 Setting up template cache...');
-    
-    const cacheDir = './templates/v2/cache';
+    const cacheDir = path.resolve(__dirname, '../../templates/v2/cache');
     const cacheFile = path.join(cacheDir, 'template-cache.json');
-    
     const defaultCache = {
       version: '2.0.0',
       lastUpdated: new Date().toISOString(),
@@ -155,23 +145,32 @@ export class TemplateInitializer {
         payRoxCompliance: true
       }
     };
-    
-    if (!fs.existsSync(cacheFile)) {
-      fs.writeFileSync(cacheFile, JSON.stringify(defaultCache, null, 2));
-      console.log(`📝 Created cache file: ${cacheFile}`);
-    } else {
-      console.log(`✓ Cache file exists: ${cacheFile}`);
+    try {
+      if (!fs.existsSync(cacheFile)) {
+        fs.writeFileSync(cacheFile, JSON.stringify(defaultCache, null, 2));
+        console.log(`📝 Created cache file: ${cacheFile}`);
+      } else {
+        // Validate cache file content
+        try {
+          const cacheContent = fs.readFileSync(cacheFile, 'utf8');
+          JSON.parse(cacheContent); // Throws if invalid
+          console.log(`✓ Cache file exists and is valid: ${cacheFile}`);
+        } catch (err) {
+          fs.writeFileSync(cacheFile, JSON.stringify(defaultCache, null, 2));
+          console.log(`📝 Cache file was corrupted, reset: ${cacheFile}`);
+        }
+      }
+    } catch (err) {
+      console.error(`❌ Failed to setup cache: ${err}`);
     }
   }
 
-  private async initializeGuardrails(): Promise<void> {
+  private async initializeGuardrails(forceOverwrite = false): Promise<void> {
     console.log('🛡️  Initializing guardrails...');
-    
     if (!this.config.guardrailsEnabled) {
       console.log('⚠️  Guardrails disabled - Template Generator in permissive mode');
       return;
     }
-    
     const guardrailsConfig = {
       enforceNoConstructors: true,
       enforceASCIIOnly: true,
@@ -180,23 +179,29 @@ export class TemplateInitializer {
       validateBeforeGeneration: true,
       validateAfterGeneration: true
     };
-    
     console.log('✓ Guardrails configuration:');
     Object.entries(guardrailsConfig).forEach(([key, value]) => {
       console.log(`  - ${key}: ${value ? 'ENABLED' : 'DISABLED'}`);
     });
-    
-    // Create guardrails validation file
-    const guardrailsFile = './templates/v2/guardrails-config.json';
-    if (!fs.existsSync(guardrailsFile)) {
-      fs.writeFileSync(guardrailsFile, JSON.stringify(guardrailsConfig, null, 2));
-      console.log(`📝 Created guardrails config: ${guardrailsFile}`);
+    // Create/overwrite guardrails validation file
+    const guardrailsFile = path.resolve(__dirname, '../../templates/v2/guardrails-config.json');
+    try {
+      if (!fs.existsSync(guardrailsFile) || forceOverwrite) {
+        fs.writeFileSync(guardrailsFile, JSON.stringify(guardrailsConfig, null, 2));
+        console.log(`📝 Guardrails config written: ${guardrailsFile}`);
+      } else {
+        console.log(`✓ Guardrails config exists: ${guardrailsFile}`);
+      }
+    } catch (err) {
+      console.error(`❌ Failed to write guardrails config: ${err}`);
     }
   }
+  public async forceInitializeGuardrails(): Promise<void> {
+    await this.initializeGuardrails(true);
+  }
 
-  async createSampleArchetypes(): Promise<void> {
+  async createSampleArchetypes(forceOverwrite = false): Promise<void> {
     console.log('📋 Creating sample archetypes...');
-    
     // Basic Facet Archetype
     const basicFacetTemplate = `// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
@@ -210,7 +215,6 @@ import "../libraries/LibDiamond.sol";
  * @notice Auto-generated by PayRox Template Generator v2
  */
 contract {{FACET_NAME}} is IERC165 {
-    
     /**
      * @dev Initialize the facet
      * @notice Called once during diamond deployment
@@ -219,7 +223,6 @@ contract {{FACET_NAME}} is IERC165 {
         LibDiamond.enforceIsContractOwner();
         // Initialization logic here
     }
-    
     /**
      * @dev Check if contract supports interface
      * @param interfaceId The interface identifier
@@ -234,13 +237,17 @@ contract {{FACET_NAME}} is IERC165 {
         return interfaceId == type(IERC165).interfaceId;
     }
 }`;
-
     const basicFacetPath = path.join(this.config.archetypesDir, 'basic', 'BasicFacet.template.sol');
-    if (!fs.existsSync(basicFacetPath)) {
-      fs.writeFileSync(basicFacetPath, basicFacetTemplate);
-      console.log(`📝 Created basic facet template: ${basicFacetPath}`);
+    try {
+      if (!fs.existsSync(basicFacetPath) || forceOverwrite) {
+        fs.writeFileSync(basicFacetPath, basicFacetTemplate);
+        console.log(`📝 Basic facet template written: ${basicFacetPath}`);
+      } else {
+        console.log(`✓ Basic facet template exists: ${basicFacetPath}`);
+      }
+    } catch (err) {
+      console.error(`❌ Failed to write basic facet template: ${err}`);
     }
-
     // Advanced Facet Archetype
     const advancedFacetTemplate = `// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
@@ -256,15 +263,12 @@ import "../modifiers/PayRoxModifiers.sol";
  * @author PayRox Go Beyond System
  */
 contract {{FACET_NAME}} is IERC165, PayRoxModifiers {
-    
     // Events
     event {{FACET_NAME}}Initialized(address indexed diamond);
     event {{FACET_NAME}}Action(address indexed user, bytes32 indexed action);
-    
     // Errors
     error {{FACET_NAME}}__InvalidInput();
     error {{FACET_NAME}}__NotAuthorized();
-    
     /**
      * @dev Initialize the facet with advanced configuration
      * @notice Called once during diamond deployment
@@ -278,7 +282,6 @@ contract {{FACET_NAME}} is IERC165, PayRoxModifiers {
         _setInitialized();
         emit {{FACET_NAME}}Initialized(address(this));
     }
-    
     /**
      * @dev Example advanced function with full modifiers
      * @param data The input data to process
@@ -292,11 +295,9 @@ contract {{FACET_NAME}} is IERC165, PayRoxModifiers {
         if (data.length == 0) {
             revert {{FACET_NAME}}__InvalidInput();
         }
-        
         // Advanced logic here
         emit {{FACET_NAME}}Action(msg.sender, keccak256(data));
     }
-    
     /**
      * @dev Check if contract supports interface
      * @param interfaceId The interface identifier
@@ -311,23 +312,29 @@ contract {{FACET_NAME}} is IERC165, PayRoxModifiers {
         return interfaceId == type(IERC165).interfaceId;
     }
 }`;
-
     const advancedFacetPath = path.join(this.config.archetypesDir, 'advanced', 'AdvancedFacet.template.sol');
-    if (!fs.existsSync(advancedFacetPath)) {
-      fs.writeFileSync(advancedFacetPath, advancedFacetTemplate);
-      console.log(`📝 Created advanced facet template: ${advancedFacetPath}`);
+    try {
+      if (!fs.existsSync(advancedFacetPath) || forceOverwrite) {
+        fs.writeFileSync(advancedFacetPath, advancedFacetTemplate);
+        console.log(`📝 Advanced facet template written: ${advancedFacetPath}`);
+      } else {
+        console.log(`✓ Advanced facet template exists: ${advancedFacetPath}`);
+      }
+    } catch (err) {
+      console.error(`❌ Failed to write advanced facet template: ${err}`);
     }
   }
 }
 
 // CLI Interface
 if (require.main === module) {
-  const initializer = new TemplateInitializer();
-  
+  // Allow config file override and force options via CLI
+  const configFileArg = process.argv.find(arg => arg.endsWith('.yaml'));
+  const forceFlag = process.argv.includes('--force');
+  const initializer = new TemplateInitializer(configFileArg);
   const command = process.argv[2];
-  
   if (command === 'samples') {
-    initializer.createSampleArchetypes()
+    initializer.createSampleArchetypes(forceFlag)
       .then(() => {
         console.log('✅ Sample archetypes created successfully!');
         process.exit(0);
@@ -337,11 +344,14 @@ if (require.main === module) {
         process.exit(1);
       });
   } else {
-    initializer.initialize()
-      .then(() => {
-        console.log('✅ Template Generator v2 ready for use!');
-        process.exit(0);
-      })
+      initializer.initialize()
+        .then(async () => {
+          if (forceFlag) {
+            await initializer.forceInitializeGuardrails();
+          }
+          console.log('✅ Template Generator v2 ready for use!');
+          process.exit(0);
+        })
       .catch(error => {
         console.error('❌ Initialization failed:', error.message);
         process.exit(1);
