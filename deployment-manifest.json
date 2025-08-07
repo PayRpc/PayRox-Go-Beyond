@@ -5,7 +5,7 @@
     "originalContract": "ComplexDeFiProtocol",
     "refactoringStrategy": "sequential",
     "estimatedGasSavings": 50000,
-    "timestamp": "2025-08-07T16:29:04.347Z",
+    "timestamp": "2025-08-07T16:33:39.830Z",
     "aiConfidence": 0.9,
     "protocolType": "DeFi",
     "securityLevel": "High",
