@@ -8,7 +8,7 @@
  * ❸ Produces CI-friendly exit codes (0 = healthy, 1 = warning, 2 = critical)
  */
 
-import { spawn } from "child_process";
+import { spawn, ChildProcess } from "child_process";
 import fs from "fs";
 import path from "path";
 import chalk from "chalk";
@@ -38,13 +38,26 @@ const stats: Record<Section, Stat> = {
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 function run(cmd: string, args: string[], section: Section): Promise<void> {
   return new Promise((resolve) => {
-    const child = spawn(cmd, args, { stdio: ["ignore", "pipe", "pipe"] });
+    // Windows compatibility: use shell option
+    const isWindows = process.platform === "win32";
+    
+    let child: ChildProcess;
+    if (isWindows) {
+      child = spawn(cmd, args, { shell: true });
+    } else {
+      child = spawn(cmd, args);
+    }
+    
     const timer = setTimeout(() => child.kill("SIGKILL"), TIMEOUT);
 
-    child.stdout.on("data", (d) => process.stdout.write(d));
-    child.stderr.on("data", (d) => process.stderr.write(d));
+    if (child.stdout) {
+      child.stdout.on("data", (d: any) => process.stdout.write(d));
+    }
+    if (child.stderr) {
+      child.stderr.on("data", (d: any) => process.stderr.write(d));
+    }
 
-    child.on("exit", (code) => {
+    child.on("exit", (code: any) => {
       clearTimeout(timer);
       stats[section].ok = code === 0;
       if (code !== 0) stats[section].msg = `${cmd} exited with ${code}`;
@@ -59,15 +72,28 @@ async function verifyDispatcherAndRoutes(): Promise<void> {
     return;
   }
 
+  if (!fs.existsSync(MANIFEST_PATH)) {
+    stats.loupe = { ok: false, critical: true, msg: `Manifest not found: ${MANIFEST_PATH}` };
+    return;
+  }
+
   try {
     const provider  = new ethers.JsonRpcProvider(NETWORK_RPC);
     const dispatcherAbi = ["function facetAddress(bytes4) view returns (address)"];
     const dispatcher = new ethers.Contract(DISPATCHER_ADDRESS, dispatcherAbi, provider);
 
     const manifest = JSON.parse(fs.readFileSync(MANIFEST_PATH, "utf8"));
+    
+    if (!manifest.chunks || !Array.isArray(manifest.chunks)) {
+      stats.loupe = { ok: false, critical: true, msg: "Invalid manifest format - missing chunks array" };
+      return;
+    }
+
     const mismatches: string[] = [];
 
     for (const chunk of manifest.chunks) {
+      if (!chunk.selectors || !Array.isArray(chunk.selectors)) continue;
+      
       for (const sel of chunk.selectors) {
         const onChain = await dispatcher.facetAddress(sel as string);
         if (onChain.toLowerCase() !== chunk.address.toLowerCase()) {
@@ -97,10 +123,36 @@ function checkYamlFiles(files: string[]): void {
 (async () => {
   console.log(chalk.bold("\n🔎  PayRox AI System – Live Check\n"));
 
-  await run("npm", ["run", "ai:status", "--silent"],     "core");
-  await run("npm", ["run", "ai:system", "--silent"],     "deploy");
-  await run("node", ["laser-focus-refactor-protocol.js"],"refactor");
-  await run("node", ["ai-learning-demonstration.js"],    "learn");
+  // Check if package.json scripts exist first
+  const packageJson = JSON.parse(fs.readFileSync("./package.json", "utf8"));
+  const hasAiStatus = packageJson.scripts && packageJson.scripts["ai:status"];
+  const hasAiSystem = packageJson.scripts && packageJson.scripts["ai:system"];
+
+  if (hasAiStatus) {
+    await run("npm", ["run", "ai:status", "--silent"], "core");
+  } else {
+    stats.core = { ok: false, critical: true, msg: "ai:status script not found in package.json" };
+  }
+
+  if (hasAiSystem) {
+    await run("npm", ["run", "ai:system", "--silent"], "deploy");
+  } else {
+    stats.deploy = { ok: false, critical: true, msg: "ai:system script not found in package.json" };
+  }
+
+  // Check if refactor protocol exists before running
+  if (fs.existsSync("laser-focus-refactor-protocol.js")) {
+    await run("node", ["laser-focus-refactor-protocol.js"], "refactor");
+  } else {
+    stats.refactor = { ok: false, msg: "laser-focus-refactor-protocol.js not found" };
+  }
+
+  // Check if learning demo exists before running
+  if (fs.existsSync("ai-learning-demonstration.js")) {
+    await run("node", ["ai-learning-demonstration.js"], "learn");
+  } else {
+    stats.learn = { ok: false, msg: "ai-learning-demonstration.js not found" };
+  }
 
   await verifyDispatcherAndRoutes();
   checkYamlFiles(["./config/app.release.yaml", "./ai-security-deployment.yaml"]);
