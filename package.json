@@ -8,6 +8,7 @@
     "payrox": "./bin/payrox.js"
   },
   "scripts": {
+    "preinstall": "node -e \"const v = process.version.slice(1).split('.').map(Number); if (v[0] < 18 || (v[0] === 18 && v[1] < 17) || v[0] >= 23) { console.error('\\x1b[31mError: Node.js version ' + process.version + ' is not supported. Please use Node.js >=18.17.0 and <23.\\x1b[0m'); process.exit(1); }\"",
     "compile": "hardhat compile",
     "test": "hardhat test",
     "test:comprehensive": "npm run test:facet-size && npm run test:orchestrator && npm run test:enhanced && npm run test:route-proof",
@@ -286,6 +287,10 @@
     "merkletreejs": "^0.5.2",
     "ora": "^8.2.0",
     "yargs": "^17.7.2"
+  },
+  "engines": {
+    "node": ">=18.17.0 <23",
+    "npm": ">=8.0.0"
   },
   "payrox": {
     "ozDynamic": {
