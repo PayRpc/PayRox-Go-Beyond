@@ -2,7 +2,6 @@ import { ethers, Provider, Signer, Contract, BytesLike } from 'ethers';
 import {
   NETWORKS,
   DEFAULT_NETWORK,
-  CONSTANTS,
   NetworkConfig,
   ContractType,
 } from './config';
@@ -69,11 +68,11 @@ export class PayRoxClient {
    * Create a PayRox client from a browser wallet (MetaMask, etc.)
    */
   static async fromBrowser(networkName?: string): Promise<PayRoxClient> {
-    if (typeof window === 'undefined' || !window.ethereum) {
+    if (typeof window === 'undefined' || !(window as any).ethereum) {
       throw new Error('Browser wallet not available');
     }
 
-    const provider = new ethers.BrowserProvider(window.ethereum);
+    const provider = new ethers.BrowserProvider((window as any).ethereum);
     const signer = await provider.getSigner();
     return new PayRoxClient(provider, signer, networkName);
   }
@@ -110,7 +109,7 @@ export class PayRoxClient {
   async deployContract(
     bytecode: BytesLike,
     constructorArgs: any[] = [],
-    contractType: ContractType = 'utility',
+    _contractType: ContractType = 'utility',
     options?: {
       gasLimit?: number;
       maxFeePerGas?: string;
