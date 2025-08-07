@@ -1,0 +1,31 @@
+{
+  "success": true,
+  "issues": [
+    {
+      "title": "Integer Overflow/Underflow",
+      "description": "Potential integer overflow in trading calculations",
+      "severity": "Medium",
+      "confidence": "High",
+      "swcId": "101",
+      "locations": [
+        {
+          "sourceMap": "123:45:0"
+        }
+      ]
+    },
+    {
+      "title": "Timestamp Dependency",
+      "description": "Contract relies on block.timestamp which can be manipulated",
+      "severity": "Low",
+      "confidence": "Medium",
+      "swcId": "116",
+      "locations": [
+        {
+          "sourceMap": "345:67:0"
+        }
+      ]
+    }
+  ],
+  "version": "0.24.8-mock",
+  "executionTime": 18824
+}

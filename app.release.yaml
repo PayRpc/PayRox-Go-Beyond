@@ -48,10 +48,26 @@ ai:
     templateCompliance: true
   learning:
     enabled: true
-    interactive: false
   security:
-    analysis: true
-    realTimeFixes: true
+    enabled: true
+    autoFix:
+      enabled: true
+      mode: "standard"  # standard | aggressive | dry-run
+      confidence: 67    # minimum confidence for fixes (30-100)
+      backup: true      # create backups before fixes
+    mythril:
+      enabled: true
+      timeout: 60000
+      maxDepth: 5
+      fallbackToMock: true
+    vulnerabilityTypes:
+      - "reentrancy"
+      - "overflow"
+      - "timestamp"
+      - "access_control"
+      - "gas_optimization"
+      - "unchecked_calls"
+    interactive: false
 
 # Template Generator v2 Configuration
 templateGenerator:
@@ -118,11 +134,25 @@ deployment:
 
 # Security Configuration
 security:
+  enabled: true
   slither: true
-  mythril: false
+  mythril: true
   manticore: false
   aiAnalysis: true
   realTimeFixes: true
+  autoSecurityFixes:
+    enabled: true
+    mode: "standard"  # standard | aggressive | dry-run
+    confidence: 67    # minimum confidence for fixes (30-100)
+    backup: true      # create backups before fixes
+    reAnalysis: true  # verify fixes after application
+  vulnerabilityTypes:
+    - "reentrancy"
+    - "overflow" 
+    - "timestamp"
+    - "access_control"
+    - "gas_optimization"
+    - "unchecked_calls"
 
 # Development Configuration
 development:

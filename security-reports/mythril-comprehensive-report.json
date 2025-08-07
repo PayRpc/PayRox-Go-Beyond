@@ -1,0 +1,161 @@
+{
+  "summary": {
+    "success": true,
+    "totalContracts": 6,
+    "contractsAnalyzed": 6,
+    "contractsWithErrors": 0,
+    "totalIssues": 6,
+    "severityBreakdown": {
+      "critical": 0,
+      "high": 1,
+      "medium": 1,
+      "low": 3,
+      "informational": 1
+    },
+    "riskScore": 106,
+    "recommendations": [
+      "⚠️ HIGH: Review and fix high-severity issues",
+      "⚠️ Medium risk score - thorough review recommended",
+      "🔮 Running in DEMO MODE - install Mythril for real analysis"
+    ],
+    "executionTimeMs": 3038,
+    "mode": "DEMO_MODE"
+  },
+  "results": [
+    {
+      "success": true,
+      "issues": [
+        {
+          "title": "Gas Optimization",
+          "description": "Function could be optimized for gas usage",
+          "severity": "Informational",
+          "confidence": "High",
+          "swcId": "109",
+          "locations": [
+            {
+              "sourceMap": "789:12:0"
+            }
+          ]
+        }
+      ],
+      "version": "0.24.8-mock",
+      "executionTime": 8780,
+      "contractName": "GovernanceFacet",
+      "analysisTime": "2025-08-07T15:29:10.163Z"
+    },
+    {
+      "success": true,
+      "issues": [],
+      "version": "0.24.8-mock",
+      "executionTime": 19550,
+      "contractName": "InsuranceRewardsFacet",
+      "analysisTime": "2025-08-07T15:29:10.674Z"
+    },
+    {
+      "success": true,
+      "issues": [
+        {
+          "title": "Reentrancy Vulnerability",
+          "description": "Potential reentrancy in lending withdrawal function",
+          "severity": "High",
+          "confidence": "Medium",
+          "swcId": "107",
+          "locations": [
+            {
+              "sourceMap": "456:78:0"
+            }
+          ]
+        },
+        {
+          "title": "Timestamp Dependency",
+          "description": "Contract relies on block.timestamp which can be manipulated",
+          "severity": "Low",
+          "confidence": "Medium",
+          "swcId": "116",
+          "locations": [
+            {
+              "sourceMap": "345:67:0"
+            }
+          ]
+        }
+      ],
+      "version": "0.24.8-mock",
+      "executionTime": 10876,
+      "contractName": "LendingFacet",
+      "analysisTime": "2025-08-07T15:29:11.187Z"
+    },
+    {
+      "success": true,
+      "issues": [
+        {
+          "title": "Timestamp Dependency",
+          "description": "Contract relies on block.timestamp which can be manipulated",
+          "severity": "Low",
+          "confidence": "Medium",
+          "swcId": "116",
+          "locations": [
+            {
+              "sourceMap": "345:67:0"
+            }
+          ]
+        }
+      ],
+      "version": "0.24.8-mock",
+      "executionTime": 7583,
+      "contractName": "StakingFacet",
+      "analysisTime": "2025-08-07T15:29:11.689Z"
+    },
+    {
+      "success": true,
+      "issues": [
+        {
+          "title": "Integer Overflow/Underflow",
+          "description": "Potential integer overflow in trading calculations",
+          "severity": "Medium",
+          "confidence": "High",
+          "swcId": "101",
+          "locations": [
+            {
+              "sourceMap": "123:45:0"
+            }
+          ]
+        },
+        {
+          "title": "Timestamp Dependency",
+          "description": "Contract relies on block.timestamp which can be manipulated",
+          "severity": "Low",
+          "confidence": "Medium",
+          "swcId": "116",
+          "locations": [
+            {
+              "sourceMap": "345:67:0"
+            }
+          ]
+        }
+      ],
+      "version": "0.24.8-mock",
+      "executionTime": 18824,
+      "contractName": "TradingFacet",
+      "analysisTime": "2025-08-07T15:29:12.191Z"
+    },
+    {
+      "success": true,
+      "issues": [],
+      "version": "0.24.8-mock",
+      "executionTime": 12211,
+      "contractName": "ComplexDeFiStorage",
+      "analysisTime": "2025-08-07T15:29:12.692Z"
+    }
+  ],
+  "metadata": {
+    "analysisTime": "2025-08-07T15:29:12.692Z",
+    "totalContracts": 6,
+    "executionTimeMs": 3038,
+    "mythrilVersion": "0.24.8-mock",
+    "mode": "DEMO_MODE",
+    "configuration": {
+      "maxDepth": 5,
+      "timeout": 60000
+    }
+  }
+}

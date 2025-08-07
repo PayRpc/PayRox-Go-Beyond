@@ -1,0 +1,19 @@
+{
+  "success": true,
+  "issues": [
+    {
+      "title": "Gas Optimization",
+      "description": "Function could be optimized for gas usage",
+      "severity": "Informational",
+      "confidence": "High",
+      "swcId": "109",
+      "locations": [
+        {
+          "sourceMap": "789:12:0"
+        }
+      ]
+    }
+  ],
+  "version": "0.24.8-mock",
+  "executionTime": 8780
+}

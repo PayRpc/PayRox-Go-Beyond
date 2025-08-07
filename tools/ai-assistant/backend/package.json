@@ -28,7 +28,22 @@
     "payrox:compliance": "tsx scripts/payrox-compliance-check.ts",
     "ai:learn": "node test-ai-learning.js",
     "ai:generate": "node generate-refactored-files.js",
-    "ai:validate": "node validate-fixes.js"
+    "ai:validate": "node validate-fixes.js",
+    "ai:auto-start": "node auto-start.js",
+    "ai:auto-status": "node auto-start.js status",
+    "ai:auto-force": "node auto-start.js force",
+    "ai:auto-watch": "node auto-start.js watch",
+    "ai:security": "node auto-start.js security",
+    "mythril:analyze": "node mythril-analyzer.js analyze",
+    "mythril:check": "node mythril-analyzer.js check",
+    "mythril:status": "node mythril-analyzer.js status",
+    "mythril:mock": "node mock-mythril-analyzer.js analyze",
+    "mythril:demo": "node mock-mythril-analyzer.js analyze",
+    "mythril:smart": "node smart-mythril-analyzer.js analyze",
+    "mythril:smart-status": "node smart-mythril-analyzer.js status",
+    "ai:security-fix": "node ai-security-fix-engine.js fix",
+    "ai:security-fix-dry": "node ai-security-fix-engine.js fix --dry-run",
+    "ai:security-fix-aggressive": "node ai-security-fix-engine.js fix --aggressive"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.27.0",
