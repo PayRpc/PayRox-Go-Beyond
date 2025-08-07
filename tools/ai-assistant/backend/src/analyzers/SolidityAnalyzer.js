@@ -38,6 +38,24 @@ const parser_1 = require("@solidity-parser/parser");
 const solc = __importStar(require("solc"));
 const ethers = require("ethers");
 const crypto = require("crypto");
+
+// Custom error classes for JavaScript compatibility
+class AnalysisError extends Error {
+    constructor(message, originalError) {
+        super(message);
+        this.name = 'AnalysisError';
+        this.originalError = originalError;
+    }
+}
+
+class CompilationError extends Error {
+    constructor(message, errors) {
+        super(message);
+        this.name = 'CompilationError';
+        this.errors = errors;
+    }
+}
+
 class SolidityAnalyzer {
     constructor() {
         // Parser and compiler are used directly
@@ -58,7 +76,7 @@ class SolidityAnalyzer {
             // Extract contract information
             const contractNode = this.findContractNode(ast, contractName);
             if (!contractNode) {
-                throw new index_1.AnalysisError('Contract not found in source code');
+                throw new AnalysisError('Contract not found in source code');
             }
             const functions = this.extractFunctions(contractNode, sourceCode);
             const variables = this.extractVariables(contractNode, sourceCode);
@@ -96,11 +114,11 @@ class SolidityAnalyzer {
             };
         }
         catch (error) {
-            if (error instanceof index_1.AnalysisError) {
+            if (error instanceof AnalysisError) {
                 throw error;
             }
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            throw new index_1.AnalysisError(`Failed to parse contract: ${errorMessage}`, error);
+            throw new AnalysisError(`Failed to parse contract: ${errorMessage}`, error);
         }
     }
     /**
@@ -139,17 +157,17 @@ class SolidityAnalyzer {
             if (output.errors) {
                 const errors = output.errors.filter((err) => err.severity === 'error');
                 if (errors.length > 0) {
-                    throw new index_1.CompilationError('Compilation failed', errors);
+                    throw new CompilationError('Compilation failed', errors);
                 }
             }
             return output;
         }
         catch (error) {
-            if (error instanceof index_1.CompilationError) {
+            if (error instanceof CompilationError) {
                 throw error;
             }
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            throw new index_1.CompilationError(`Compilation failed: ${errorMessage}`, error);
+            throw new CompilationError(`Compilation failed: ${errorMessage}`, error);
         }
     }
     /**

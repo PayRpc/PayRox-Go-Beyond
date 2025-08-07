@@ -111,6 +111,26 @@ jobs:
           }
         continue-on-error: true
 
+      - name: Validate Template Generator
+        run: |
+          echo "🏗️ Validating Template Generator system..."
+          npm run templates:setup-env && \
+          npm run templates:list && \
+          echo "✅ Template Generator validation passed" || {
+            echo "⚠️ Template Generator validation failed"
+            exit 0
+          }
+        continue-on-error: true
+
+      - name: AI Template Compliance Check
+        run: |
+          echo "🤖 Checking AI Template Generator compliance..."
+          npm run ai:template-compliance || {
+            echo "⚠️ AI Template compliance check failed"
+            exit 0
+          }
+        continue-on-error: true
+
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4

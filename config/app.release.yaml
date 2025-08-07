@@ -40,6 +40,8 @@ entryPoints:
     full: "npm run payrox:workflow:full"
     manifest: "npm run payrox:manifest:check"
     chunk: "npm run payrox:chunk:predict"
+    development: "npm run payrox:development-workflow"
+    production: "npm run payrox:full-workflow"
   
   ai:
     status: "npm run ai:status"
@@ -51,6 +53,14 @@ entryPoints:
     architectureMastery: "echo 'AI Architecture Learning Complete - See AI_COMPLETE_ARCHITECTURE_MASTERY.md'"
     yamlConnection: "npx ts-node scripts/ai-yaml-entry-point-validator.ts"
     compilationValidation: "npx ts-node scripts/ai-compilation-validator.ts"
+    templateCompliance: "npm run ai:template-compliance"
+  
+  templates:
+    list: "npm run templates:list"
+    generate: "npm run templates:generate"  
+    validate: "npm run templates:validate"
+    workflow: "npm run templates:full-workflow"
+    aiIntegration: "npm run templates:ai-integration"
   
   openZeppelin:
     check: "npm run oz:check"
@@ -97,6 +107,57 @@ aiRefactoring:
     intelligenceDemo: "scripts/ai-refactoring-intelligence-demo.ts"
     complexDefiRefactor: "scripts/demo-complex-defi-ai-refactor.ts"
     monolithRefactoring: "docs/MonolithRefactoringGuide.md"
+
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+# 🏗️ TEMPLATE GENERATOR SYSTEM CONFIGURATION
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+
+templateGenerator:
+  # Core Engine
+  version: "v2"
+  engine: "hybrid"  # archetype-based + on-demand generation
+  
+  # System Configuration
+  paths:
+    archetypes: "./templates/v2/archetypes"
+    output: "./contracts/generated-facets"
+    tests: "./test/generated"
+    lockfile: ".payrox-templates.lock"
+  
+  # Generation Features
+  features:
+    enforceGuardrails: true
+    templateHashing: true
+    testGeneration: true
+    mustFixValidation: true
+    aiCompliance: true
+    
+  # Template Guardrails (Critical for PayRox compliance)
+  guardrails:
+    noConstructors: true       # Facets must use init() pattern
+    noRawCalls: true          # Prevent unsafe .call() usage
+    asciiOnly: true           # ASCII-only for deterministic deployment
+    namingValidation: true    # Enforce PascalCase + "Facet" suffix
+    
+  # AI Integration
+  aiIntegration:
+    enabled: true
+    compliance: "template-generator-v2"
+    refactorWizard: true
+    templateHashGeneration: true
+    
+  # Archetype Management
+  archetypes:
+    standard: ["AdminFacet", "CoreFacet", "ViewFacet", "StorageFacet"]
+    specialized: ["StakingFacet", "GovernanceFacet", "TokenFacet"]
+    advanced: ["CrossChainFacet", "ProxyFacet", "OracleFacet"]
+    
+  # Validation Pipeline
+  validation:
+    mustFixValidator: true
+    payRoxCompliance: true
+    storageLayoutCheck: true
+    securityScan: true
 
 # ═══════════════════════════════════════════════════════════════════════════════════════════
 # 💎 UNIVERSAL FACET CONFIGURATION - AI-Optimized
