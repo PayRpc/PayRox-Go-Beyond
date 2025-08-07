@@ -1,0 +1,85 @@
+{
+  "version": "1.0.0",
+  "metadata": {
+    "generator": "PayRox AI Refactor Wizard",
+    "originalContract": "ComplexDeFiProtocol",
+    "refactoringStrategy": "sequential",
+    "estimatedGasSavings": 50000,
+    "timestamp": "2025-08-07T16:33:39.830Z",
+    "aiConfidence": 0.9,
+    "protocolType": "DeFi",
+    "securityLevel": "High",
+    "crossChainCompatible": true
+  },
+  "facets": [
+    {
+      "name": "TradingFacet",
+      "functions": [
+        "placeMarketOrder",
+        "placeLimitOrder",
+        "cancelOrder",
+        "fillOrder"
+      ],
+      "gasEstimate": "TBD",
+      "dependencies": [],
+      "securityRating": "High"
+    },
+    {
+      "name": "LendingFacet",
+      "functions": [
+        "deposit",
+        "withdraw",
+        "borrow",
+        "repay",
+        "liquidate"
+      ],
+      "gasEstimate": "TBD",
+      "dependencies": [],
+      "securityRating": "High"
+    },
+    {
+      "name": "StakingFacet",
+      "functions": [
+        "stake",
+        "unstake",
+        "claimRewards",
+        "updateRewardRate"
+      ],
+      "gasEstimate": "TBD",
+      "dependencies": [],
+      "securityRating": "High"
+    },
+    {
+      "name": "GovernanceFacet",
+      "functions": [
+        "createProposal",
+        "vote",
+        "executeProposal",
+        "delegate"
+      ],
+      "gasEstimate": "TBD",
+      "dependencies": [],
+      "securityRating": "High"
+    },
+    {
+      "name": "InsuranceRewardsFacet",
+      "functions": [
+        "buyInsurance",
+        "submitClaim",
+        "processClaim",
+        "claimRewards"
+      ],
+      "gasEstimate": "TBD",
+      "dependencies": [],
+      "securityRating": "High"
+    }
+  ],
+  "deployment": {
+    "strategy": "sequential",
+    "estimatedCost": "TBD",
+    "networkSupport": [
+      "mainnet",
+      "polygon"
+    ]
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "success": true,
+  "issues": [
+    {
+      "title": "Integer Overflow/Underflow",
+      "description": "Potential integer overflow in trading calculations",
+      "severity": "Medium",
+      "confidence": "High",
+      "swcId": "101",
+      "locations": [
+        {
+          "sourceMap": "123:45:0"
+        }
+      ]
+    }
+  ],
+  "version": "0.24.8-mock",
+  "executionTime": 14811
+}

@@ -36,8 +36,8 @@ class PayRoxTemplateGenerator {
   private outputDir: string;
 
   constructor() {
-    this.archetypesDir = './templates/v2/archetypes';
-    this.outputDir = './contracts/generated-facets';
+    this.archetypesDir = process.env.PAYROX_ARCHETYPES_DIR || './templates/v2/archetypes';
+    this.outputDir = process.env.PAYROX_OUTPUT_DIR || './contracts/generated-facets';
   }
 
   async generateFacet(config: GenerationConfig): Promise<void> {
@@ -79,7 +79,7 @@ class PayRoxTemplateGenerator {
     await this.runMustFixValidation(outputPath);
     
     console.log(`✅ Generated: ${outputPath}`);
-    console.log(`🧪 Test file: ${config.outputDir}/${config.facetName}.spec.ts`);
+    console.log(`🧪 Test file: test/generated/${config.facetName}.spec.ts`);
     console.log(`🔒 Lockfile updated with template hash: ${templateHash.substring(0, 16)}...`);
   }
 
@@ -172,20 +172,21 @@ class PayRoxTemplateGenerator {
     return processed;
   }
 
-  private applyGuardrails(code: string, guardrails: Record<string, boolean>): string {
+  private applyGuardrails(code: string, guardrails: Record<string, boolean> | undefined): string {
+    const rails = guardrails ?? {};
     let safe = code;
     
     // Check for forbidden patterns
-    if (guardrails.noConstructors && safe.includes('constructor(')) {
+    if (rails.noConstructors && safe.includes('constructor(')) {
       throw new Error('Guardrail violation: constructors not allowed');
     }
     
-    if (guardrails.noRawCalls && safe.includes('.call(')) {
+    if (rails.noRawCalls && safe.includes('.call(')) {
       throw new Error('Guardrail violation: raw calls not allowed');
     }
     
     // Skip ASCII check if code still contains template placeholders
-    if (guardrails.asciiOnly && !safe.includes('{{')) {
+    if (rails.asciiOnly && !safe.includes('{{')) {
       // Check for non-ASCII characters (simplified check)
       for (let i = 0; i < safe.length; i++) {
         if (safe.charCodeAt(i) > 127) {
@@ -203,7 +204,7 @@ class PayRoxTemplateGenerator {
     
     return fields.map(field => 
       `    ${field.type} ${field.name};${field.comment ? ` // ${field.comment}` : ''}`
-    ).join('\\n');
+    ).join('\n');
   }
 
   private generateEvents(events: any[]): string {
@@ -211,14 +212,14 @@ class PayRoxTemplateGenerator {
     
     return events.map(event => 
       `    event ${event.name}(${event.params || ''});`
-    ).join('\\n');
+    ).join('\n');
   }
 
   private generateInitParams(params: any[]): string {
     if (params.length === 0) return '';
     
     const paramStrings = params.map(p => `${p.type} ${p.name}`);
-    return ',\\n        ' + paramStrings.join(',\\n        ');
+    return ',\n        ' + paramStrings.join(',\n        ');
   }
 
   private generateAdminFunctions(functions: any[]): string {
@@ -227,7 +228,7 @@ class PayRoxTemplateGenerator {
     return functions.map(fn => `
     function ${fn.name}(${fn.params || ''}) external onlyDispatcher onlyOperator whenInitialized {
         ${fn.body || '// Implementation needed'}
-    }`).join('\\n');
+    }`).join('\n');
   }
 
   private generateCoreFunctions(functions: any[]): string {
@@ -236,7 +237,7 @@ class PayRoxTemplateGenerator {
     return functions.map(fn => `
     function ${fn.name}(${fn.params || ''}) external onlyDispatcher whenInitialized whenNotPaused nonReentrant {
         ${fn.body || '// Implementation needed'}
-    }`).join('\\n');
+    }`).join('\n');
   }
 
   private generateViewFunctions(functions: any[]): string {
@@ -245,16 +246,16 @@ class PayRoxTemplateGenerator {
     return functions.map(fn => `
     function ${fn.name}(${fn.params || ''}) external view returns (${fn.returns || 'bool'}) {
         ${fn.body || '// Implementation needed'}
-    }`).join('\\n');
+    }`).join('\n');
   }
 
   private calculateSelectorCount(customizations: any): string {
     // Base count: 5 standard functions (initialize, setPaused, 3 views)
     const baseCount = 5;
-    const customCount = (customizations.coreFunctions?.length || 0) + 
-                       (customizations.adminFunctions?.length || 0) + 
-                       (customizations.viewFunctions?.length || 0);
-    return (baseCount + customCount).toString();
+    const coreCount = customizations.coreFunctions?.length || 0;
+    const adminCount = customizations.adminFunctions?.length || 0;
+    const viewCount = customizations.viewFunctions?.length || 0;
+    return (baseCount + coreCount + adminCount + viewCount).toString();
   }
 
   private generateCustomSelectors(functions: any[]): string {
@@ -262,7 +263,7 @@ class PayRoxTemplateGenerator {
     
     return functions.map(fn => 
       `        selectors[i++] = this.${fn.name}.selector;`
-    ).join('\\n');
+    ).join('\n');
   }
 
   private async generateTestFile(config: GenerationConfig, _archetype: ArchetypeManifest): Promise<void> {
@@ -302,7 +303,9 @@ describe("${config.facetName}", () => {
   });
 });`;
 
-    const testPath = path.join(config.outputDir, `${config.facetName}.spec.ts`);
+    const testDir = path.join('test', 'generated');
+    this.ensureDirectoryExists(testDir);
+    const testPath = path.join(testDir, `${config.facetName}.spec.ts`);
     fs.writeFileSync(testPath, testTemplate);
   }
 

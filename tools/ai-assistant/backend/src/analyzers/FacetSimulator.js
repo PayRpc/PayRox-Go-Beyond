@@ -1,18 +1,62 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.FacetSimulator = void 0;
+
+/**
+ * @title FacetSimulator
+ * @dev PayRox Go Beyond facet simulation and testing framework
+ * @notice Simulates deterministic deployment, manifest routing, and emergency scenarios
+ * @author PayRox Go Beyond System
+ */
+// Custom errors for gas efficiency
+const ERRORS = {
+    InvalidFacet: 'FacetSimulator__InvalidFacet',
+    InvalidConfig: 'FacetSimulator__InvalidConfig',
+    SimulationFailed: 'FacetSimulator__SimulationFailed',
+    InvalidInput: 'FacetSimulator__InvalidInput'
+};
+
+// Events for transparency (simulated)
+const EVENTS = {
+    SimulationStarted: 'SimulationStarted',
+    SimulationCompleted: 'SimulationCompleted',
+    DeploymentSimulated: 'DeploymentSimulated',
+    RouteConfigured: 'RouteConfigured',
+    EmergencySimulated: 'EmergencySimulated'
+};
+
 class FacetSimulator {
     constructor(_analyzer) {
         this._analyzer = _analyzer;
     }
+
     /**
-     * Simulate PayRox Go Beyond facet interactions and routing
+     * @dev Simulate PayRox Go Beyond facet interactions and routing
+     * @notice Main entry point for comprehensive system simulation
+     * @param facets Array of facet configurations to simulate
+     * @param config Simulation configuration parameters
+     * @param customTests Optional custom interaction tests
+     * @return Promise<Array> Array of simulation results
      */
     async simulatePayRoxSystem(facets, config, customTests) {
+        // Input validation (checks)
+        if (!Array.isArray(facets)) {
+            const error = new Error(`${ERRORS.InvalidInput}: Facets must be an array`);
+            console.error('❌ PayRox simulation failed:', error);
+            throw error;
+        }
+        if (!config || typeof config !== 'object') {
+            const error = new Error(`${ERRORS.InvalidConfig}: Config must be an object`);
+            console.error('❌ PayRox simulation failed:', error);
+            throw error;
+        }
+
         try {
             const results = [];
             console.log('🚀 Starting PayRox Go Beyond Facet Simulation...');
-            // 1. Simulate CREATE2 deterministic deployment
+            
+            // Emit simulation started event
+            this._emitEvent(EVENTS.SimulationStarted, { facetCount: facets.length, timestamp: Date.now() });
             const deploymentResults = await this.simulateCreateDeployment(facets, config);
             results.push(...deploymentResults);
             // 2. Simulate manifest-based routing
@@ -32,24 +76,52 @@ class FacetSimulator {
             // 6. Simulate emergency scenarios
             const emergencyResults = await this.simulateEmergencyScenarios(facets, config);
             results.push(...emergencyResults);
+
+            // Emit simulation completed event
+            this._emitEvent(EVENTS.SimulationCompleted, { 
+                resultCount: results.length, 
+                timestamp: Date.now(),
+                success: true 
+            });
+
             console.log(`✅ PayRox simulation completed: ${results.length} test scenarios`);
             return results;
         }
         catch (error) {
-            console.error('❌ PayRox simulation failed:', error);
-            throw new Error(`Facet simulation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            const simulationError = new Error(`${ERRORS.SimulationFailed}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            console.error('❌ PayRox simulation failed:', simulationError);
+            throw simulationError;
         }
     }
     /**
-     * Simulate CREATE2 deterministic deployment pattern
+     * @dev Simulate CREATE2 deterministic deployment pattern
+     * @notice Simulates DeterministicChunkFactory deployment with gas estimation
+     * @param facets Array of facets to deploy
+     * @param config Deployment configuration
+     * @return Promise<Array> Deployment simulation results
      */
     async simulateCreateDeployment(facets, config) {
         const results = [];
         for (const facet of facets) {
+            // Input validation (checks)
+            if (!facet || !facet.name) {
+                console.warn(`${ERRORS.InvalidFacet}: Invalid facet in deployment simulation, skipping`);
+                continue;
+            }
+            
             const startTime = Date.now();
-            // Simulate DeterministicChunkFactory deployment
+            
+            // Effects
             const deploymentGas = this.estimateDeploymentGas(facet);
             const predictedAddress = this.simulatePredictAddress(facet);
+            
+            // Emit deployment simulated event
+            this._emitEvent(EVENTS.DeploymentSimulated, {
+                facetName: facet.name,
+                predictedAddress,
+                deploymentGas,
+                timestamp: Date.now()
+            });
             const simulation = {
                 name: `CREATE2 Deployment: ${facet.name}`,
                 description: `Simulate deterministic deployment of ${facet.name} facet`,
@@ -221,10 +293,29 @@ class FacetSimulator {
             return results;
         }
         for (const facet of facets) {
+            // Input validation
+            if (!facet || !facet.name) {
+                console.warn('Invalid facet in code integrity simulation, skipping');
+                continue;
+            }
+            
             const startTime = Date.now();
             const simulatedCodehash = this.generateSimulatedCodehash(facet);
+            
+            // Safe function access - handle different types
+            let functions = [];
+            if (Array.isArray(facet.functions)) {
+                functions = facet.functions.slice(0, 3);
+            } else if (typeof facet.functions === 'number') {
+                // Create mock functions for simulation
+                functions = Array.from({length: Math.min(3, facet.functions)}, (_, i) => ({
+                    name: `function${i + 1}`,
+                    selector: `0x${(i + 1).toString(16).padStart(8, '0')}`
+                }));
+            }
+            
             // Simulate function calls with codehash verification
-            const functionTests = facet.functions.slice(0, 3).map((func) => {
+            const functionTests = functions.map((func) => {
                 const callGas = 33000; // PayRox Go Beyond measured overhead
                 const verificationGas = 2100; // EXTCODEHASH operation
                 return {
@@ -239,7 +330,7 @@ class FacetSimulator {
                 name: `Code Integrity: ${facet.name}`,
                 description: 'Simulate EXTCODEHASH verification on function calls',
                 success: true,
-                gasEstimate: facet.functions.length * 35100,
+                gasEstimate: this.getFunctionCount(facet) * 35100,
                 gasUsed: functionTests.reduce((sum, test) => sum + test.gasUsed, 0),
                 executionTime: Date.now() - startTime,
                 errors: [],
@@ -256,7 +347,7 @@ class FacetSimulator {
                     'Facet immutability enforced at runtime'
                 ],
                 steps: functionTests,
-                expectedGas: facet.functions.length * 35100,
+                expectedGas: this.getFunctionCount(facet) * 35100,
                 gasEfficiency: 0.95 // Small overhead for security
             };
             results.push(integritySimulation);
@@ -371,28 +462,79 @@ class FacetSimulator {
         return results;
     }
     /**
-     * Helper methods for PayRox Go Beyond simulation
+     * @dev Estimate deployment gas for a facet
+     * @notice Calculates gas required for deterministic deployment
+     * @param facet The facet configuration to analyze
+     * @return uint256 Estimated gas cost for deployment
      */
     estimateDeploymentGas(facet) {
+        // Input validation (checks)
+        if (!facet || !facet.name) {
+            console.warn(`${ERRORS.InvalidFacet}: Invalid facet provided to estimateDeploymentGas`);
+            return 200000; // Safe default
+        }
+        
         const baseDeployGas = 100000;
-        const bytecodeGas = facet.sourceCode.length * 10; // Rough estimate
-        const functionGas = facet.functions.length * 5000;
+        const bytecodeGas = facet.sourceCode ? facet.sourceCode.length * 10 : 50000; // Rough estimate
+        
+        // PayRox Rule: Validate ASCII-only for deterministic deployment
+        if (facet.sourceCode && !this._validateASCIIOnly(facet.sourceCode)) {
+            console.warn(`${ERRORS.InvalidInput}: Non-ASCII characters detected in ${facet.name} - incompatible with deterministic deployment`);
+        }
+        
+        // Handle both string array and object array for functions
+        let functionCount = 0;
+        if (Array.isArray(facet.functions)) {
+            functionCount = facet.functions.length;
+        } else if (typeof facet.functions === 'number') {
+            functionCount = Math.max(0, facet.functions); // Ensure non-negative
+        } else {
+            functionCount = 0; // Default to 0 for unknown types
+        }
+        
+        const functionGas = functionCount * 5000;
         return baseDeployGas + bytecodeGas + functionGas;
     }
     simulatePredictAddress(facet) {
+        // Input validation
+        if (!facet || !facet.name) {
+            console.warn('Invalid facet provided to simulatePredictAddress');
+            return '0x0000000000000000000000000000000000000000';
+        }
+        
         // Simulate CREATE2 address prediction
-        const hash = this.simpleHash(facet.name + facet.sourceCode);
+        const hashInput = facet.name + (facet.sourceCode || '');
+        const hash = this.simpleHash(hashInput);
         return `0x${hash.slice(0, 40)}`;
     }
     generateManifestRoutes(facets) {
         const routes = [];
         for (const facet of facets) {
-            for (const func of facet.functions) {
+            // Input validation
+            if (!facet || !facet.name) {
+                console.warn('Invalid facet in manifest routes generation, skipping');
+                continue;
+            }
+            
+            // Safe function access
+            let functions = [];
+            if (Array.isArray(facet.functions)) {
+                functions = facet.functions;
+            } else if (typeof facet.functions === 'number') {
+                // Create mock functions for simulation
+                functions = Array.from({length: facet.functions}, (_, i) => ({
+                    name: `function${i + 1}`,
+                    selector: `0x${(i + 1).toString(16).padStart(8, '0')}`,
+                    gasEstimate: 50000
+                }));
+            }
+            
+            for (const func of functions) {
                 routes.push({
-                    selector: func.selector,
+                    selector: func.selector || `0x${Math.random().toString(16).slice(2, 10)}`,
                     facet: this.simulatePredictAddress(facet),
                     codehash: this.generateSimulatedCodehash(facet),
-                    functionName: func.name,
+                    functionName: func.name || 'unknownFunction',
                     gasEstimate: func.gasEstimate || 50000,
                     securityLevel: (facet.securityLevel === 'Critical' || facet.securityLevel === 'High' || facet.securityLevel === 'Medium' || facet.securityLevel === 'Low') ?
                         facet.securityLevel.toLowerCase() : 'medium'
@@ -400,6 +542,16 @@ class FacetSimulator {
             }
         }
         return routes;
+    }
+    
+    // Helper method to safely get function count
+    getFunctionCount(facet) {
+        if (Array.isArray(facet.functions)) {
+            return facet.functions.length;
+        } else if (typeof facet.functions === 'number') {
+            return Math.max(0, facet.functions);
+        }
+        return 0;
     }
     calculateSimulatedMerkleRoot(routes) {
         // Simplified Merkle root calculation for simulation
@@ -410,6 +562,12 @@ class FacetSimulator {
         const conflicts = [];
         const usedSlots = new Set();
         for (const facet of facets) {
+            // Input validation
+            if (!facet || !facet.name) {
+                console.warn('Invalid facet in storage analysis, skipping');
+                continue;
+            }
+            
             // Simulate diamond-safe storage slot analysis
             const facetSlot = `payrox.facets.${facet.name.toLowerCase()}.v1`;
             if (usedSlots.has(facetSlot)) {
@@ -426,22 +584,46 @@ class FacetSimulator {
         };
     }
     generateSimulatedCodehash(facet) {
-        return '0x' + this.simpleHash(facet.sourceCode + facet.name).slice(0, 64);
+        // Input validation
+        if (!facet || !facet.name) {
+            console.warn('Invalid facet provided to generateSimulatedCodehash');
+            return '0x0000000000000000000000000000000000000000000000000000000000000000';
+        }
+        
+        const hashInput = (facet.sourceCode || '') + facet.name;
+        return '0x' + this.simpleHash(hashInput).slice(0, 64);
     }
     calculateGasEfficiency(actualGas, expectedGas) {
-        if (expectedGas === 0) {
+        if (expectedGas === 0 || actualGas === 0) {
             return 1;
         }
         return Math.min(1, expectedGas / actualGas);
     }
     generateDeploymentRecommendations(facet, gasUsed) {
         const recommendations = [];
+        
+        // Input validation
+        if (!facet || !facet.name) {
+            recommendations.push('Warning: Invalid facet data provided');
+            return recommendations;
+        }
+        
         if (gasUsed > 2000000) {
             recommendations.push('Consider splitting large facet into smaller components');
         }
-        if (facet.functions.length > 15) {
+        
+        // Safe function count check
+        let functionCount = 0;
+        if (Array.isArray(facet.functions)) {
+            functionCount = facet.functions.length;
+        } else if (typeof facet.functions === 'number') {
+            functionCount = Math.max(0, facet.functions);
+        }
+        
+        if (functionCount > 15) {
             recommendations.push('Large number of functions - ensure proper categorization');
         }
+        
         recommendations.push('Deployment follows PayRox Go Beyond deterministic pattern');
         recommendations.push('Facet ready for manifest-based routing integration');
         return recommendations;
@@ -463,8 +645,42 @@ class FacetSimulator {
         }
         return Math.abs(hash).toString(16).padStart(64, '0');
     }
+
     /**
-     * Generate comprehensive PayRox Go Beyond deployment simulation
+     * @dev Emit simulation event for transparency
+     * @notice Internal method to log simulation events
+     * @param eventName Name of the event
+     * @param eventData Event data payload
+     */
+    _emitEvent(eventName, eventData) {
+        // In a real implementation, this would emit blockchain events
+        // For simulation, we log structured events
+        console.log(`📅 Event: ${eventName}`, eventData);
+    }
+
+    /**
+     * @dev Validate ASCII-only requirement for deterministic deployment
+     * @notice Ensures contract source contains only ASCII characters
+     * @param sourceCode The source code to validate
+     * @return bool True if ASCII-only, false otherwise
+     */
+    _validateASCIIOnly(sourceCode) {
+        if (!sourceCode) return true;
+        
+        for (let i = 0; i < sourceCode.length; i++) {
+            if (sourceCode.charCodeAt(i) > 127) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * @dev Generate comprehensive PayRox Go Beyond deployment simulation
+     * @notice Simulates full system deployment with proper sequencing
+     * @param facets Array of facets to deploy
+     * @param _config Deployment configuration
+     * @return Promise<Object> Deployment simulation plan
      */
     async simulateFullDeployment(facets, _config) {
         const phases = [

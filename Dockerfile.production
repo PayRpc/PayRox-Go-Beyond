@@ -1,0 +1,55 @@
+# Production Dockerfile example using Node.js 20 LTS
+# This provides maximum stability for production deployments
+
+FROM node:20-bullseye-slim AS base
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    python3 \
+    make \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+COPY .npmrc ./
+
+# Install dependencies
+RUN npm ci --only=production
+
+# Copy source code
+COPY . .
+
+# Build the project
+RUN npm run compile
+
+# Production stage
+FROM node:20-bullseye-slim AS production
+
+WORKDIR /app
+
+# Copy built artifacts
+COPY --from=base /app/artifacts ./artifacts
+COPY --from=base /app/contracts ./contracts
+COPY --from=base /app/scripts ./scripts
+COPY --from=base /app/node_modules ./node_modules
+COPY --from=base /app/package*.json ./
+
+# Set production environment
+ENV NODE_ENV=production
+
+# Create non-root user
+RUN groupadd -r payrox && useradd -r -g payrox payrox
+RUN chown -R payrox:payrox /app
+USER payrox
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD node --version || exit 1
+
+EXPOSE 3000
+
+CMD ["npm", "start"]

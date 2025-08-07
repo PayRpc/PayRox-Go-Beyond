@@ -13,7 +13,11 @@
     "interactive": "npm run dev interactive",
     "ui": "npm run dev ui",
     "ai": "ts-node src/enhanced-cli-menu.ts start --ai",
-    "demo": "ts-node src/enhanced-cli-menu.ts start --ai --network localhost"
+    "demo": "ts-node src/enhanced-cli-menu.ts start --ai --network localhost",
+    "ai:security": "cd ../ai-assistant/backend && npm run ai:auto-start",
+    "ai:security:fix": "cd ../ai-assistant/backend && npm run ai:security-fix",
+    "ai:security:analyze": "cd ../ai-assistant/backend && npm run mythril:smart",
+    "ai:security:status": "cd ../ai-assistant/backend && node auto-start.js status"
   },
   "keywords": [
     "payrox",

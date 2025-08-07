@@ -17,11 +17,22 @@
     "health-check": "curl -f http://localhost:3001/health || exit 1",
     "crash-protection": "tsx scripts/crash-protection-init.ts",
     "crash-protection:build": "tsc && node dist/scripts/crash-protection-init.js",
-    "simple-protection": "tsx scripts/simple-crash-protection.ts"
+    "simple-protection": "tsx scripts/simple-crash-protection.ts",
+    "payrox:scaffold": "node payrox-cli.js scaffold",
+    "payrox:build": "node payrox-cli.js build-root",
+    "payrox:deploy": "node payrox-cli.js deploy",
+    "payrox:register": "node payrox-cli.js register",
+    "payrox:verify": "node payrox-cli.js verify",
+    "payrox:fast-track": "node payrox-cli.js fast-track",
+    "payrox:generate": "node payrox-cli.js generate",
+    "payrox:validate": "node payrox-cli.js validate",
+    "payrox:demo": "node payrox-native-ai-engine.js",
+    "ci:validate": "node ci-manifest-validator.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.27.0",
     "@solidity-parser/parser": "^0.16.1",
+    "commander": "^11.1.0",
     "compression": "^1.7.4",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",

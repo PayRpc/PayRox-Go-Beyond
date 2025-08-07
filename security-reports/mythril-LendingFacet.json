@@ -1,0 +1,19 @@
+{
+  "success": true,
+  "issues": [
+    {
+      "title": "Reentrancy Vulnerability",
+      "description": "Potential reentrancy in lending withdrawal function",
+      "severity": "High",
+      "confidence": "Medium",
+      "swcId": "107",
+      "locations": [
+        {
+          "sourceMap": "456:78:0"
+        }
+      ]
+    }
+  ],
+  "version": "0.24.8-mock",
+  "executionTime": 18889
+}

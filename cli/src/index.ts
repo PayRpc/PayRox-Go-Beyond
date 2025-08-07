@@ -5,6 +5,7 @@ import { Command } from 'commander';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as readline from 'readline';
+import { AISecurityCLI } from './ai-security-cli';
 
 const program = new Command();
 
@@ -35,12 +36,13 @@ class PayRoxCLI {
     console.log('3. 🎯 Orchestrator - Coordinate deployments');
     console.log('4. 🏛️  GovernanceOrchestrator - Protocol governance');
     console.log('5. 🔍 AuditRegistry - Security audit management');
-    console.log('6. ⚙️  Settings - Network configuration');
-    console.log('7. 📊 Status - View deployment status');
-    console.log('8. 🔧 Utils - Utilities and helpers');
+    console.log('6. 🛡️  AI Security Engine - Advanced security analysis & fixes');
+    console.log('7. ⚙️  Settings - Network configuration');
+    console.log('8. 📊 Status - View deployment status');
+    console.log('9. 🔧 Utils - Utilities and helpers');
     console.log('0. Exit\n');
 
-    const choice = await this.askQuestion('Select an option (0-8): ');
+    const choice = await this.askQuestion('Select an option (0-9): ');
 
     switch (choice) {
       case '1':
@@ -59,12 +61,15 @@ class PayRoxCLI {
         await this.handleAuditRegistry();
         break;
       case '6':
-        await this.handleSettings();
+        await this.handleAISecurity();
         break;
       case '7':
-        await this.handleStatus();
+        await this.handleSettings();
         break;
       case '8':
+        await this.handleStatus();
+        break;
+      case '9':
         await this.handleUtils();
         break;
       case '0':
@@ -827,6 +832,17 @@ class PayRoxCLI {
     }
 
     await this.handleAuditRegistry();
+  }
+
+  private async handleAISecurity() {
+    console.log('\n🛡️ AI Security Engine');
+    console.log('Advanced security analysis and automatic vulnerability fixes\n');
+
+    const aiSecurity = new AISecurityCLI();
+    await aiSecurity.showSecurityMenu();
+    aiSecurity.close();
+    
+    await this.showMainMenu();
   }
 
   // Governance methods

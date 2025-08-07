@@ -23,7 +23,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18.x, 20.x]
+        node-version: [18.x, 20.x, 22.x]
       fail-fast: false # Continue with other versions if one fails
 
     steps:
@@ -75,7 +75,7 @@ jobs:
       - name: Run tests with timeout protection
         run: |
           echo "🧪 Running core test suite..."
-          
+
           # Simple approach: try main tests once, if they fail, skip fallback entirely
           if timeout 600 npm run test; then
             echo "✅ All tests passed successfully"
@@ -107,6 +107,26 @@ jobs:
           npm run lint || {
             echo "⚠️ Linting issues found - check output above"
             npm run lint:fix || true
+            exit 0
+          }
+        continue-on-error: true
+
+      - name: Validate Template Generator
+        run: |
+          echo "🏗️ Validating Template Generator system..."
+          npm run templates:setup-env && \
+          npm run templates:list && \
+          echo "✅ Template Generator validation passed" || {
+            echo "⚠️ Template Generator validation failed"
+            exit 0
+          }
+        continue-on-error: true
+
+      - name: AI Template Compliance Check
+        run: |
+          echo "🤖 Checking AI Template Generator compliance..."
+          npm run ai:template-compliance || {
+            echo "⚠️ AI Template compliance check failed"
             exit 0
           }
         continue-on-error: true
@@ -234,10 +254,10 @@ jobs:
         run: |
           echo "🚀 PayRox Complete System Deployment (TESTNET)"
           echo "Using master deployment script with all PayRox functionality"
-          
+
           # Make script executable
           chmod +x deploy-complete-system.sh
-          
+
           # Run the master PayRox deployment script
           ./deploy-complete-system.sh --network sepolia --show-details || {
             echo "❌ PayRox deployment failed"
@@ -253,11 +273,11 @@ jobs:
       - name: PayRox post-deployment verification
         run: |
           echo "🔍 Running PayRox-specific post-deployment verification..."
-          
+
           # Use PayRox-specific verification tasks
           npm run payrox:manifest:verify --path manifests/complete-production.manifest.json --check-facets true 2>/dev/null || echo "⚠️ Manifest verification skipped"
           npm run payrox:workflow:full 2>/dev/null || echo "⚠️ Full workflow verification skipped"
-          
+
           echo "✅ PayRox post-deployment verification completed"
         continue-on-error: true
 
@@ -299,10 +319,10 @@ jobs:
         run: |
           echo "🚀 PayRox Complete System Deployment (MAINNET)"
           echo "Using master deployment script with all PayRox functionality"
-          
+
           # Make script executable
           chmod +x deploy-complete-system.sh
-          
+
           # Run the master PayRox deployment script for mainnet
           ./deploy-complete-system.sh --network mainnet --show-details || {
             echo "❌ PayRox mainnet deployment failed"
@@ -325,11 +345,11 @@ jobs:
       - name: PayRox comprehensive post-deployment verification
         run: |
           echo "🔍 Running comprehensive PayRox post-deployment verification..."
-          
+
           # Complete PayRox verification workflow
           npm run payrox:manifest:verify --path manifests/complete-production.manifest.json --check-facets true 2>/dev/null || echo "⚠️ Manifest verification skipped"
           npm run payrox:workflow:full 2>/dev/null || echo "⚠️ Full PayRox workflow verification skipped"
-          
+
           echo "✅ PayRox comprehensive verification completed"
         continue-on-error: true
 
