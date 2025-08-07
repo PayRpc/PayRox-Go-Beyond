@@ -142,6 +142,19 @@
         "customizations": {},
         "enforceGuardrails": true
       }
+    },
+    "StakingFacet": {
+      "archetype": "core",
+      "version": "2.0.0",
+      "templateHash": "a9b76ab3494936c74aad285542e73903c610b17d9e1ae6755c26513a39a60c74",
+      "generatedAt": "2025-08-07T10:36:10.763Z",
+      "config": {
+        "facetName": "StakingFacet",
+        "archetype": "core",
+        "outputDir": "./contracts/generated-facets",
+        "customizations": {},
+        "enforceGuardrails": true
+      }
     }
   }
 }

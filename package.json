@@ -215,34 +215,12 @@
     "clean:deployments": "rimraf deployments/* reports/*",
     "clean:cache": "npx hardhat clean && rimraf cache artifacts",
     "clean:all": "npm run clean:deployments && npm run clean:cache",
-<<<<<<< HEAD
-    "_comment_proxy_router": "=== PROXY-ROUTER MIGRATION ===",
-    "proxy:migrate": "npx hardhat run scripts/proxy-migration.ts --network hardhat",
-    "proxy:migrate:localhost": "npx hardhat run scripts/proxy-migration.ts --network localhost",
-    "proxy:migrate:sepolia": "npx hardhat run scripts/proxy-migration.ts --network sepolia",
-    "proxy:migrate:mainnet": "npx hardhat run scripts/proxy-migration.ts --network mainnet",
-    "proxy:deploy-facets": "cross-env TASK=deploy-facets npx hardhat run scripts/proxy-integration-tasks.ts --network hardhat",
-    "proxy:build-manifest": "cross-env TASK=build-manifest npx hardhat run scripts/proxy-integration-tasks.ts --network hardhat",
-    "proxy:apply-routes": "cross-env TASK=apply-routes npx hardhat run scripts/proxy-integration-tasks.ts --network hardhat",
-    "proxy:activate": "cross-env TASK=activate npx hardhat run scripts/proxy-integration-tasks.ts --network hardhat",
-    "proxy:verify": "cross-env TASK=verify npx hardhat run scripts/proxy-integration-tasks.ts --network hardhat",
-    "proxy:full-integration": "cross-env TASK=all npx hardhat run scripts/proxy-integration-tasks.ts --network hardhat",
-    "_comment_proxy_helpers": "=== PROXY UPGRADE HELPERS ===",
-    "proxy:upgrade:transparent": "npx hardhat run scripts/upgrade-transparent-proxy.ts --network hardhat",
-    "proxy:upgrade:uups": "npx hardhat run scripts/upgrade-uups-proxy.ts --network hardhat",
-    "proxy:upgrade:beacon": "npx hardhat run scripts/upgrade-beacon-proxy.ts --network hardhat",
-    "fix:imports": "powershell -Command \"Get-ChildItem 'contracts\\demo\\generated-facets\\*.sol' | ForEach-Object { $content = Get-Content $_.FullName -Raw; $newContent = $content -replace 'import\\s+\\\"[^\\\"]*LibDiamond\\\\.sol\\\"', 'import \\\"../../utils/LibDiamond.sol\\\"'; $newContent = $newContent -replace \\\"import\\s+'[^']*LibDiamond\\\\.sol'\\\", \\\"import '../../utils/LibDiamond.sol'\\\"; Set-Content -Path $_.FullName -Value $newContent -NoNewline; Write-Host \\\"Fixed: $($_.Name)\\\" -ForegroundColor Green }\"",
-    "fix:storage": "powershell -Command \"Get-ChildItem 'contracts\\demo\\generated-facets\\*.sol' | ForEach-Object { $content = Get-Content $_.FullName -Raw; $newContent = $content -replace '\\s+mapping\\([^)]+\\)\\s+(public|private)\\s+', ' mapping(address => uint256) '; $newContent = $newContent -replace '\\s+(uint256|bool)\\s+(public|private)\\s+', ' $1 '; Set-Content -Path $_.FullName -Value $newContent -NoNewline; Write-Host \\\"Fixed storage: $($_.Name)\\\" -ForegroundColor Green }\"",
-    "fix:all": "npm run fix:imports && npm run fix:storage",
-    "postinstall": "npm run fix:all"
-=======
     "quick-test": "node scripts/quick-compile-test.js",
     "warm-cache": "node scripts/warm-cache.js",
     "dev-ready": "npm run warm-cache && npm run quick-test",
     "fix-compile": "rm -rf artifacts cache && npm run dev-ready",
     "oz:check": "node scripts/oz-dynamic-resolver.js",
     "oz:validate": "node scripts/validate-oz-config.js"
->>>>>>> Phase-3
   },
   "keywords": [
     "blockchain",
@@ -268,11 +246,7 @@
     "@typechain/ethers-v6": "^0.5.1",
     "@typechain/hardhat": "^9.1.0",
     "@types/chai": "^4.3.20",
-<<<<<<< HEAD
-    "@types/figlet": "^1.7.0",
-=======
     "@types/ejs": "^3.1.5",
->>>>>>> Phase-3
     "@types/fs-extra": "^11.0.4",
     "@types/inquirer": "^9.0.8",
     "@types/js-yaml": "^4.0.9",

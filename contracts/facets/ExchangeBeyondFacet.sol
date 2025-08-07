@@ -273,7 +273,7 @@ contract ExchangeBeyondFacet {
             // if (!ds.approvedTokens[tokensIn[i]] || !ds.approvedTokens[tokensOut[i]]) revert TokenNotApproved();
             
             // Execute trade logic here
-            ds.totalTradingVolume += amountsIn[i];
+            ds.totalExchangeVolume += amountsIn[i];
             
             emit TradeExecuted(msg.sender, tokensIn[i], tokensOut[i], amountsIn[i], minAmountsOut[i]);
         }
