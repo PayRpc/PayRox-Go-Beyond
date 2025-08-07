@@ -37,12 +37,15 @@ interface IManifestDispatcher is IAccessControl {
     function activationDelay() external view returns (uint64);
     function frozen() external view returns (bool);
 
+<<<<<<< HEAD
     /**
      * @notice Get comprehensive manifest information
      * @return info Current manifest information including hash, version, timestamp, and selector count
      */
     function getManifestInfo() external view returns (ManifestInfo memory info);
 
+=======
+>>>>>>> Phase-3
     // ───────────────── Manifest governance ────────────────────
     /**
      * Commit a new manifest root for epoch activeEpoch + 1.
@@ -75,4 +78,10 @@ interface IManifestDispatcher is IAccessControl {
     // ────────────────── Operational control ───────────────────
     function pause() external;
     function unpause() external;
+<<<<<<< HEAD
+=======
+
+    // ─────────────────── Manifest info ────────────────────
+    function getManifestInfo() external view returns (ManifestInfo memory info);
+>>>>>>> Phase-3
 }

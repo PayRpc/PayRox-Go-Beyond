@@ -32,7 +32,10 @@ contract ExampleFacetA {
     event FacetAExecutedHash(address indexed caller, bytes32 indexed msgHash);
     // Gas optimization analytics for batch operations
     event BatchExecutedOptimized(uint256 messageCount, uint256 gasUsed, bytes32 packedMetadata, uint256 timestamp);
+<<<<<<< HEAD
     event BatchDataStored(uint256 entryCount, uint256 gasUsed, bytes32 packedMetadata, uint256 timestamp);
+=======
+>>>>>>> Phase-3
 
     /* ─────────────── Diamond‑safe storage (fixed slot) ──────────────── */
     // Unique slot for this facet’s state.

@@ -58,8 +58,19 @@
     "ai:security:fix:learn": "node scripts/payrox-ai-v2-enhanced.js --confidence=95 --learn",
     "ai:learn": "node scripts/payrox-ai-v3-slither-learning.js",
     "ai:learn:dry": "node scripts/payrox-ai-v3-slither-learning.js --dry-run",
+    "ai:manifest:validate": "npx ts-node scripts/ai-manifest-aware-validator.ts",
+    "ai:facet:fix": "npx ts-node scripts/ai-complete-facet-fixer.ts",
+    "ai:architecture:mastery": "echo 'AI Architecture Learning Complete - See AI_COMPLETE_ARCHITECTURE_MASTERY.md'",
+    "ai:learning:status": "echo 'Checking AI learning status...' && npm run ai:manifest:validate",
+    "ai:yaml:validate": "npx ts-node scripts/ai-yaml-entry-point-validator.ts",
+    "ai:compilation:validate": "npx ts-node scripts/ai-compilation-validator.ts",
+    "ai:security:analyze": "npx ts-node scripts/targeted-security-analysis.ts",
+    "ai:security:full": "npx ts-node scripts/security-analysis.ts",
     "ai:learn:interactive": "node scripts/payrox-ai-v3-slither-learning.js --interactive",
     "ai:learn:advanced": "node scripts/payrox-ai-v3-slither-learning.js --confidence=98",
+    "templates:list": "npx ts-node templates/v2/generator/index.ts list",
+    "templates:generate": "npx ts-node templates/v2/generator/index.ts generate",
+    "templates:validate": "npx ts-node scripts/template-validator.ts",
     "ai:master": "node scripts/payrox-master-ai.js --learn",
     "ai:master:status": "node scripts/payrox-master-ai.js --status",
     "ai:evolve": "node scripts/payrox-master-ai.js --learn",
@@ -78,6 +89,9 @@
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
     "quality:check": "npm run lint && npm run test:comprehensive && npm run test:utilities && npm run coverage && npm run size",
+    "template:list": "npx ts-node templates/v2/generator/index.ts list",
+    "template:generate": "npx ts-node templates/v2/generator/index.ts generate",
+    "template:validate": "npx ts-node templates/v2/must-fix-validator.ts",
     "typechain": "hardhat typechain",
     "clean": "hardhat clean",
     "coverage": "hardhat coverage",
@@ -157,6 +171,14 @@
     "_comment_facet_integration": "=== FACET INTEGRATION ===",
     "test:chunk-factory-integration": "hardhat run scripts/test-chunk-factory-integration.ts --network localhost",
     "deploy:chunk-factory-facet": "hardhat run scripts/deploy-chunk-factory-facet.ts --network localhost",
+    "_comment_value_proposition": "=== PAYROX VALUE PROPOSITION DEMOS ===",
+    "value:demo-architectural-scaffolding": "hardhat run demo-value-proposition/architectural-scaffolding-demo.ts --network hardhat",
+    "value:demo-refactoring-live": "hardhat run demo-value-proposition/architectural-refactoring-demo.ts --network hardhat",
+    "value:analysis-comparison": "hardhat run demo-value-proposition/value-proposition-analysis.ts --network hardhat",
+    "value:quick-demo": "npm run value:demo-architectural-scaffolding && npm run value:analysis-comparison",
+    "value:roi-analysis": "hardhat run demo-value-proposition/value-proposition-analysis.ts --network hardhat",
+    "value:separation-demo": "hardhat run demo-value-proposition/architectural-scaffolding-demo.ts --network hardhat",
+    "value:full-demo": "npm run value:demo-architectural-scaffolding && npm run value:demo-refactoring-live && npm run value:analysis-comparison",
     "_comment_cross_network": "=== CROSS-NETWORK DEPLOYMENT ===",
     "deploy:cross-network": "npx ts-node scripts/deploy-cross-network.ts",
     "deploy:all-networks": "npx ts-node scripts/deploy-cross-network.ts all",
@@ -170,6 +192,12 @@
     "setup:monitoring": "npm run next-steps:monitor",
     "_comment_testing": "=== ENHANCED TESTING ===",
     "test:facets": "npx hardhat test test/facets/**/*.test.ts",
+    "_comment_ci_guards": "=== CI VALIDATION GUARDS - Fix #8 ===",
+    "ci:check-facets": "ts-node scripts/ci/check-facet.ts",
+    "ci:check-ascii": "ts-node scripts/ci/check-ascii.ts",
+    "ci:check-inheritance": "ts-node scripts/ci/check-inheritance.ts",
+    "ci:validate-all": "npm run ci:check-facets && npm run ci:check-ascii && npm run ci:check-inheritance",
+    "ci:pre-deploy": "npm run compile && npm run ci:validate-all && npm run test:comprehensive",
     "test:cross-network": "npm run verify:cross-network",
     "test:comprehensive-next": "npm run test && npm run test:facets && npm run verify:deployment",
     "_comment_auditing": "=== SECURITY & AUDITING ===",
@@ -187,6 +215,7 @@
     "clean:deployments": "rimraf deployments/* reports/*",
     "clean:cache": "npx hardhat clean && rimraf cache artifacts",
     "clean:all": "npm run clean:deployments && npm run clean:cache",
+<<<<<<< HEAD
     "_comment_proxy_router": "=== PROXY-ROUTER MIGRATION ===",
     "proxy:migrate": "npx hardhat run scripts/proxy-migration.ts --network hardhat",
     "proxy:migrate:localhost": "npx hardhat run scripts/proxy-migration.ts --network localhost",
@@ -206,6 +235,14 @@
     "fix:storage": "powershell -Command \"Get-ChildItem 'contracts\\demo\\generated-facets\\*.sol' | ForEach-Object { $content = Get-Content $_.FullName -Raw; $newContent = $content -replace '\\s+mapping\\([^)]+\\)\\s+(public|private)\\s+', ' mapping(address => uint256) '; $newContent = $newContent -replace '\\s+(uint256|bool)\\s+(public|private)\\s+', ' $1 '; Set-Content -Path $_.FullName -Value $newContent -NoNewline; Write-Host \\\"Fixed storage: $($_.Name)\\\" -ForegroundColor Green }\"",
     "fix:all": "npm run fix:imports && npm run fix:storage",
     "postinstall": "npm run fix:all"
+=======
+    "quick-test": "node scripts/quick-compile-test.js",
+    "warm-cache": "node scripts/warm-cache.js",
+    "dev-ready": "npm run warm-cache && npm run quick-test",
+    "fix-compile": "rm -rf artifacts cache && npm run dev-ready",
+    "oz:check": "node scripts/oz-dynamic-resolver.js",
+    "oz:validate": "node scripts/validate-oz-config.js"
+>>>>>>> Phase-3
   },
   "keywords": [
     "blockchain",
@@ -231,7 +268,11 @@
     "@typechain/ethers-v6": "^0.5.1",
     "@typechain/hardhat": "^9.1.0",
     "@types/chai": "^4.3.20",
+<<<<<<< HEAD
     "@types/figlet": "^1.7.0",
+=======
+    "@types/ejs": "^3.1.5",
+>>>>>>> Phase-3
     "@types/fs-extra": "^11.0.4",
     "@types/inquirer": "^9.0.8",
     "@types/js-yaml": "^4.0.9",
@@ -268,6 +309,7 @@
     "boxen": "^8.0.1",
     "colors": "^1.4.0",
     "dotenv": "^17.2.1",
+    "ejs": "^3.1.10",
     "ethers": "^6.15.0",
     "figlet": "^1.8.2",
     "fs-extra": "^11.3.0",
@@ -275,5 +317,12 @@
     "ora": "^8.2.0",
     "table": "^6.8.2",
     "yargs": "^17.7.2"
+  },
+  "payrox": {
+    "ozDynamic": {
+      "enabled": true,
+      "version": "^5.4.0",
+      "lastUpdated": "2025-08-06T19:42:49.613Z"
+    }
   }
 }

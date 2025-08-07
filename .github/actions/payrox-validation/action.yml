@@ -1,0 +1,202 @@
+name: 'PayRox MUST-FIX Validator'
+description: 'Enterprise-grade smart contract safety validation with rollback readiness'
+author: 'PayRox'
+branding:
+  icon: 'shield'
+  color: 'green'
+
+inputs:
+  target:
+    description: 'Target file or directory to validate'
+    required: false
+    default: 'contracts'
+  
+  fail-on:
+    description: 'Comma-separated list of conditions to fail on'
+    required: false
+    default: 'storage-incompatible,selector-drift,unsafe-changes'
+  
+  security-scan:
+    description: 'Security analysis tools to run'
+    required: false
+    default: 'slither,mythril'
+  
+  compliance-report:
+    description: 'Generate signed compliance report'
+    required: false
+    default: 'true'
+  
+  min-score:
+    description: 'Minimum MUST-FIX score required (0-100)'
+    required: false
+    default: '90'
+  
+  payrox-token:
+    description: 'PayRox API token for enterprise features'
+    required: false
+
+outputs:
+  score:
+    description: 'Overall MUST-FIX score'
+  
+  passed:
+    description: 'Whether validation passed'
+  
+  report-url:
+    description: 'URL to detailed compliance report'
+  
+  attestation:
+    description: 'Signed attestation hash'
+
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
+
+  # Environment setup
+  pre:
+    - name: Setup PayRox CLI
+      run: |
+        npm install -g @payrox/cli
+        echo "🚀 PayRox CLI installed"
+    
+    - name: Validate License
+      run: |
+        if [ -n "${{ inputs.payrox-token }}" ]; then
+          payrox auth login --token "${{ inputs.payrox-token }}"
+          echo "✅ Enterprise license validated"
+        else
+          echo "ℹ️ Using community features"
+        fi
+
+  # Main validation
+  main:
+    - name: Run MUST-FIX Validation
+      id: mustfix
+      run: |
+        echo "🔍 Running PayRox MUST-FIX validation..."
+        
+        RESULT=$(payrox validate "${{ inputs.target }}" \
+          --format json \
+          --min-score "${{ inputs.min-score }}" \
+          --fail-on "${{ inputs.fail-on }}")
+        
+        echo "mustfix-result=$RESULT" >> $GITHUB_OUTPUT
+        
+        SCORE=$(echo "$RESULT" | jq -r '.score')
+        PASSED=$(echo "$RESULT" | jq -r '.passed')
+        
+        echo "score=$SCORE" >> $GITHUB_OUTPUT
+        echo "passed=$PASSED" >> $GITHUB_OUTPUT
+        
+        echo "📊 MUST-FIX Score: $SCORE%"
+        
+        if [ "$PASSED" = "false" ]; then
+          echo "❌ Validation failed - see detailed report"
+          exit 1
+        else
+          echo "✅ Validation passed"
+        fi
+
+    - name: Security Analysis
+      if: contains(inputs.security-scan, 'slither') || contains(inputs.security-scan, 'mythril')
+      run: |
+        echo "🛡️ Running security analysis..."
+        
+        if [[ "${{ inputs.security-scan }}" == *"slither"* ]]; then
+          echo "Running Slither..."
+          payrox security slither "${{ inputs.target }}"
+        fi
+        
+        if [[ "${{ inputs.security-scan }}" == *"mythril"* ]]; then
+          echo "Running Mythril..."
+          payrox security mythril "${{ inputs.target }}"
+        fi
+
+    - name: Generate Compliance Report
+      if: inputs.compliance-report == 'true'
+      id: compliance
+      run: |
+        echo "📋 Generating compliance report..."
+        
+        REPORT_URL=$(payrox compliance report \
+          --target "${{ inputs.target }}" \
+          --github-context "${{ github.repository }}/${{ github.sha }}" \
+          --sign)
+        
+        echo "report-url=$REPORT_URL" >> $GITHUB_OUTPUT
+        echo "📊 Compliance report: $REPORT_URL"
+
+    - name: Generate Attestation
+      if: inputs.payrox-token != ''
+      id: attestation
+      run: |
+        echo "🔐 Generating signed attestation..."
+        
+        ATTESTATION=$(payrox attest \
+          --target "${{ inputs.target }}" \
+          --commit "${{ github.sha }}" \
+          --score "${{ steps.mustfix.outputs.score }}")
+        
+        echo "attestation=$ATTESTATION" >> $GITHUB_OUTPUT
+        echo "🔒 Attestation: $ATTESTATION"
+
+  # Post-processing
+  post:
+    - name: Upload Results
+      uses: actions/upload-artifact@v3
+      with:
+        name: payrox-validation-results
+        path: |
+          .payrox/validation-report.json
+          .payrox/security-analysis.json
+          .payrox/compliance-report.pdf
+
+    - name: Comment PR
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const score = '${{ steps.mustfix.outputs.score }}';
+          const passed = '${{ steps.mustfix.outputs.passed }}';
+          const reportUrl = '${{ steps.compliance.outputs.report-url }}';
+          
+          const status = passed === 'true' ? '✅ PASSED' : '❌ FAILED';
+          const emoji = passed === 'true' ? '🎉' : '⚠️';
+          
+          const comment = `## ${emoji} PayRox Validation Results
+          
+**Status**: ${status}  
+**MUST-FIX Score**: ${score}%  
+${reportUrl ? `**Report**: [View Compliance Report](${reportUrl})` : ''}
+
+### What this means:
+${passed === 'true' 
+  ? '🟢 Your changes meet PayRox safety standards and are ready for deployment.' 
+  : '🔴 Your changes need fixes before they can be safely deployed.'}
+
+---
+*Validated by [PayRox](https://payrox.dev) - Enterprise Smart Contract Safety*`;
+
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: comment
+          });
+
+    - name: Set Status Check
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const passed = '${{ steps.mustfix.outputs.passed }}';
+          const score = '${{ steps.mustfix.outputs.score }}';
+          
+          github.rest.repos.createCommitStatus({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            sha: context.sha,
+            state: passed === 'true' ? 'success' : 'failure',
+            target_url: '${{ steps.compliance.outputs.report-url }}',
+            description: `MUST-FIX Score: ${score}%`,
+            context: 'PayRox/Safety Validation'
+          });

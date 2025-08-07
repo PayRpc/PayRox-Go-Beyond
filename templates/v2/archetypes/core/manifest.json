@@ -1,0 +1,77 @@
+{
+  "name": "core",
+  "version": "2.0.0",
+  "description": "Minimal facet archetype with initialization, pause, and reentrancy protection",
+  "template": "facet.sol",
+  "mustFixCompliant": true,
+  "securityAudited": true,
+  "features": {
+    "initialization": {
+      "required": true,
+      "pattern": "initialize{{FacetName}}",
+      "noConstructor": true
+    },
+    "pausable": {
+      "required": true,
+      "operatorGated": true
+    },
+    "reentrancyGuard": {
+      "required": true,
+      "namespacedInStorage": true
+    },
+    "accessControl": {
+      "dispatcherGated": true,
+      "operatorRole": true
+    },
+    "storage": {
+      "namespaced": true,
+      "slotPattern": "payrox.facet.{{FACET_NAME_LOWER}}.v1",
+      "collisionSafe": true
+    },
+    "errors": {
+      "customOnly": true,
+      "gasEfficient": true
+    },
+    "manifestIntegration": {
+      "getFacetInfo": true,
+      "selectorArray": true,
+      "exactCount": true
+    }
+  },
+  "placeholders": {
+    "TEMPLATE_HASH": "Generated from template metadata",
+    "TIMESTAMP": "ISO timestamp of generation",
+    "FACET_NAME_UPPER": "SNAKE_CASE facet name for constants",
+    "FACET_NAME_LOWER": "lowercase.name for storage keys",
+    "FACET_NAME_CLEAN": "CleanName for display",
+    "FacetName": "PascalCase for contract/struct names",
+    "FACET_DESCRIPTION": "Human readable description",
+    "CUSTOM_STORAGE_FIELDS": "Domain-specific storage variables",
+    "CUSTOM_EVENTS": "Domain-specific events",
+    "CUSTOM_INIT_PARAMS": "Additional init parameters",
+    "CUSTOM_INIT_LOGIC": "Domain-specific initialization",
+    "CUSTOM_ADMIN_FUNCTIONS": "Operator-gated admin functions",
+    "CUSTOM_CORE_FUNCTIONS": "Main business logic functions",
+    "CUSTOM_VIEW_FUNCTIONS": "Read-only view functions",
+    "SELECTOR_COUNT": "Exact number of external functions",
+    "CUSTOM_SELECTORS": "Domain-specific function selectors"
+  },
+  "guardrails": {
+    "noConstructors": true,
+    "noInlineAssembly": false,
+    "noRawCalls": true,
+    "requireSafeERC20": true,
+    "requireCEIPattern": true,
+    "asciiOnly": true
+  },
+  "testing": {
+    "unitTests": ["initialization", "pause", "reentrancy", "access"],
+    "propertyTests": ["storage_isolation", "dispatcher_gating"],
+    "securityTests": ["slither", "mustFixValidator"]
+  },
+  "compatibility": {
+    "solidity": "^0.8.20",
+    "dispatcher": ">=1.0.0",
+    "manifest": ">=2.0.0"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "detect": {
+    "exclude": ["naming-convention", "low-level-calls"]
+  },
+  "filter_paths": [
+    "node_modules",
+    "test",
+    "scripts",
+    "mocks",
+    "demo-archive"
+  ],
+  "solc_remaps": [
+    "@openzeppelin/=node_modules/@openzeppelin/"
+  ],
+  "solc_args": "--optimize --optimize-runs 200",
+  "compilation_timeout": 60,
+  "exclude_informational": false,
+  "exclude_low": false,
+  "exclude_medium": false,
+  "exclude_high": false,
+  "exclude_optimization": true
+}

@@ -5,12 +5,6 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "../utils/LibDiamond.sol";
 
-/**
- * @title PayRoxProxyRouter - MUST-FIX Compliant Test Facet
- * @notice Demonstration of MUST-FIX compliance for PayRox Go Beyond
- * @dev Production-ready facet following all MUST-FIX requirements
- */
-
 // ═══════════════════════════════════════════════════════════════════════════
 // CUSTOM ERRORS (MUST-FIX COMPLIANCE)
 // ═══════════════════════════════════════════════════════════════════════════
@@ -116,7 +110,7 @@ contract TestFacet {
     }
     
     modifier onlyDispatcher() {
-        LibDiamond.enforceIsDispatcher();
+        LibDiamond.enforceManifestCall();
         _;
     }
     
@@ -237,7 +231,7 @@ contract TestFacet {
         address token,
         bool approved
     ) external onlyInitialized onlyDispatcher {
-        LibDiamond.enforceRole(TestFacetRoles.TOKEN_MANAGER_ROLE, msg.sender);
+        LibDiamond.requireRole(TestFacetRoles.TOKEN_MANAGER_ROLE);
         
         TestFacetStorage.Layout storage ds = TestFacetStorage.layout();
         ds.approvedTokens[token] = approved;
@@ -250,7 +244,7 @@ contract TestFacet {
      * @dev Only PAUSER_ROLE can pause/unpause
      */
     function setPaused(bool _paused) external onlyInitialized onlyDispatcher {
-        LibDiamond.enforceRole(TestFacetRoles.PAUSER_ROLE, msg.sender);
+        LibDiamond.requireRole(TestFacetRoles.PAUSER_ROLE);
         
         TestFacetStorage.Layout storage ds = TestFacetStorage.layout();
         ds.paused = _paused;

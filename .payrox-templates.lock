@@ -1,0 +1,147 @@
+{
+  "templates": {
+    "TradingFacet": {
+      "archetype": "governance",
+      "version": "2.0.0",
+      "templateHash": "76fff98e5a7b0ef05ff36ea21f037cbaaf855885fbd25a2b9e620767b6a8b9c9",
+      "generatedAt": "2025-08-06T22:35:58.315Z",
+      "config": {
+        "facetName": "TradingFacet",
+        "archetype": "governance",
+        "outputDir": "./contracts/generated-facets",
+        "customizations": {},
+        "enforceGuardrails": true
+      }
+    },
+    "VaultFacet": {
+      "archetype": "core",
+      "version": "2.0.0",
+      "templateHash": "a9b76ab3494936c74aad285542e73903c610b17d9e1ae6755c26513a39a60c74",
+      "generatedAt": "2025-08-06T22:37:53.611Z",
+      "config": {
+        "facetName": "VaultFacet",
+        "archetype": "core",
+        "outputDir": "./contracts/generated-facets",
+        "customizations": {},
+        "enforceGuardrails": true
+      }
+    },
+    "AdvancedTradingFacet": {
+      "archetype": "core",
+      "version": "2.0.0",
+      "templateHash": "a9b76ab3494936c74aad285542e73903c610b17d9e1ae6755c26513a39a60c74",
+      "generatedAt": "2025-08-06T22:38:41.099Z",
+      "config": {
+        "facetName": "AdvancedTradingFacet",
+        "archetype": "core",
+        "outputDir": "./contracts/generated-facets",
+        "customizations": {
+          "description": "Advanced trading facet with order management and liquidity",
+          "storage": [
+            {
+              "type": "mapping(address => uint256)",
+              "name": "userBalances",
+              "comment": "User token balances"
+            },
+            {
+              "type": "mapping(bytes32 => Order)",
+              "name": "orders",
+              "comment": "Active orders by ID"
+            },
+            {
+              "type": "uint256",
+              "name": "totalVolume",
+              "comment": "Total trading volume"
+            },
+            {
+              "type": "uint256",
+              "name": "feeRate",
+              "comment": "Trading fee rate (basis points)"
+            }
+          ],
+          "events": [
+            {
+              "name": "OrderPlaced",
+              "params": "bytes32 indexed orderId, address indexed trader, uint256 amount"
+            },
+            {
+              "name": "OrderFilled",
+              "params": "bytes32 indexed orderId, uint256 fillAmount"
+            },
+            {
+              "name": "FeeRateUpdated",
+              "params": "uint256 oldRate, uint256 newRate"
+            }
+          ],
+          "initParams": [
+            {
+              "type": "uint256",
+              "name": "initialFeeRate_"
+            }
+          ],
+          "initLogic": "\n        l.feeRate = initialFeeRate_;\n        if (initialFeeRate_ > 1000) revert InvalidParam(); // Max 10%",
+          "adminFunctions": [
+            {
+              "name": "setFeeRate",
+              "params": "uint256 newRate_",
+              "body": "\n        if (newRate_ > 1000) revert InvalidParam(); // Max 10%\n        uint256 oldRate = _s().feeRate;\n        _s().feeRate = newRate_;\n        emit FeeRateUpdated(oldRate, newRate_);"
+            }
+          ],
+          "coreFunctions": [
+            {
+              "name": "placeOrder",
+              "params": "uint256 amount, uint256 price",
+              "body": "\n        if (amount == 0 || price == 0) revert InvalidParam();\n        bytes32 orderId = keccak256(abi.encodePacked(msg.sender, block.timestamp, amount));\n        // Order placement logic here\n        emit OrderPlaced(orderId, msg.sender, amount);"
+            },
+            {
+              "name": "fillOrder",
+              "params": "bytes32 orderId, uint256 fillAmount",
+              "body": "\n        if (fillAmount == 0) revert InvalidParam();\n        // Order filling logic here\n        emit OrderFilled(orderId, fillAmount);"
+            }
+          ],
+          "viewFunctions": [
+            {
+              "name": "getFeeRate",
+              "params": "",
+              "returns": "uint256",
+              "body": "return _s().feeRate;"
+            },
+            {
+              "name": "getTotalVolume",
+              "params": "",
+              "returns": "uint256",
+              "body": "return _s().totalVolume;"
+            }
+          ]
+        },
+        "enforceGuardrails": true
+      }
+    },
+    "SecurityFacet": {
+      "archetype": "core",
+      "version": "2.0.0",
+      "templateHash": "a9b76ab3494936c74aad285542e73903c610b17d9e1ae6755c26513a39a60c74",
+      "generatedAt": "2025-08-06T22:46:53.644Z",
+      "config": {
+        "facetName": "SecurityFacet",
+        "archetype": "core",
+        "outputDir": "./contracts/generated-facets",
+        "customizations": {},
+        "enforceGuardrails": true
+      }
+    },
+    "TokenGovernanceFacet": {
+      "archetype": "governance",
+      "version": "2.0.0",
+      "templateHash": "76fff98e5a7b0ef05ff36ea21f037cbaaf855885fbd25a2b9e620767b6a8b9c9",
+      "generatedAt": "2025-08-06T22:47:09.104Z",
+      "config": {
+        "facetName": "TokenGovernanceFacet",
+        "archetype": "governance",
+        "outputDir": "./contracts/generated-facets",
+        "customizations": {},
+        "enforceGuardrails": true
+      }
+    }
+  }
+}

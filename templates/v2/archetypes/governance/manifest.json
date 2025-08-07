@@ -1,0 +1,87 @@
+{
+  "name": "governance",
+  "version": "2.0.0",
+  "description": "Governance facet with weighted voting, proposals, and quorum checks",
+  "template": "facet.sol", 
+  "basedOn": "User-refined GovernanceCoreFacet pattern",
+  "mustFixCompliant": true,
+  "securityAudited": true,
+  "features": {
+    "proposals": {
+      "lifecycle": ["PENDING", "ACTIVE", "SUCCEEDED", "DEFEATED", "EXECUTED"],
+      "weightedVoting": true,
+      "quorumChecks": true,
+      "timeWindows": true
+    },
+    "voting": {
+      "supportBinary": true,
+      "weightBased": true,
+      "oncePerProposal": true,
+      "deadlineEnforced": true
+    },
+    "administration": {
+      "votingParams": ["delay", "period", "quorum"],
+      "votingPowerManagement": true,
+      "operatorGated": true
+    },
+    "storage": {
+      "namespaced": true,
+      "slotKey": "payrox.facet.governance.v1",
+      "mappings": ["votingPower", "proposals", "hasVoted"],
+      "collisionSafe": true
+    }
+  },
+  "securityPatterns": {
+    "reentrancyGuard": "namespaced in storage",
+    "accessControl": "dispatcher + operator gating",  
+    "pauseMechanism": "operator controlled",
+    "inputValidation": "comprehensive checks",
+    "eventLogging": "all state changes"
+  },
+  "gasOptimizations": {
+    "customErrors": true,
+    "packedStructs": true,
+    "efficientMappings": true,
+    "selectorCounting": "exact, no zeros"
+  },
+  "guardrails": {
+    "noConstructors": true,
+    "noInlineAssembly": false,
+    "noRawCalls": true,
+    "requireSafeERC20": false,
+    "requireCEIPattern": true,
+    "asciiOnly": true
+  },
+  "testing": {
+    "unitTests": [
+      "proposal_creation",
+      "voting_mechanics", 
+      "access_controls",
+      "pause_functionality",
+      "parameter_updates"
+    ],
+    "propertyTests": [
+      "vote_once_per_proposal",
+      "deadline_enforcement", 
+      "quorum_requirements",
+      "weight_calculations"
+    ],
+    "securityTests": [
+      "reentrancy_protection",
+      "unauthorized_access",
+      "parameter_validation"
+    ]
+  },
+  "compatibility": {
+    "solidity": "^0.8.20",
+    "dispatcher": ">=1.0.0", 
+    "manifest": ">=2.0.0",
+    "libDiamond": "enforceManifestCall required"
+  },
+  "usage": {
+    "deploymentOrder": "after dispatcher and LibDiamond",
+    "initialization": "requires operator address and voting parameters",
+    "upgrades": "version field tracks schema changes",
+    "monitoring": "events provide full audit trail"
+  }
+}

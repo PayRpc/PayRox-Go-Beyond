@@ -1,0 +1,82 @@
+[
+  {
+    "name": "GovernanceCoreFacet.sol",
+    "compiles": true,
+    "status": "OK",
+    "issues": [],
+    "securityScore": 100,
+    "patterns": {
+      "hasReentrancyGuard": true,
+      "hasAccessControl": true,
+      "hasInitialization": true,
+      "hasManifestInfo": true,
+      "hasNamespacedStorage": true,
+      "hasCustomErrors": true,
+      "hasEvents": true
+    }
+  },
+  {
+    "name": "TradingCoreFacet.sol",
+    "compiles": true,
+    "status": "OK",
+    "issues": [],
+    "securityScore": 100,
+    "patterns": {
+      "hasReentrancyGuard": true,
+      "hasAccessControl": true,
+      "hasInitialization": true,
+      "hasManifestInfo": true,
+      "hasNamespacedStorage": true,
+      "hasCustomErrors": true,
+      "hasEvents": true
+    }
+  },
+  {
+    "name": "LendingProtocolFacet.sol",
+    "compiles": true,
+    "status": "OK",
+    "issues": [],
+    "securityScore": 100,
+    "patterns": {
+      "hasReentrancyGuard": true,
+      "hasAccessControl": true,
+      "hasInitialization": true,
+      "hasManifestInfo": true,
+      "hasNamespacedStorage": true,
+      "hasCustomErrors": true,
+      "hasEvents": true
+    }
+  },
+  {
+    "name": "StakingRewardsFacet.sol",
+    "compiles": true,
+    "status": "OK",
+    "issues": [],
+    "securityScore": 100,
+    "patterns": {
+      "hasReentrancyGuard": true,
+      "hasAccessControl": true,
+      "hasInitialization": true,
+      "hasManifestInfo": true,
+      "hasNamespacedStorage": true,
+      "hasCustomErrors": true,
+      "hasEvents": true
+    }
+  },
+  {
+    "name": "InsuranceProtectionFacet.sol",
+    "compiles": true,
+    "status": "OK",
+    "issues": [],
+    "securityScore": 100,
+    "patterns": {
+      "hasReentrancyGuard": true,
+      "hasAccessControl": true,
+      "hasInitialization": true,
+      "hasManifestInfo": true,
+      "hasNamespacedStorage": true,
+      "hasCustomErrors": true,
+      "hasEvents": true
+    }
+  }
+]
