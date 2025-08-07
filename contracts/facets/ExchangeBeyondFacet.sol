@@ -71,9 +71,9 @@ library ExchangeBeyondFacetStorage {
         uint256 orderNonce;
 
         // Metrics / fees
-        mapping(address => uint256) tradingFees;
-        uint256 totalTradingVolume;
-        uint256 tradingFeeRate;
+        mapping(address => uint256) exchangeFees;
+        uint256 totalExchangeVolume;
+        uint256 exchangeFeeRate;
 
         // Lifecycle
         bool initialized;
@@ -273,7 +273,7 @@ contract ExchangeBeyondFacet {
             // if (!ds.approvedTokens[tokensIn[i]] || !ds.approvedTokens[tokensOut[i]]) revert TokenNotApproved();
             
             // Execute trade logic here
-            ds.totalTradingVolume += amountsIn[i];
+            ds.totalExchangeVolume += amountsIn[i];
             
             emit TradeExecuted(msg.sender, tokensIn[i], tokensOut[i], amountsIn[i], minAmountsOut[i]);
         }

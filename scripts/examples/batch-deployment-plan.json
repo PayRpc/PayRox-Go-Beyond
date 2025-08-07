@@ -1,0 +1,100 @@
+{
+  "contracts": [
+    {
+      "contractName": "DeterministicChunkFactory",
+      "saltString": "payrox-chunk-factory-v2.1.0",
+      "constructorArgs": [],
+      "deploymentFeeWei": "0",
+      "verifyContract": true,
+      "saveDeployment": true,
+      "skipIfExists": true,
+      "requiredLibraries": ["ChunkFactoryLib"],
+      "requiredInterfaces": ["IChunkFactory"]
+    },
+    {
+      "contractName": "ManifestDispatcher",
+      "saltString": "payrox-manifest-dispatcher-v2.1.0",
+      "constructorArgs": [],
+      "deploymentFeeWei": "0",
+      "verifyContract": true,
+      "saveDeployment": true,
+      "skipIfExists": true,
+      "requiredLibraries": ["OrderedMerkle", "ManifestUtils"],
+      "requiredInterfaces": ["IManifestDispatcher", "IDiamondLoupe"]
+    },
+    {
+      "contractName": "Orchestrator",
+      "saltString": "payrox-orchestrator-v2.1.0",
+      "constructorArgs": ["${DeterministicChunkFactory}", "${ManifestDispatcher}"],
+      "deploymentFeeWei": "0",
+      "verifyContract": true,
+      "saveDeployment": true,
+      "skipIfExists": true,
+      "requiresFactory": true,
+      "requiresDispatcher": true,
+      "requiredInterfaces": ["IChunkFactory", "IManifestDispatcher"]
+    },
+    {
+      "contractName": "GovernanceOrchestrator",
+      "saltString": "payrox-governance-orchestrator-v2.1.0",
+      "constructorArgs": ["${admin}"],
+      "deploymentFeeWei": "0",
+      "verifyContract": true,
+      "saveDeployment": true,
+      "skipIfExists": true,
+      "requiredLibraries": ["ManifestUtils"],
+      "openZeppelinDependencies": ["AccessControl", "Pausable", "ReentrancyGuard"]
+    },
+    {
+      "contractName": "AuditRegistry",
+      "saltString": "payrox-audit-registry-v2.1.0",
+      "constructorArgs": ["${admin}"],
+      "deploymentFeeWei": "0",
+      "verifyContract": true,
+      "saveDeployment": true,
+      "skipIfExists": true,
+      "requiredLibraries": ["ManifestUtils"],
+      "openZeppelinDependencies": ["AccessControl", "Pausable"]
+    }
+  ],
+  "totalEstimatedGas": 8000000,
+  "totalEstimatedCost": "0.08",
+  "deploymentOrder": [
+    "DeterministicChunkFactory",
+    "ManifestDispatcher",
+    "Orchestrator",
+    "GovernanceOrchestrator",
+    "AuditRegistry"
+  ],
+  "crossChainStrategy": "sequential",
+  "requiredLibraries": [
+    "ChunkFactoryLib",
+    "OrderedMerkle", 
+    "ManifestUtils",
+    "ManifestTypes"
+  ],
+  "requiredInterfaces": [
+    "IChunkFactory",
+    "IManifestDispatcher", 
+    "IDiamondLoupe"
+  ],
+  "openZeppelinDependencies": [
+    "AccessControl",
+    "ReentrancyGuard",
+    "Pausable",
+    "ECDSA",
+    "MessageHashUtils"
+  ],
+  "orchestratorComponents": [
+    "Orchestrator",
+    "GovernanceOrchestrator",
+    "AuditRegistry"
+  ],
+  "postDeploymentConfig": {
+    "grantRoles": true,
+    "setPermissions": true,
+    "linkComponents": true,
+    "enableGovernance": false,
+    "enableAuditing": false
+  }
+}

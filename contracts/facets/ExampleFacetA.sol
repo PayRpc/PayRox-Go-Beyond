@@ -32,6 +32,7 @@ contract ExampleFacetA {
     event FacetAExecutedHash(address indexed caller, bytes32 indexed msgHash);
     // Gas optimization analytics for batch operations
     event BatchExecutedOptimized(uint256 messageCount, uint256 gasUsed, bytes32 packedMetadata, uint256 timestamp);
+    event BatchDataStored(uint256 entryCount, uint256 gasUsed, bytes32 packedMetadata, uint256 timestamp);
 
     /* ─────────────── Diamond‑safe storage (fixed slot) ──────────────── */
     // Unique slot for this facet’s state.
@@ -85,6 +86,41 @@ contract ExampleFacetA {
     function getData(bytes32 key) external view returns (bytes memory data) {
         bytes32 namespacedKey = keccak256(abi.encodePacked(msg.sender, key));
         return _layout().data[namespacedKey];
+    }
+
+    /// Batch store multiple data entries with gas optimization
+    function batchStoreData(bytes32[] calldata keys, bytes[] calldata dataArray) external {
+        uint256 n = keys.length;
+        if (n == 0) revert EmptyData();
+        if (n != dataArray.length) revert DataTooLarge(); // Reusing error for length mismatch
+        if (n > MAX_MESSAGES) revert TooManyMessages();
+
+        Layout storage l = _layout();
+        uint64[] memory dataLengths = new uint64[](n);
+        uint256 gasBefore = gasleft();
+
+        for (uint256 i; i < n; ) {
+            bytes32 key = keys[i];
+            bytes calldata data_ = dataArray[i];
+            
+            if (key == bytes32(0)) revert InvalidKey();
+            if (data_.length == 0) revert EmptyData();
+            if (data_.length > MAX_DATA_BYTES) revert DataTooLarge();
+
+            // Namespace keys per caller to prevent global collisions
+            bytes32 namespacedKey = keccak256(abi.encodePacked(msg.sender, key));
+            l.data[namespacedKey] = data_;
+            dataLengths[i] = uint64(data_.length);
+            
+            emit DataStored(namespacedKey, keccak256(data_), data_.length, msg.sender);
+            unchecked { ++i; }
+        }
+
+        // Pack batch metadata for gas optimization
+        bytes32 packedMetadata = GasOptimizationUtils.packStorage(dataLengths);
+        uint256 gasUsed = gasBefore - gasleft();
+        
+        emit BatchDataStored(n, gasUsed, packedMetadata, block.timestamp);
     }
 
     /// Per‑user execution count.
@@ -144,7 +180,7 @@ contract ExampleFacetA {
     ) external pure returns (bool isValid) {
         if (expectedSigner == address(0)) return false;
         bytes32 digest = MessageHashUtils.toEthSignedMessageHash(hash);
-        (address recovered, ECDSA.RecoverError err, bytes32 errArg) =
+        (address recovered, ECDSA.RecoverError err, ) =
             ECDSA.tryRecover(digest, signature);
         return err == ECDSA.RecoverError.NoError && recovered == expectedSigner;
     }
@@ -165,18 +201,19 @@ contract ExampleFacetA {
         returns (string memory name, string memory version, bytes4[] memory selectors)
     {
         name = "ExampleFacetA";
-        version = "1.1.0";
+        version = "1.2.0"; // Updated for gas optimization integration
 
-        selectors = new bytes4[](10);
+        selectors = new bytes4[](11); // Increased for new batch function
         selectors[0] = this.executeA.selector;
         selectors[1] = this.storeData.selector;
         selectors[2] = this.getData.selector;
         selectors[3] = this.getUserCount.selector;
         selectors[4] = this.batchExecute.selector;
-        selectors[5] = this.calculateHash.selector;
-        selectors[6] = this.verifySignature.selector;
-        selectors[7] = this.totalExecutions.selector;
-        selectors[8] = this.lastCaller.selector;
-        selectors[9] = this.getFacetInfo.selector;
+        selectors[5] = this.batchStoreData.selector; // New gas-optimized batch function
+        selectors[6] = this.calculateHash.selector;
+        selectors[7] = this.verifySignature.selector;
+        selectors[8] = this.totalExecutions.selector;
+        selectors[9] = this.lastCaller.selector;
+        selectors[10] = this.getFacetInfo.selector;
     }
 }

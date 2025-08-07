@@ -6,6 +6,7 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol
 import {Pausable}        from "@openzeppelin/contracts/utils/Pausable.sol";
 import {IChunkFactory}   from "./interfaces/IChunkFactory.sol";
 import {ChunkFactoryLib} from "../utils/ChunkFactoryLib.sol";
+import {GasOptimizationUtils} from "../utils/GasOptimizationUtils.sol";
 
 /// @title DeterministicChunkFactory
 /// @notice Size-optimized version using library delegation
@@ -111,15 +112,32 @@ contract DeterministicChunkFactory is IChunkFactory, AccessControl, ReentrancyGu
     }
 
     function stageBatch(bytes[] calldata blobs) external payable nonReentrant whenNotPaused returns (address[] memory chunks, bytes32[] memory hashes) {
+        require(blobs.length > 0, "DeterministicChunkFactory: empty batch");
+        require(blobs.length <= 100, "DeterministicChunkFactory: batch too large");
+        
         chunks = new address[](blobs.length);
         hashes = new bytes32[](blobs.length);
 
         // Collect batch fee once
         _collectBatchFee(blobs.length);
 
+        // Use GasOptimizationUtils for efficient metadata storage
+        uint64[] memory blobLengths = new uint64[](blobs.length);
+        for (uint256 i = 0; i < blobs.length; i++) {
+            blobLengths[i] = uint64(blobs[i].length);
+        }
+        
+        // Pack blob metadata for gas-efficient storage (optional analytics)
+        bytes32 packedMetadata = GasOptimizationUtils.packStorage(blobLengths);
+        
+        // Process each blob
+        uint256 gasBefore = gasleft();
         for (uint256 i = 0; i < blobs.length; i++) {
             (chunks[i], hashes[i]) = _stageInternalNoFee(blobs[i]);
         }
+        uint256 gasUsed = gasBefore - gasleft();
+        
+        emit BatchStaged(blobs.length, gasUsed, packedMetadata, block.timestamp);
     }
 
     function _stageInternal(bytes calldata data) internal nonReentrant returns (address chunk, bytes32 hash) {
@@ -477,6 +495,7 @@ contract DeterministicChunkFactory is IChunkFactory, AccessControl, ReentrancyGu
     event TierFeeSet(uint8 indexed tier, uint256 fee);
     event UserTierSet(address indexed user, uint8 tier);
     event IdempotentModeSet(bool enabled);
+    event BatchStaged(uint256 chunkCount, uint256 gasUsed, bytes32 packedMetadata, uint256 timestamp);
 
     /**
      * @dev Emergency function to withdraw locked Ether
