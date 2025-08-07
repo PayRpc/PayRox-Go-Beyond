@@ -1,12 +1,3 @@
-/**
- * AI SECURITY FIXES APPLIED - 2025-08-07T15:54:34.359Z
- * 
- * Automatically applied 2 security fixes:
- * - Use SafeMath library for arithmetic operations (overflow)
- * - Use block.number instead of timestamp for ordering (timestamp)
- * 
- * Backup created before changes. Review and test thoroughly.
- */
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
@@ -107,7 +98,7 @@ contract TradingFacet {
     function _generateUniqueId() internal returns (uint256 id) {
         unchecked { ++_s().nonce; }
         id = uint256(keccak256(abi.encodePacked(
-            block.timestamp /* AI Security Fix: Consider oracle for critical timing */,
+            block.timestamp,
             _s().nonce,
             msg.sender,
             block.chainid  // More reliable than blockhash on L2s
@@ -153,7 +144,7 @@ contract TradingFacet {
         l._reentrancy = 1;  // Initialize reentrancy guard
         l.initialized = true;
         
-        emit FacetInitialized(address(this), block.timestamp /* AI Security Fix: Consider oracle for critical timing */);
+        emit FacetInitialized(address(this), block.timestamp);
     }
     
     /**
@@ -202,15 +193,14 @@ contract TradingFacet {
             tokenOut: tokenOut,
             amountIn: amountIn,
             amountOut: minAmountOut,
-            deadline: block.timestamp /* AI Security Fix: Consider oracle for critical timing */ + 300, // 5 minute default
+            deadline: block.timestamp + 300, // 5 minute default
             filled: false,
             orderType: 0 // Market order
         });
         
         // Update volume tracking
         l.userTradingVolume[msg.sender] += amountIn;
-        l.// AI Security Fix: Overflow protection built-in (Solidity 0.8+)
-        totalVolume += amountIn;
+        l.totalVolume += amountIn;
         
         emit OrderPlaced(orderId, msg.sender, amountIn);
         emit OperationInitiated(msg.sender, uint256(orderId));
@@ -235,7 +225,7 @@ contract TradingFacet {
         // ✅ Checks
         if (tokenIn == address(0) || tokenOut == address(0)) revert InvalidInput();
         if (amountIn == 0 || targetAmountOut == 0) revert InvalidInput();
-        if (deadline <= block.timestamp /* AI Security Fix: Consider oracle for critical timing */) revert InvalidInput();
+        if (deadline <= block.timestamp) revert InvalidInput();
         if (tokenIn == tokenOut) revert InvalidInput();
         
         // ✅ Access control check
@@ -298,7 +288,7 @@ contract TradingFacet {
         // ✅ Checks
         if (order.trader == address(0)) revert OrderNotFound(orderId);
         if (order.filled) revert OrderAlreadyFilled(orderId);
-        if (block.timestamp /* AI Security Fix: Consider oracle for critical timing */ > order.deadline) revert InvalidInput();
+        if (block.timestamp > order.deadline) revert InvalidInput();
         
         // Slippage check for market orders
         if (order.orderType == 0 && actualAmountOut < order.amountOut) {
@@ -311,8 +301,7 @@ contract TradingFacet {
         
         // Calculate and apply trading fee
         uint256 fee = (actualAmountOut * l.feeRate) / 10000;
-        uint256 // AI Security Fix: Overflow protection built-in (Solidity 0.8+)
-        netAmount = actualAmountOut - fee;
+        uint256 netAmount = actualAmountOut - fee;
         
         emit OrderFilled(orderId, netAmount);
         emit OperationInitiated(msg.sender, uint256(orderId));

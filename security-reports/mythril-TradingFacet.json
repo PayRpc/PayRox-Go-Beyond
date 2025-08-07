@@ -12,20 +12,8 @@
           "sourceMap": "123:45:0"
         }
       ]
-    },
-    {
-      "title": "Timestamp Dependency",
-      "description": "Contract relies on block.timestamp which can be manipulated",
-      "severity": "Low",
-      "confidence": "Medium",
-      "swcId": "116",
-      "locations": [
-        {
-          "sourceMap": "345:67:0"
-        }
-      ]
     }
   ],
   "version": "0.24.8-mock",
-  "executionTime": 10644
+  "executionTime": 14811
 }

@@ -62,6 +62,8 @@
     "ai:security:analyze": "cd tools/ai-assistant/backend && npm run mythril:smart",
     "ai:security:status": "cd tools/ai-assistant/backend && node auto-start.js status",
     "ai:security:engine": "cd tools/ai-assistant/backend && node ai-security-fix-engine.js --help",
+    "ai:chat": "cd tools/ai-assistant/backend && npm run ai:chat",
+    "ai:conversation": "cd tools/ai-assistant/backend && npm run ai:conversation",
     "ai:security:integration": "node ai-security-integration.js validate",
     "ai:security:integration:fix": "node ai-security-integration.js fix",
     "ai:security:legacy": "npx ts-node scripts/targeted-security-analysis.ts",

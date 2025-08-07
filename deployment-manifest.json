@@ -4,50 +4,71 @@
     "generator": "PayRox AI Refactor Wizard",
     "originalContract": "ComplexDeFiProtocol",
     "refactoringStrategy": "sequential",
-    "estimatedGasSavings": 125000,
-    "timestamp": "2025-08-07T15:40:31.078Z",
+    "estimatedGasSavings": 50000,
+    "timestamp": "2025-08-07T16:29:04.347Z",
     "aiConfidence": 0.9,
     "protocolType": "DeFi",
-    "securityLevel": "Critical",
+    "securityLevel": "High",
     "crossChainCompatible": true
   },
   "facets": [
     {
       "name": "TradingFacet",
-      "selector": "0x8e79ec07",
-      "functions": [],
+      "functions": [
+        "placeMarketOrder",
+        "placeLimitOrder",
+        "cancelOrder",
+        "fillOrder"
+      ],
       "gasEstimate": "TBD",
       "dependencies": [],
       "securityRating": "High"
     },
     {
       "name": "LendingFacet",
-      "selector": "0xb7e1e44e",
-      "functions": [],
+      "functions": [
+        "deposit",
+        "withdraw",
+        "borrow",
+        "repay",
+        "liquidate"
+      ],
       "gasEstimate": "TBD",
       "dependencies": [],
       "securityRating": "High"
     },
     {
       "name": "StakingFacet",
-      "selector": "0xfff4bca6",
-      "functions": [],
+      "functions": [
+        "stake",
+        "unstake",
+        "claimRewards",
+        "updateRewardRate"
+      ],
       "gasEstimate": "TBD",
       "dependencies": [],
       "securityRating": "High"
     },
     {
       "name": "GovernanceFacet",
-      "selector": "0x38223a7b",
-      "functions": [],
+      "functions": [
+        "createProposal",
+        "vote",
+        "executeProposal",
+        "delegate"
+      ],
       "gasEstimate": "TBD",
       "dependencies": [],
       "securityRating": "High"
     },
     {
       "name": "InsuranceRewardsFacet",
-      "selector": "0x58d23c67",
-      "functions": [],
+      "functions": [
+        "buyInsurance",
+        "submitClaim",
+        "processClaim",
+        "claimRewards"
+      ],
       "gasEstimate": "TBD",
       "dependencies": [],
       "securityRating": "High"

@@ -1,12 +1,3 @@
-/**
- * AI SECURITY FIXES APPLIED - 2025-08-07T15:54:34.354Z
- * 
- * Automatically applied 2 security fixes:
- * - Add ReentrancyGuard modifier (reentrancy)
- * - Use block.number instead of timestamp for ordering (timestamp)
- * 
- * Backup created before changes. Review and test thoroughly.
- */
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
@@ -111,7 +102,7 @@ contract LendingFacet {
     function _generateUniqueId() internal returns (uint256 id) {
         unchecked { ++_s().nonce; }
         id = uint256(keccak256(abi.encodePacked(
-            block.timestamp /* AI Security Fix: Consider oracle for critical timing */,
+            block.timestamp,
             _s().nonce,
             msg.sender,
             block.chainid  // More reliable than blockhash on L2s
@@ -158,7 +149,7 @@ contract LendingFacet {
         l.interestRate = 500; // 5% APR default
         l.collateralRatio = 15000; // 150% collateralization required
         
-        emit FacetInitialized(address(this), block.timestamp /* AI Security Fix: Consider oracle for critical timing */);
+        emit FacetInitialized(address(this), block.timestamp);
     }
     
     /**
@@ -206,8 +197,8 @@ contract LendingFacet {
      * @param token Token address to withdraw
      * @param amount Amount to withdraw
      */
-    function withdraw(function withdraw(address token, uint256 amount) 
-        external) external nonReentrant onlyDispatcher nonReentrant 
+    function withdraw(address token, uint256 amount) 
+        external onlyDispatcher nonReentrant 
     {
         // ✅ Checks
         if (token == address(0)) revert InvalidInput();
@@ -268,7 +259,7 @@ contract LendingFacet {
             collateralAmount: collateralAmount,
             borrowedAmount: borrowAmount,
             interestAccrued: 0,
-            timestamp: block.timestamp /* AI Security Fix: Consider oracle for critical timing */,
+            timestamp: block.timestamp,
             active: true
         });
         
@@ -296,7 +287,7 @@ contract LendingFacet {
         if (loan.borrower != msg.sender) revert UnauthorizedAccess(msg.sender, BORROWER_ROLE);
         
         // Calculate interest
-        uint256 timeElapsed = block.timestamp /* AI Security Fix: Consider oracle for critical timing */ - loan.timestamp;
+        uint256 timeElapsed = block.timestamp - loan.timestamp;
         uint256 interest = (loan.borrowedAmount * l.interestRate * timeElapsed) / (365 days * 10000);
         uint256 totalOwed = loan.borrowedAmount + interest;
         
@@ -307,7 +298,7 @@ contract LendingFacet {
             loan.active = false; // Loan fully repaid
         } else {
             loan.borrowedAmount = totalOwed - amount;
-            loan.timestamp = block.timestamp /* AI Security Fix: Consider oracle for critical timing */; // Reset interest calculation
+            loan.timestamp = block.timestamp; // Reset interest calculation
         }
         
         l.totalBorrowed[loan.borrowToken] -= (amount > loan.borrowedAmount ? loan.borrowedAmount : amount);
@@ -330,7 +321,7 @@ contract LendingFacet {
         if (!loan.active) revert LoanNotFound(loanId);
         
         // Check if liquidation is justified (simplified check)
-        uint256 timeElapsed = block.timestamp /* AI Security Fix: Consider oracle for critical timing */ - loan.timestamp;
+        uint256 timeElapsed = block.timestamp - loan.timestamp;
         uint256 interest = (loan.borrowedAmount * l.interestRate * timeElapsed) / (365 days * 10000);
         uint256 totalOwed = loan.borrowedAmount + interest;
         uint256 requiredCollateral = (totalOwed * l.collateralRatio) / 10000;

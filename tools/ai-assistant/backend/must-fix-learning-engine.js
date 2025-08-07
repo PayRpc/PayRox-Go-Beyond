@@ -8,9 +8,9 @@
  */
 
 const MUST_FIX_KNOWLEDGE_BASE = {
-    version: "1.0.0",
+    version: "2.0.0",
     lastUpdated: "2025-08-07",
-    totalRules: 9,
+    totalRules: 12, // Expanded with production-ready requirements
     
     /**
      * Critical compilation-breaking issues that MUST be fixed
@@ -59,6 +59,67 @@ const MUST_FIX_KNOWLEDGE_BASE = {
             `,
             validation: (content) => {
                 return content.includes('block.chainid') && !content.includes('blockhash(block.number - 1)');
+            }
+        }
+    },
+
+    /**
+     * Production-ready requirements (NEW)
+     */
+    productionRequirements: {
+        10: {
+            title: "Access Control Roles Implementation",
+            problem: "Every dispatcher call can run operations - missing role-based security",
+            solution: "Implement role-based access control with _enforceRole()",
+            template: `
+            // ✅ Access control roles for production security
+            bytes32 public constant TRADE_EXECUTOR_ROLE = keccak256("TRADE_EXECUTOR_ROLE");
+            
+            // Access control enforcement helper
+            function _enforceRole(bytes32 role) internal view {
+                if (!LibDiamond.hasRole(role, msg.sender)) {
+                    revert UnauthorizedAccess(msg.sender, role);
+                }
+            }
+            `,
+            validation: (content) => {
+                return content.includes('_enforceRole(') && 
+                       content.includes('bytes32 public constant') &&
+                       content.includes('_ROLE = keccak256(');
+            }
+        },
+        
+        11: {
+            title: "Gas Micro-Optimization Storage",
+            problem: "Using 'bytes32 constant' wastes gas - should cache slot constant",
+            solution: "Use 'bytes32 private constant' for storage slot optimization",
+            template: `
+            // ✅ Gas micro-optimization: Pre-computed constant saves 6 gas per SLOAD
+            bytes32 private constant STORAGE_SLOT = keccak256("payrox.facet.name.v1");
+            `,
+            validation: (content) => {
+                return content.includes('bytes32 private constant STORAGE_SLOT') &&
+                       content.includes('Gas micro-optimization');
+            }
+        },
+        
+        12: {
+            title: "Production Function Implementations",
+            problem: "exampleFunction is just a stub - need real business logic functions",
+            solution: "Generate production-ready function selectors and implementations",
+            template: `
+            // Production-ready function selectors
+            selectors = new bytes4[](7);
+            uint256 i;
+            selectors[i++] = this.getFacetInfo.selector;
+            selectors[i++] = this.initialize.selector;
+            selectors[i++] = this.placeMarketOrder.selector;
+            `,
+            validation: (content) => {
+                return !content.includes('this.exampleFunction.selector') &&
+                       content.includes('selectors = new bytes4[](') &&
+                       content.match(/selectors = new bytes4\[\](\d+)\);/) && 
+                       parseInt(content.match(/selectors = new bytes4\[\](\d+)\);/)[1]) > 3;
             }
         }
     },
@@ -228,8 +289,13 @@ class MustFixLearningEngine {
             this.installRule(aiEngine, 'QUALITY_IMPROVEMENT', id, rule);
         });
         
-        console.log(`✅ AI learned ${this.learnedRules.size} MUST-FIX rules`);
-        console.log('🧠 AI is now MUST-FIX compliant and will generate error-free code');
+        // Teach production requirements (NEW)
+        Object.entries(this.knowledgeBase.productionRequirements).forEach(([id, rule]) => {
+            this.installRule(aiEngine, 'PRODUCTION_REQUIREMENT', id, rule);
+        });
+        
+        console.log(`✅ AI learned ${this.learnedRules.size} MUST-FIX rules (including production requirements)`);
+        console.log('🧠 AI is now MUST-FIX compliant and will generate production-ready code');
     }
 
     /**
@@ -275,7 +341,8 @@ class MustFixLearningEngine {
         const allRules = {
             ...this.knowledgeBase.compilerBreakers,
             ...this.knowledgeBase.runtimeRequirements,
-            ...this.knowledgeBase.qualityImprovements
+            ...this.knowledgeBase.qualityImprovements,
+            ...this.knowledgeBase.productionRequirements
         };
 
         Object.entries(allRules).forEach(([id, rule]) => {

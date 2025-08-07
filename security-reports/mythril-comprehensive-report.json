@@ -18,7 +18,7 @@
       "⚠️ Medium risk score - thorough review recommended",
       "🔮 Running in DEMO MODE - install Mythril for real analysis"
     ],
-    "executionTimeMs": 3083,
+    "executionTimeMs": 3069,
     "mode": "DEMO_MODE"
   },
   "results": [
@@ -39,17 +39,17 @@
         }
       ],
       "version": "0.24.8-mock",
-      "executionTime": 12676,
+      "executionTime": 7982,
       "contractName": "GovernanceFacet",
-      "analysisTime": "2025-08-07T15:35:52.835Z"
+      "analysisTime": "2025-08-07T15:54:44.522Z"
     },
     {
       "success": true,
       "issues": [],
       "version": "0.24.8-mock",
-      "executionTime": 8463,
+      "executionTime": 5630,
       "contractName": "InsuranceRewardsFacet",
-      "analysisTime": "2025-08-07T15:35:53.352Z"
+      "analysisTime": "2025-08-07T15:54:45.023Z"
     },
     {
       "success": true,
@@ -68,17 +68,30 @@
         }
       ],
       "version": "0.24.8-mock",
-      "executionTime": 17610,
+      "executionTime": 18889,
       "contractName": "LendingFacet",
-      "analysisTime": "2025-08-07T15:35:53.868Z"
+      "analysisTime": "2025-08-07T15:54:45.538Z"
     },
     {
       "success": true,
-      "issues": [],
+      "issues": [
+        {
+          "title": "Timestamp Dependency",
+          "description": "Contract relies on block.timestamp which can be manipulated",
+          "severity": "Low",
+          "confidence": "Medium",
+          "swcId": "116",
+          "locations": [
+            {
+              "sourceMap": "345:67:0"
+            }
+          ]
+        }
+      ],
       "version": "0.24.8-mock",
-      "executionTime": 12958,
+      "executionTime": 18628,
       "contractName": "StakingFacet",
-      "analysisTime": "2025-08-07T15:35:54.369Z"
+      "analysisTime": "2025-08-07T15:54:46.055Z"
     },
     {
       "success": true,
@@ -94,38 +107,26 @@
               "sourceMap": "123:45:0"
             }
           ]
-        },
-        {
-          "title": "Timestamp Dependency",
-          "description": "Contract relies on block.timestamp which can be manipulated",
-          "severity": "Low",
-          "confidence": "Medium",
-          "swcId": "116",
-          "locations": [
-            {
-              "sourceMap": "345:67:0"
-            }
-          ]
         }
       ],
       "version": "0.24.8-mock",
-      "executionTime": 10644,
+      "executionTime": 14811,
       "contractName": "TradingFacet",
-      "analysisTime": "2025-08-07T15:35:54.885Z"
+      "analysisTime": "2025-08-07T15:54:46.573Z"
     },
     {
       "success": true,
       "issues": [],
       "version": "0.24.8-mock",
-      "executionTime": 7092,
+      "executionTime": 7472,
       "contractName": "ComplexDeFiStorage",
-      "analysisTime": "2025-08-07T15:35:55.401Z"
+      "analysisTime": "2025-08-07T15:54:47.088Z"
     }
   ],
   "metadata": {
-    "analysisTime": "2025-08-07T15:35:55.402Z",
+    "analysisTime": "2025-08-07T15:54:47.089Z",
     "totalContracts": 6,
-    "executionTimeMs": 3083,
+    "executionTimeMs": 3069,
     "mythrilVersion": "0.24.8-mock",
     "mode": "DEMO_MODE",
     "configuration": {

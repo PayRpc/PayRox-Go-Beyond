@@ -27,7 +27,7 @@ async function main() {
     facets.push({
         name: "TradingFacet",
         address: tradingfacet.address,
-        selector: "0xc1f9d2e4"
+        selector: "0x8e79ec07"
     });
 
     // Deploy LendingFacet
@@ -39,7 +39,7 @@ async function main() {
     facets.push({
         name: "LendingFacet",
         address: lendingfacet.address,
-        selector: "0xd1a1d4e3"
+        selector: "0xb7e1e44e"
     });
 
     // Deploy StakingFacet
@@ -51,7 +51,7 @@ async function main() {
     facets.push({
         name: "StakingFacet",
         address: stakingfacet.address,
-        selector: "0x804d401f"
+        selector: "0xfff4bca6"
     });
 
     // Deploy GovernanceFacet
@@ -63,7 +63,7 @@ async function main() {
     facets.push({
         name: "GovernanceFacet",
         address: governancefacet.address,
-        selector: "0x23b33057"
+        selector: "0x38223a7b"
     });
 
     // Deploy InsuranceRewardsFacet
@@ -75,7 +75,7 @@ async function main() {
     facets.push({
         name: "InsuranceRewardsFacet",
         address: insurancerewardsfacet.address,
-        selector: "0x0f068852"
+        selector: "0x58d23c67"
     });
     
     console.log("\n🎉 All facets deployed successfully!");

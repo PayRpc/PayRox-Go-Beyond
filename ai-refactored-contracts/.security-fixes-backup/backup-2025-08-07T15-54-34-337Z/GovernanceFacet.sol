@@ -1,11 +1,3 @@
-/**
- * AI SECURITY FIXES APPLIED - 2025-08-07T15:54:34.352Z
- * 
- * Automatically applied 1 security fixes:
- * - Use appropriate data types (gas_optimization)
- * 
- * Backup created before changes. Review and test thoroughly.
- */
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
@@ -89,7 +81,6 @@ contract GovernanceFacet {
     
     // Version tracking for migrations (keep in sync with STORAGE_SLOT version)
     function getGovernanceFacetVersion() external pure returns (uint8) {
-        // AI Security Fix: Gas optimization - consider function visibility and state changes
         return 1; // v1 - matches STORAGE_SLOT suffix
     }
     
@@ -114,7 +105,6 @@ contract GovernanceFacet {
      * @dev Emits initialization event for transparency, sets up reentrancy guard
      */
     function initialize() external onlyDispatcher {
-        // AI Security Fix: Gas optimization - consider function visibility and state changes
         GovernanceFacetLayout storage l = _s();
         require(!l.initialized, "GovernanceFacet: already initialized");
         
@@ -129,7 +119,6 @@ contract GovernanceFacet {
      * @dev Only works when diamond is not frozen, never in production
      */
     function __test_initializeDirect() external {
-        // AI Security Fix: Gas optimization - consider function visibility and state changes
         require(!LibDiamond.diamondStorage().frozen, "not for prod");
         initialize();
     }
