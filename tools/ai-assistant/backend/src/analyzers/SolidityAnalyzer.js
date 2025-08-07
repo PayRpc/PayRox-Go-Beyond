@@ -1,22 +1,22 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function (o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     var desc = Object.getOwnPropertyDescriptor(m, k);
     if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
+        desc = { enumerable: true, get: function () { return m[k]; } };
     }
     Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
+}) : (function (o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
 }));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function (o, v) {
     Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
+}) : function (o, v) {
     o["default"] = v;
 });
 var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
+    var ownKeys = function (o) {
         ownKeys = Object.getOwnPropertyNames || function (o) {
             var ar = [];
             for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
@@ -36,26 +36,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.SolidityAnalyzer = void 0;
 const parser_1 = require("@solidity-parser/parser");
 const solc = __importStar(require("solc"));
-const ethers = require("ethers");
-const crypto = require("crypto");
-
-// Custom error classes for JavaScript compatibility
-class AnalysisError extends Error {
-    constructor(message, originalError) {
-        super(message);
-        this.name = 'AnalysisError';
-        this.originalError = originalError;
-    }
-}
-
-class CompilationError extends Error {
-    constructor(message, errors) {
-        super(message);
-        this.name = 'CompilationError';
-        this.errors = errors;
-    }
-}
-
+const ethers_1 = require("ethers");
+const index_1 = require("../types/index");
 class SolidityAnalyzer {
     constructor() {
         // Parser and compiler are used directly
@@ -76,7 +58,7 @@ class SolidityAnalyzer {
             // Extract contract information
             const contractNode = this.findContractNode(ast, contractName);
             if (!contractNode) {
-                throw new AnalysisError('Contract not found in source code');
+                throw new index_1.AnalysisError('Contract not found in source code');
             }
             const functions = this.extractFunctions(contractNode, sourceCode);
             const variables = this.extractVariables(contractNode, sourceCode);
@@ -114,11 +96,11 @@ class SolidityAnalyzer {
             };
         }
         catch (error) {
-            if (error instanceof AnalysisError) {
+            if (error instanceof index_1.AnalysisError) {
                 throw error;
             }
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            throw new AnalysisError(`Failed to parse contract: ${errorMessage}`, error);
+            throw new index_1.AnalysisError(`Failed to parse contract: ${errorMessage}`, error);
         }
     }
     /**
@@ -157,17 +139,17 @@ class SolidityAnalyzer {
             if (output.errors) {
                 const errors = output.errors.filter((err) => err.severity === 'error');
                 if (errors.length > 0) {
-                    throw new CompilationError('Compilation failed', errors);
+                    throw new index_1.CompilationError('Compilation failed', errors);
                 }
             }
             return output;
         }
         catch (error) {
-            if (error instanceof CompilationError) {
+            if (error instanceof index_1.CompilationError) {
                 throw error;
             }
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            throw new CompilationError(`Compilation failed: ${errorMessage}`, error);
+            throw new index_1.CompilationError(`Compilation failed: ${errorMessage}`, error);
         }
     }
     /**
@@ -355,7 +337,7 @@ class SolidityAnalyzer {
             return '0x00000000';
         }
         const signature = this.buildFunctionSignature(functionNode);
-        const hash = crypto.createHash('sha256').update(signature).digest('hex');
+        const hash = (0, ethers_1.keccak256)(Buffer.from(signature, 'utf8'));
         return hash.slice(0, 10); // First 4 bytes (8 hex chars + 0x)
     }
     /**
@@ -783,7 +765,7 @@ class SolidityAnalyzer {
                     const cleanBytecode = deployedBytecode.startsWith('0x')
                         ? deployedBytecode
                         : `0x${deployedBytecode}`;
-                    return crypto.createHash('sha256').update(cleanBytecode).digest('hex');
+                    return (0, ethers_1.keccak256)(cleanBytecode);
                 }
             }
             return '0x0000000000000000000000000000000000000000000000000000000000000000';
