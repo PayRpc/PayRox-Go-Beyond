@@ -433,11 +433,10 @@ class AIRefactorWizard {
      * Generate a deterministic selector for a facet
      */
     generateSelector(facetName) {
-        // Simple hash-based selector generation (in production, use proper keccak256)
-        const hash = facetName
-            .split('')
-            .reduce((acc, char) => acc + char.charCodeAt(0), 0);
-        return `0x${hash.toString(16).padStart(8, '0').slice(-8)}`;
+        // Use crypto module properly for collision-free deterministic selector generation
+        const crypto = require('crypto');
+        const hash = crypto.createHash("sha256").update(facetName).digest("hex");
+        return `0x${hash.slice(0, 8)}`;
     }
     /**
      * Generate PayRox Go Beyond manifest
@@ -575,7 +574,7 @@ contract ${contractName} {
      * Returns the codehash for EXTCODEHASH verification
      */
     function getCodehash() external view returns (bytes32) {
-        return keccak256(abi.encodePacked(type(${contractName}).runtimeCode));
+        return address(this).codehash; // EIP-1052
     }
 
     /**
@@ -604,16 +603,21 @@ ${this.generateFacetFunctions(suggestion)}
     generateFacetFunctions(suggestion) {
         let functions = '';
         suggestion.functions.forEach(funcName => {
+            // Guard against Solidity keywords that could cause compilation issues
+            const safeFuncName = /^(delete|type|switch|address|uint|int|bool|string|bytes|mapping|struct|enum|modifier|constructor|fallback|receive)$/.test(funcName) 
+                ? `${funcName}_` 
+                : funcName;
+            
             const isAdminFunction = suggestion.securityRating === 'Critical';
             const modifiers = isAdminFunction
                 ? ' onlyOwner onlyInitialized'
                 : ' onlyInitialized';
             functions += `
     /**
-     * ${funcName} - Migrated from original contract
+     * ${safeFuncName} - Migrated from original contract
      * Auto-generated stub - implement actual logic
      */
-    function ${funcName}() external${modifiers} {
+    function ${safeFuncName}() external${modifiers} {
         // TODO: Implement function logic from original contract
         // Consider:
         // - Parameter validation
@@ -629,4 +633,39 @@ ${this.generateFacetFunctions(suggestion)}
     }
 }
 exports.AIRefactorWizard = AIRefactorWizard;
-exports.default = AIRefactorWizard;
+
+/**
+ * CLI wrapper for direct execution
+ * Usage: node AIRefactorWizard.js <contract-file.sol>
+ */
+if (require.main === module) {
+    const fs = require('fs').promises;
+    const path = require('path');
+    
+    async function runCLI() {
+        try {
+            if (process.argv.length < 3) {
+                console.log('Usage: node AIRefactorWizard.js <contract-file.sol>');
+                process.exit(1);
+            }
+            
+            const contractFile = process.argv[2];
+            const sourceCode = await fs.readFile(contractFile, 'utf8');
+            const contractName = path.basename(contractFile, '.sol');
+            
+            console.log(`🔍 Analyzing ${contractFile}...`);
+            
+            const wizard = new AIRefactorWizard();
+            const plan = await wizard.analyzeContractForRefactoring(sourceCode, contractName);
+            
+            console.log('\n📋 Refactoring Plan:');
+            console.log(JSON.stringify(plan, null, 2));
+            
+        } catch (error) {
+            console.error('❌ CLI execution failed:', error.message);
+            process.exit(1);
+        }
+    }
+    
+    runCLI();
+}

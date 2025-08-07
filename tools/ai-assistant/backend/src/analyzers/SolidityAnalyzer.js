@@ -36,8 +36,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.SolidityAnalyzer = void 0;
 const parser_1 = require("@solidity-parser/parser");
 const solc = __importStar(require("solc"));
-const ethers_1 = require("ethers");
-const index_1 = require("../types/index");
+const ethers = require("ethers");
+const crypto = require("crypto");
 class SolidityAnalyzer {
     constructor() {
         // Parser and compiler are used directly
@@ -337,7 +337,7 @@ class SolidityAnalyzer {
             return '0x00000000';
         }
         const signature = this.buildFunctionSignature(functionNode);
-        const hash = (0, ethers_1.keccak256)(Buffer.from(signature, 'utf8'));
+        const hash = crypto.createHash('sha256').update(signature).digest('hex');
         return hash.slice(0, 10); // First 4 bytes (8 hex chars + 0x)
     }
     /**
@@ -765,7 +765,7 @@ class SolidityAnalyzer {
                     const cleanBytecode = deployedBytecode.startsWith('0x')
                         ? deployedBytecode
                         : `0x${deployedBytecode}`;
-                    return (0, ethers_1.keccak256)(cleanBytecode);
+                    return crypto.createHash('sha256').update(cleanBytecode).digest('hex');
                 }
             }
             return '0x0000000000000000000000000000000000000000000000000000000000000000';

@@ -375,8 +375,19 @@ class FacetSimulator {
      */
     estimateDeploymentGas(facet) {
         const baseDeployGas = 100000;
-        const bytecodeGas = facet.sourceCode.length * 10; // Rough estimate
-        const functionGas = facet.functions.length * 5000;
+        const bytecodeGas = facet.sourceCode ? facet.sourceCode.length * 10 : 50000; // Rough estimate
+        
+        // Handle both string array and object array for functions
+        let functionCount = 0;
+        if (Array.isArray(facet.functions)) {
+            functionCount = facet.functions.length;
+        } else if (typeof facet.functions === 'number') {
+            functionCount = facet.functions;
+        } else {
+            functionCount = 5; // Default estimate
+        }
+        
+        const functionGas = functionCount * 5000;
         return baseDeployGas + bytecodeGas + functionGas;
     }
     simulatePredictAddress(facet) {
