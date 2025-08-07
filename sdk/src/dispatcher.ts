@@ -190,8 +190,8 @@ export class Dispatcher {
     const receipt = await tx.wait();
 
     return {
-      result: receipt.logs[0]?.data || '0x', // Simplified result parsing
-      transactionHash: receipt.hash,
+      result: receipt?.logs[0]?.data || '0x', // Simplified result parsing
+      transactionHash: receipt?.hash || '0x',
     };
   }
 
