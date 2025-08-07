@@ -15,10 +15,10 @@
 # 📋 MASTER RELEASE CONFIGURATION
 # ═══════════════════════════════════════════════════════════════════════════════════════════
 
-version: "2.0.0"
-releaseDate: "2025-08-06"
-codename: "Adaptive AI Genesis"
-description: "AI-Enhanced universal deployment framework with intelligent contract refactoring, adaptive learning, OpenZeppelin dynamic integration, and cross-chain deterministic addressing"
+version: "2.1.0"
+releaseDate: "2025-08-07"
+codename: "AI Live-Check Genesis"
+description: "AI-Enhanced universal deployment framework with real-time health monitoring, intelligent contract refactoring, adaptive learning, comprehensive security integration, and production-ready live-check systems"
 
 # Release Classification
 classification:
@@ -40,27 +40,20 @@ entryPoints:
     full: "npm run payrox:workflow:full"
     manifest: "npm run payrox:manifest:check"
     chunk: "npm run payrox:chunk:predict"
-    development: "npm run payrox:development-workflow"
-    production: "npm run payrox:full-workflow"
   
   ai:
     status: "npm run ai:status"
     demo: "npm run ai:refactor-demo"
     analysis: "npm run ai:oz-analysis"
     system: "npm run ai:system"
+    liveCheck: "npm run ai:live-check"
+    securityValidation: "node ai-security-integration.js validate"
+    securityFix: "node ai-security-integration.js fix"
     manifestLearning: "npx ts-node scripts/ai-manifest-aware-validator.ts"
     facetValidation: "npx ts-node scripts/ai-complete-facet-fixer.ts"
     architectureMastery: "echo 'AI Architecture Learning Complete - See AI_COMPLETE_ARCHITECTURE_MASTERY.md'"
     yamlConnection: "npx ts-node scripts/ai-yaml-entry-point-validator.ts"
     compilationValidation: "npx ts-node scripts/ai-compilation-validator.ts"
-    templateCompliance: "npm run ai:template-compliance"
-  
-  templates:
-    list: "npm run templates:list"
-    generate: "npm run templates:generate"  
-    validate: "npm run templates:validate"
-    workflow: "npm run templates:full-workflow"
-    aiIntegration: "npm run templates:ai-integration"
   
   openZeppelin:
     check: "npm run oz:check"
@@ -103,61 +96,14 @@ aiRefactoring:
     
   # Available Tools
   tools:
-    refactorWizard: "tools/ai-assistant/backend/src/analyzers/AIRefactorWizard.ts"
+    refactorWizard: "tools/ai-assistant/backend/src/analyzers/AIRefactorWizard.js"
+    solidityAnalyzer: "tools/ai-assistant/backend/src/analyzers/SolidityAnalyzer.js"
+    laserFocusProtocol: "laser-focus-refactor-protocol.js"
+    liveCheckSystem: "scripts/ai-live-check.ts"
+    securityIntegration: "ai-security-integration.js"
     intelligenceDemo: "scripts/ai-refactoring-intelligence-demo.ts"
     complexDefiRefactor: "scripts/demo-complex-defi-ai-refactor.ts"
     monolithRefactoring: "docs/MonolithRefactoringGuide.md"
-
-# ═══════════════════════════════════════════════════════════════════════════════════════════
-# 🏗️ TEMPLATE GENERATOR SYSTEM CONFIGURATION
-# ═══════════════════════════════════════════════════════════════════════════════════════════
-
-templateGenerator:
-  # Core Engine
-  version: "v2"
-  engine: "hybrid"  # archetype-based + on-demand generation
-  
-  # System Configuration
-  paths:
-    archetypes: "./templates/v2/archetypes"
-    output: "./contracts/generated-facets"
-    tests: "./test/generated"
-    lockfile: ".payrox-templates.lock"
-  
-  # Generation Features
-  features:
-    enforceGuardrails: true
-    templateHashing: true
-    testGeneration: true
-    mustFixValidation: true
-    aiCompliance: true
-    
-  # Template Guardrails (Critical for PayRox compliance)
-  guardrails:
-    noConstructors: true       # Facets must use init() pattern
-    noRawCalls: true          # Prevent unsafe .call() usage
-    asciiOnly: true           # ASCII-only for deterministic deployment
-    namingValidation: true    # Enforce PascalCase + "Facet" suffix
-    
-  # AI Integration
-  aiIntegration:
-    enabled: true
-    compliance: "template-generator-v2"
-    refactorWizard: true
-    templateHashGeneration: true
-    
-  # Archetype Management
-  archetypes:
-    standard: ["AdminFacet", "CoreFacet", "ViewFacet", "StorageFacet"]
-    specialized: ["StakingFacet", "GovernanceFacet", "TokenFacet"]
-    advanced: ["CrossChainFacet", "ProxyFacet", "OracleFacet"]
-    
-  # Validation Pipeline
-  validation:
-    mustFixValidator: true
-    payRoxCompliance: true
-    storageLayoutCheck: true
-    securityScan: true
 
 # ═══════════════════════════════════════════════════════════════════════════════════════════
 # 💎 UNIVERSAL FACET CONFIGURATION - AI-Optimized
@@ -368,6 +314,9 @@ security:
   contractAnalysisRequired: true
   gasLimitValidation: true
   crossChainSecurityValidation: true
+  realTimeHealthMonitoring: true
+  manifestIntegrityValidation: true
+  securityIntegrationValidation: true
   
   # Governance Events (Enhanced)
   requiredEvents:
@@ -380,6 +329,9 @@ security:
     - "AIAnalysisCompleted"     # New AI event
     - "DeploymentOptimized"     # New AI event
     - "CrossChainSyncCompleted" # New cross-chain event
+    - "HealthCheckCompleted"    # New live-check event
+    - "SecurityValidationPassed" # New security event
+    - "ManifestVerified"        # New manifest event
     
   # Emergency Controls
   emergencyPause: true
@@ -501,6 +453,10 @@ operations:
     crossChainConsistencyCheck: true
     aiModelHealthCheck: true
     factoryAvailabilityCheck: true
+    realTimeSystemMonitoring: true
+    manifestDispatcherVerification: true
+    securityIntegrationValidation: true
+    ciCdReadinessCheck: true
     
   # Backup & Recovery
   backupRecovery:
@@ -527,6 +483,8 @@ workflows:
     coreSystem: "node plugins/deploy-payrox-core.js"
     aiDemo: "npm run ai:refactor-demo"
     status: "npm run ai:status"
+    healthCheck: "npm run ai:live-check"
+    securityCheck: "node ai-security-integration.js validate"
     ozSetup: "npm run oz:validate"
     
   # Development Workflows
@@ -642,6 +600,7 @@ certification:
   tier: "A+"
   features:
     - "AI-Enhanced Deterministic Deployment"
+    - "Real-Time System Health Monitoring"
     - "Intelligent Contract Refactoring"
     - "Adaptive Learning & Optimization"
     - "OpenZeppelin Dynamic Integration"
@@ -655,6 +614,10 @@ certification:
     - "Enterprise-Ready Operations"
     - "AI-Powered Contract Analysis"
     - "Monolith-to-Facet Conversion"
+    - "CI/CD Ready Health Checks"
+    - "Manifest Integrity Validation"
+    - "Security Integration Validation"
+    - "Streaming Process Monitoring"
   
   compliance:
     - "EIP-170 Compliant (24KB facet limit)"
@@ -664,6 +627,9 @@ certification:
     - "AI Ethics & Safety Standards"
     - "Production Security Standards"
     - "OpenZeppelin v5.x Dynamic Compatible"
+    - "CI/CD Pipeline Integration Ready"
+    - "Real-Time Health Monitoring Compliant"
+    - "Manifest Integrity Verification"
   
   readiness:
     development: "✅ Ready"
@@ -672,3 +638,7 @@ certification:
     production: "✅ Ready"
     enterprise: "✅ Ready"
     aiRefactoring: "✅ Ready"
+    liveCheckMonitoring: "✅ Ready"
+    securityIntegration: "✅ Ready"
+    ciCdIntegration: "✅ Ready"
+    manifestVerification: "✅ Ready"
