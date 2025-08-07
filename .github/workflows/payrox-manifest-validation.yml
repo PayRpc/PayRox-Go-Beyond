@@ -2,13 +2,13 @@ name: PayRox Manifest Validation
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, develop, Phase-3 ]
     paths:
       - '**/*manifest*.json'
       - 'contracts/**/*.sol'
       - 'facets/**/*.sol'
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main, develop, Phase-3 ]
     paths:
       - '**/*manifest*.json'
       - 'contracts/**/*.sol'
