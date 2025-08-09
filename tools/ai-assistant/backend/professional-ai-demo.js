@@ -473,8 +473,6 @@ contract ${facet.name} {
             implementations = this.extractTradingLogic(originalContract);
         } else if (facet.name === 'LendingFacet') {
             implementations = this.extractLendingLogic(originalContract);
-        } else if (facet.name === 'StakingFacet') {
-            implementations = this.extractStakingLogic(originalContract);
         } else if (facet.name === 'GovernanceFacet') {
             implementations = this.extractGovernanceLogic(originalContract);
         } else if (facet.name === 'InsuranceRewardsFacet') {
@@ -658,10 +656,6 @@ contract ${facet.name} {
                 'BORROWER_ROLE', 
                 'LIQUIDATOR_ROLE'
             ],
-            'StakingFacet': [
-                'STAKER_ROLE',
-                'REWARD_MANAGER_ROLE'
-            ],
             'GovernanceFacet': [
                 'PROPOSER_ROLE',
                 'VOTER_ROLE',
@@ -703,11 +697,6 @@ contract ${facet.name} {
                 'error LoanNotFound(bytes32 loanId);',
                 'error LiquidationThresholdNotMet();'
             ],
-            'StakingFacet': [
-                'error StakeNotFound();',
-                'error UnstakingPeriodNotMet();',
-                'error InsufficientRewards();'
-            ],
             'GovernanceFacet': [
                 'error ProposalNotFound(uint256 proposalId);',
                 'error VotingPeriodEnded();',
@@ -741,11 +730,6 @@ contract ${facet.name} {
                 'event Borrowed(address indexed user, bytes32 indexed loanId, uint256 amount);',
                 'event Repaid(address indexed user, bytes32 indexed loanId, uint256 amount);',
                 'event Liquidated(address indexed borrower, address indexed liquidator, bytes32 indexed loanId);'
-            ],
-            'StakingFacet': [
-                'event Staked(address indexed user, uint256 amount, uint256 tier);',
-                'event Unstaked(address indexed user, uint256 amount);',
-                'event RewardsClaimed(address indexed user, uint256 amount);'
             ],
             'GovernanceFacet': [
                 'event ProposalCreated(uint256 indexed proposalId, address indexed proposer);',
@@ -788,13 +772,6 @@ contract ${facet.name} {
         uint256 totalDeposits;
         uint256 interestRate; // Basis points per year
         uint256 collateralRatio; // Basis points (e.g., 15000 = 150%)`,
-            'StakingFacet': `
-        // Staking-specific state
-        mapping(address => uint256) stakes;
-        mapping(address => uint256) rewards;
-        mapping(address => uint256) lastStakeTime;
-        uint256 totalStaked;
-        uint256 rewardRate; // Rewards per second`,
             'GovernanceFacet': `
         // Governance-specific state
         mapping(uint256 => Proposal) proposals;
@@ -909,17 +886,6 @@ contract ${facet.name} {
         
         // Business logic: Process deposit, update balances, calculate interest
         // Implementation would include token transfers, balance updates, etc.
-    }`,
-            'StakingFacet': `
-    // ✅ Production-ready staking functions with real business logic
-    function stake(uint256 amount, uint256 tier) external nonReentrant {
-        _enforceRole(STAKER_ROLE);
-        if (amount == 0) revert InvalidInput();
-        
-        emit OperationInitiated(msg.sender, _generateUniqueId());
-        
-        // Business logic: Stake tokens, calculate rewards, update tier
-        // Implementation would include token locks, reward calculations, etc.
     }`,
             'GovernanceFacet': `
     // ✅ Production-ready governance functions with real business logic

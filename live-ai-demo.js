@@ -32,13 +32,11 @@ contract LiveDemoContract {
     // State variables (AI will analyze storage patterns)
     mapping(address => uint256) public balances;
     mapping(address => mapping(address => uint256)) public allowances;
-    mapping(address => uint256) public stakingBalances;
     mapping(address => uint256) public votingPower;
     mapping(uint256 => Proposal) public proposals;
     
     address public owner;
     uint256 public totalSupply;
-    uint256 public stakingRewardRate;
     uint256 public proposalCount;
     bool public paused;
     
@@ -53,11 +51,8 @@ contract LiveDemoContract {
     // Events (AI will group by functional domain)
     event Transfer(address indexed from, address indexed to, uint256 value);
     event Approval(address indexed owner, address indexed spender, uint256 value);
-    event Staked(address indexed user, uint256 amount);
-    event Unstaked(address indexed user, uint256 amount);
     event ProposalCreated(uint256 indexed id, string description);
     event VoteCast(address indexed voter, uint256 indexed proposalId, bool support);
-    event RewardsDistributed(address indexed user, uint256 amount);
     event EmergencyPause(bool status);
     
     modifier onlyOwner() {
@@ -74,7 +69,6 @@ contract LiveDemoContract {
         owner = msg.sender;
         totalSupply = 1000000 * 10**18;
         balances[msg.sender] = totalSupply;
-        stakingRewardRate = 500; // 5%
     }
     
     // TOKEN FUNCTIONS (AI will identify as TokenFacet)
@@ -115,39 +109,6 @@ contract LiveDemoContract {
         balances[msg.sender] -= amount;
         totalSupply -= amount;
         emit Transfer(msg.sender, address(0), amount);
-    }
-    
-    // STAKING FUNCTIONS (AI will identify as StakingFacet)
-    function stake(uint256 amount) external whenNotPaused {
-        require(balances[msg.sender] >= amount, "Insufficient balance");
-        balances[msg.sender] -= amount;
-        stakingBalances[msg.sender] += amount;
-        votingPower[msg.sender] += amount;
-        emit Staked(msg.sender, amount);
-    }
-    
-    function unstake(uint256 amount) external whenNotPaused {
-        require(stakingBalances[msg.sender] >= amount, "Insufficient staked");
-        stakingBalances[msg.sender] -= amount;
-        votingPower[msg.sender] -= amount;
-        balances[msg.sender] += amount;
-        emit Unstaked(msg.sender, amount);
-    }
-    
-    function calculateRewards(address user) public view returns (uint256) {
-        return stakingBalances[user] * stakingRewardRate / 10000;
-    }
-    
-    function claimRewards() external whenNotPaused {
-        uint256 rewards = calculateRewards(msg.sender);
-        require(rewards > 0, "No rewards");
-        balances[msg.sender] += rewards;
-        totalSupply += rewards;
-        emit RewardsDistributed(msg.sender, rewards);
-    }
-    
-    function updateRewardRate(uint256 newRate) external onlyOwner {
-        stakingRewardRate = newRate;
     }
     
     // GOVERNANCE FUNCTIONS (AI will identify as GovernanceFacet)
@@ -237,20 +198,12 @@ contract LiveDemoContract {
         return allowances[owner][spender];
     }
     
-    function stakingBalanceOf(address account) external view returns (uint256) {
-        return stakingBalances[account];
-    }
-    
     function votingPowerOf(address account) external view returns (uint256) {
         return votingPower[account];
     }
     
     function getTotalSupply() external view returns (uint256) {
         return totalSupply;
-    }
-    
-    function getRewardRate() external view returns (uint256) {
-        return stakingRewardRate;
     }
     
     function getProposalCount() external view returns (uint256) {
@@ -297,10 +250,9 @@ function analyzeContractWithAI(contractPath) {
     // Simulate AI processing
     const domains = [
         { name: 'TokenFacet', functions: ['transfer', 'approve', 'transferFrom', 'mint', 'burn'], type: 'core' },
-        { name: 'StakingFacet', functions: ['stake', 'unstake', 'calculateRewards', 'claimRewards', 'updateRewardRate'], type: 'defi' },
         { name: 'GovernanceFacet', functions: ['createProposal', 'vote', 'executeProposal', 'getProposal'], type: 'governance' },
         { name: 'AdminFacet', functions: ['pause', 'unpause', 'transferOwnership', 'emergencyWithdraw', 'batchTransfer'], type: 'admin' },
-        { name: 'ViewFacet', functions: ['balanceOf', 'allowance', 'stakingBalanceOf', 'votingPowerOf', 'getTotalSupply', 'getRewardRate', 'getProposalCount', 'isPaused', 'getOwner'], type: 'view' }
+        { name: 'ViewFacet', functions: ['balanceOf', 'allowance', 'votingPowerOf', 'getTotalSupply', 'getProposalCount', 'isPaused', 'getOwner'], type: 'view' }
     ];
     
     setTimeout(() => {

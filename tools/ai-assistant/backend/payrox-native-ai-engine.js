@@ -504,11 +504,6 @@ ${hooks.combinedHooks}
                 description: 'Manages lending and borrowing with risk assessment'
             },
             {
-                name: 'StakingFacet',
-                functions: ['stake', 'unstake', 'claimRewards', 'compound'],
-                description: 'Staking rewards and governance token distribution'
-            },
-            {
                 name: 'GovernanceFacet',
                 functions: ['propose', 'vote', 'execute', 'delegate'],
                 description: 'Decentralized governance with timelock controls'

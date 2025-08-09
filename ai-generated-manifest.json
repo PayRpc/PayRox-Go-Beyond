@@ -49,16 +49,6 @@
     }
   },
   "facets": {
-    "ExchangeBeyondFacet": {
-      "address": "0x742d35Cc6634C0532925a3b8D8aB4E7f8c642D",
-      "functions": 12,
-      "size": "24.8KB",
-      "gasOptimization": "51.2%",
-      "primaryFunction": "Trading operations",
-      "securityCompliant": true,
-      "storageIsolated": true,
-      "deterministicAddress": true
-    },
     "VaultBeyondFacet": {
       "address": "0x742d35Cc6634C0532925a3b8D8aB4E7f8c642E",
       "functions": 11,
@@ -120,24 +110,6 @@
     "optimizationOpportunities": 23,
     "source": "ai-generated-facets",
     "recognizedDomains": [
-      {
-        "name": "Exchange (Trading)",
-        "facetFile": "ExchangeBeyondFacet.sol",
-        "confidence": 0.97,
-        "primaryFunctions": [
-          "placeMarketOrder",
-          "placeLimitOrder",
-          "cancelOrder"
-        ],
-        "securityPatterns": [
-          "onlyDispatcher",
-          "onlyInitialized",
-          "nonReentrant",
-          "whenNotPaused"
-        ],
-        "storageIsolation": "payrox.gobeyond.facet.storage.exchangebeyondfacet.v2",
-        "gasOptimization": "51.2%"
-      },
       {
         "name": "Vault (Lending)",
         "facetFile": "VaultBeyondFacet.sol",

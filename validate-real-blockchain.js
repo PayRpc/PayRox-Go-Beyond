@@ -218,7 +218,6 @@ class RealBlockchainValidator {
             // Compare with total facet sizes (theoretical calculation)
             const estimatedFacetSizes = {
                 TradingFacet: 25000,    // ~25KB
-                StakingFacet: 20000,    // ~20KB  
                 RewardsFacet: 18000,    // ~18KB
                 LendingFacet: 22000,    // ~22KB
                 GovernanceFacet: 15000, // ~15KB

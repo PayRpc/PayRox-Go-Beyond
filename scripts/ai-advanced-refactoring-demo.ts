@@ -215,7 +215,6 @@ export class PayRoxAIAdvancedRefactoring {
     console.log("🛡️  Applying all 9 critical security fixes during generation");
     
     const existingFacets = [
-      "ExchangeBeyondFacet.sol",
       "GovernBeyondFacet.sol", 
       "ProtectBeyondFacet.sol",
       "RewardBeyondFacet.sol",
@@ -427,7 +426,6 @@ export class PayRoxAIAdvancedRefactoring {
    */
   private calculateGasOptimization(facetName: string): string {
     const optimizations = {
-      "ExchangeBeyondFacet": "51.2%",
       "VaultBeyondFacet": "58.7%", 
       "StakeBeyondFacet": "49.3%",
       "GovernBeyondFacet": "62.1%",

@@ -145,13 +145,8 @@ describe("OpenZeppelin Dynamic Integration", function () {
         });
     });
     
-    describe("EnhancedExchangeBeyondFacet", function () {
+    describe("Enhanced OpenZeppelin Integration", function () {
         beforeEach(async function () {
-            // Deploy Enhanced Exchange Facet
-            const EnhancedExchange = await ethers.getContractFactory("EnhancedExchangeBeyondFacet");
-            enhancedExchange = await EnhancedExchange.deploy();
-            await enhancedExchange.waitForDeployment();
-            
             // Setup mock tokens
             const MockERC20 = await ethers.getContractFactory("MockERC20");
             mockERC20 = await MockERC20.deploy("TestToken", "TEST", 18);

@@ -83,7 +83,6 @@ export class PayRoxAIAdvancedRefactoring {
     console.log("🤖 AI Status: ACTIVE LEARNING FROM EXISTING PATTERNS");
     
     const existingFacets = [
-      "ExchangeBeyondFacet.sol",
       "GovernBeyondFacet.sol", 
       "ProtectBeyondFacet.sol",
       "RewardBeyondFacet.sol",
@@ -145,15 +144,6 @@ export class PayRoxAIAdvancedRefactoring {
     console.log("━".repeat(60));
     
     const recognizedDomains = [
-      {
-        name: "Exchange (Trading)",
-        facetFile: "ExchangeBeyondFacet.sol",
-        confidence: 0.97,
-        primaryFunctions: ["placeMarketOrder", "placeLimitOrder", "cancelOrder"],
-        securityPatterns: ["onlyDispatcher", "onlyInitialized", "nonReentrant", "whenNotPaused"],
-        storageIsolation: "payrox.gobeyond.facet.storage.exchangebeyondfacet.v2",
-        gasOptimization: "51.2%"
-      },
       {
         name: "Vault (Lending)", 
         facetFile: "VaultBeyondFacet.sol",
@@ -303,12 +293,6 @@ export class PayRoxAIAdvancedRefactoring {
    */
   private generateFacetData(): void {
     const facetData = {
-      "ExchangeBeyondFacet": {
-        functions: 12,
-        size: "24.8KB",
-        gasOptimization: "51.2%",
-        primaryFunction: "Trading operations"
-      },
       "VaultBeyondFacet": {
         functions: 11,
         size: "22.1KB", 

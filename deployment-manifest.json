@@ -38,18 +38,6 @@
       "securityRating": "High"
     },
     {
-      "name": "StakingFacet",
-      "functions": [
-        "stake",
-        "unstake",
-        "claimRewards",
-        "updateRewardRate"
-      ],
-      "gasEstimate": "TBD",
-      "dependencies": [],
-      "securityRating": "High"
-    },
-    {
       "name": "GovernanceFacet",
       "functions": [
         "createProposal",

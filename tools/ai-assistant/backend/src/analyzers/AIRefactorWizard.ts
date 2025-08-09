@@ -1413,47 +1413,6 @@ contract ${facetName} {
   }
 
   /**
-   * Generate domain-specific helpers for ExchangeBeyondFacet - Fix #3
-   */
-  private generateExchangeBeyondHelpers(): string {
-    return `
-    /**
-     * Generate canonical unique order ID with nonce + chainid - Fix #3
-     */
-    function _newOrderId(address trader, bytes memory ctx) internal returns (bytes32 id) {
-        ExchangeBeyondFacetStorage.Layout storage ds = ExchangeBeyondFacetStorage.layout();
-        unchecked {
-            id = keccak256(abi.encode(block.chainid, trader, ctx, ds.orderNonce++));
-        }
-    }
-
-    /**
-     * Complete order event set - Fix #4
-     */
-    event OrderPlaced(bytes32 indexed orderId, address indexed trader, address tokenIn, address tokenOut, uint256 amountIn, uint256 targetRate);
-    event OrderFilled(bytes32 indexed orderId, address indexed trader, uint256 amountOut);
-    event OrderCancelled(bytes32 indexed orderId, address indexed trader);
-
-    /**
-     * Example usage in placeLimitOrder guidance
-     */
-    function placeLimitOrderExample(
-        address tokenIn,
-        address tokenOut, 
-        uint256 amountIn,
-        uint256 targetRate,
-        uint256 deadline
-    ) external onlyInitialized onlyDispatcher whenNotPaused nonReentrant {
-        bytes32 orderId = _newOrderId(msg.sender, abi.encode(tokenIn, tokenOut, amountIn, targetRate, deadline));
-        ExchangeBeyondFacetStorage.Layout storage ds = ExchangeBeyondFacetStorage.layout();
-        require(ds.orders[orderId].trader == address(0), "ORDER_EXISTS");
-        
-        // TODO: Persist order data
-        emit OrderPlaced(orderId, msg.sender, tokenIn, tokenOut, amountIn, targetRate);
-    }`;
-  }
-
-  /**
    * Safe state variable deduplication - Fix #5
    */
   private deduplicateStateVars(stateVars: string[]): string[] {
@@ -1474,7 +1433,7 @@ contract ${facetName} {
    * Generate role-gated admin functions with proper scoping - Fix #6
    */
   private generateScopedAdminFunctions(facetName: string): string {
-    const includeTokenApprove = ["ExchangeBeyondFacet","VaultBeyondFacet"].includes(facetName);
+    const includeTokenApprove = ["VaultBeyondFacet"].includes(facetName);
     
     let adminFunctions = `
     /**
