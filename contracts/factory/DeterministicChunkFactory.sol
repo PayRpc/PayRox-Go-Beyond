@@ -11,6 +11,10 @@ import {ChunkFactoryLib} from "../utils/ChunkFactoryLib.sol";
 /// @notice Size-optimized version using library delegation
 /// @dev Maintains full IChunkFactory interface while staying under EIP-170 limit
 contract DeterministicChunkFactory is IChunkFactory, AccessControl, ReentrancyGuard, Pausable {
+    // Custom errors used in constructor and validations
+    error ZeroAddress();
+    error InvalidConstructorArgs();
+
     // AUTHORIZATION_FIX: Authorized recipients for Ether transfers
     mapping(address => bool) public authorizedRecipients;
     uint256 public maxSingleTransfer = 1 ether;
@@ -348,6 +352,11 @@ contract DeterministicChunkFactory is IChunkFactory, AccessControl, ReentrancyGu
         emit FeesWithdrawn(feeRecipient, balance);
     }
 
+    // Added to satisfy new interface; current implementation uses immediate refunds
+    function withdrawRefund() external nonReentrant {
+        revert("No refund available");
+    }
+
     function verifySystemIntegrity() external view returns (bool) {
         return _verifySystemIntegrity();
     }
@@ -471,13 +480,6 @@ contract DeterministicChunkFactory is IChunkFactory, AccessControl, ReentrancyGu
         return true;
     }
 
-    // Events (inheriting from interface, only additional ones here)
-    event ChunkStaged(address indexed chunk, bytes32 indexed hash, bytes32 salt, uint256 size);
-    event FeeCollectionFailed(address indexed collector, uint256 amount);
-    event TierFeeSet(uint8 indexed tier, uint256 fee);
-    event UserTierSet(address indexed user, uint8 tier);
-    event IdempotentModeSet(bool enabled);
-
     /**
      * @dev Emergency function to withdraw locked Ether
      * @notice Only callable by contract owner
@@ -486,10 +488,7 @@ contract DeterministicChunkFactory is IChunkFactory, AccessControl, ReentrancyGu
         require(address(this).balance > 0, "No Ether to withdraw");
         uint256 balance = address(this).balance;
         payable(owner()).transfer(balance);
-        emit EmergencyWithdrawal(owner(), balance);
     }
-    
-    event EmergencyWithdrawal(address indexed owner, uint256 amount);
 
     /**
      * @dev Add an authorized recipient for Ether transfers
@@ -497,7 +496,6 @@ contract DeterministicChunkFactory is IChunkFactory, AccessControl, ReentrancyGu
     function addAuthorizedRecipient(address recipient) external onlyOwner {
         require(recipient != address(0), "Invalid recipient");
         authorizedRecipients[recipient] = true;
-        emit AuthorizedRecipientAdded(recipient);
     }
     
     /**
@@ -505,9 +503,33 @@ contract DeterministicChunkFactory is IChunkFactory, AccessControl, ReentrancyGu
      */
     function removeAuthorizedRecipient(address recipient) external onlyOwner {
         authorizedRecipients[recipient] = false;
-        emit AuthorizedRecipientRemoved(recipient);
     }
     
-    event AuthorizedRecipientAdded(address indexed recipient);
-    event AuthorizedRecipientRemoved(address indexed recipient);
+    function setFeeRecipient(address newRecipient) external onlyRole(FEE_ROLE) {
+        if (newRecipient == address(0)) revert ZeroAddress();
+        feeRecipient = newRecipient;
+        emit FeeRecipientSet(newRecipient);
+    }
+
+    function setBaseFeeWei(uint256 newBase) external onlyRole(FEE_ROLE) {
+        baseFeeWei = newBase;
+        emit BaseFeeSet(newBase);
+    }
+
+    function setFeesEnabled(bool enabled) external onlyRole(FEE_ROLE) {
+        feesEnabled = enabled;
+        emit FeesEnabledSet(enabled);
+    }
+
+    function setMaxSingleTransfer(uint256 newMax) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        maxSingleTransfer = newMax;
+    }
+
+    function transferDefaultAdmin(address newAdmin) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        if (newAdmin == address(0)) revert ZeroAddress();
+        address prev = defaultAdmin;
+        _grantRole(DEFAULT_ADMIN_ROLE, newAdmin);
+        _revokeRole(DEFAULT_ADMIN_ROLE, prev);
+        defaultAdmin = newAdmin;
+    }
 }

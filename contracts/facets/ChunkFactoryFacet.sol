@@ -11,7 +11,6 @@ import {DeterministicChunkFactory} from "../factory/DeterministicChunkFactory.so
  * @author PayRox Enhancement Suite
  */
 contract ChunkFactoryFacet is IChunkFactory {
-
     // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
     // STORAGE
     // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
@@ -187,7 +186,7 @@ contract ChunkFactoryFacet is IChunkFactory {
      * @param target The address to check
      * @return True if contract is deployed
      */
-    function isDeployed(address target) external view override returns (bool) {
+    function isDeployedContract(address target) external view override returns (bool) {
         return DeterministicChunkFactory(factoryAddress).isDeployedContract(target);
     }
 
@@ -211,53 +210,6 @@ contract ChunkFactoryFacet is IChunkFactory {
     // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
 
     /**
-     * @notice Get current deployment fee for user tier
-     * @return fee The deployment fee
-     */
-    function getDeploymentFee() external view override returns (uint256 fee) {
-        DeterministicChunkFactory F = DeterministicChunkFactory(factoryAddress);
-        if (!F.feesEnabled()) return 0;
-        uint8 tier = F.userTiers(msg.sender);
-        uint256 tf = F.tierFees(tier);
-        uint256 base = F.baseFeeWei();
-        return tf > 0 ? tf : base;
-    }
-
-    /**
-     * @notice Get total number of deployments
-     * @return count The deployment count
-     */
-    function getDeploymentCount() external view override returns (uint256 count) {
-        return DeterministicChunkFactory(factoryAddress).deploymentCount();
-    }
-
-    /**
-     * @notice Get user tier for tiered fee structure
-     * @param user The user address
-     * @return tier The user tier
-     */
-    function getUserTier(address user) external view override returns (uint8 tier) {
-        return DeterministicChunkFactory(factoryAddress).userTiers(user);
-    }
-
-    /**
-     * @notice Get the owner of the factory
-     * @return The owner address
-     */
-    function owner() external view override returns (address) {
-        return IChunkFactory(factoryAddress).owner();
-    }
-
-    /**
-     * @notice Set fee for specific tier (admin only) - delegates to factory
-     * @param tier The tier to set fee for
-     * @param fee The fee amount
-     */
-    function setTierFee(uint8 tier, uint256 fee) external override {
-        DeterministicChunkFactory(factoryAddress).setTierFee(tier, fee);
-    }
-
-    /**
      * @notice Withdraw accumulated fees (pull pattern for security)
      */
     function withdrawFees() external override {
@@ -278,57 +230,86 @@ contract ChunkFactoryFacet is IChunkFactory {
         DeterministicChunkFactory(factoryAddress).unpause();
     }
 
-    // ─────────────────────────────────────────────────────────────────────────────
-    // ADDITIONAL FORWARDERS (admin/state not in IChunkFactory interface file)
-    // ─────────────────────────────────────────────────────────────────────────────
-
-    function withdrawRefund() external {
-        DeterministicChunkFactory(factoryAddress).withdrawRefund();
+    /**
+     * @notice Set fee for specific tier (admin only) - delegates to factory
+     * @param tier The tier to set fee for
+     * @param fee The fee amount
+     */
+    function setTierFee(uint8 tier, uint256 fee) external override {
+        DeterministicChunkFactory(factoryAddress).setTierFee(tier, fee);
     }
 
-    function setUserTier(address user, uint8 tier) external {
+    /**
+     * @notice Set user tier (admin only) - delegates to factory
+     * @param user The user address
+     * @param tier The user tier
+     */
+    function setUserTier(address user, uint8 tier) external override {
         DeterministicChunkFactory(factoryAddress).setUserTier(user, tier);
     }
 
-    function setIdempotentMode(bool enabled) external {
+    /**
+     * @notice Set idempotent mode (admin only) - delegates to factory
+     * @param enabled New idempotent mode status
+     */
+    function setIdempotentMode(bool enabled) external override {
         DeterministicChunkFactory(factoryAddress).setIdempotentMode(enabled);
     }
 
-    function setFeeRecipient(address newRecipient) external {
+    /**
+     * @notice Set fee recipient (admin only) - delegates to factory
+     * @param newRecipient The new fee recipient address
+     */
+    function setFeeRecipient(address newRecipient) external override {
         DeterministicChunkFactory(factoryAddress).setFeeRecipient(newRecipient);
     }
 
-    function setBaseFeeWei(uint256 newBase) external {
+    /**
+     * @notice Set base fee in wei (admin only) - delegates to factory
+     * @param newBase The new base fee in wei
+     */
+    function setBaseFeeWei(uint256 newBase) external override {
         DeterministicChunkFactory(factoryAddress).setBaseFeeWei(newBase);
     }
 
-    function setFeesEnabled(bool enabled) external {
+    /**
+     * @notice Enable or disable fees (admin only) - delegates to factory
+     * @param enabled New fees enabled status
+     */
+    function setFeesEnabled(bool enabled) external override {
         DeterministicChunkFactory(factoryAddress).setFeesEnabled(enabled);
     }
 
-    function setMaxSingleTransfer(uint256 newMax) external {
+    /**
+     * @notice Set maximum single transfer amount (admin only) - delegates to factory
+     * @param newMax The new maximum transfer amount
+     */
+    function setMaxSingleTransfer(uint256 newMax) external override {
         DeterministicChunkFactory(factoryAddress).setMaxSingleTransfer(newMax);
     }
 
-    function transferDefaultAdmin(address newAdmin) external {
+    /**
+     * @notice Transfer default admin role (admin only) - delegates to factory
+     * @param newAdmin The new admin address
+     */
+    function transferDefaultAdmin(address newAdmin) external override {
         DeterministicChunkFactory(factoryAddress).transferDefaultAdmin(newAdmin);
     }
 
-    function addAuthorizedRecipient(address recipient) external {
+    /**
+     * @notice Add authorized recipient (admin only) - delegates to factory
+     * @param recipient The recipient address to authorize
+     */
+    function addAuthorizedRecipient(address recipient) external override {
         DeterministicChunkFactory(factoryAddress).addAuthorizedRecipient(recipient);
     }
 
-    function removeAuthorizedRecipient(address recipient) external {
+    /**
+     * @notice Remove authorized recipient (admin only) - delegates to factory
+     * @param recipient The recipient address to remove from authorization
+     */
+    function removeAuthorizedRecipient(address recipient) external override {
         DeterministicChunkFactory(factoryAddress).removeAuthorizedRecipient(recipient);
-    }
-
-    // State getters mirrored from factory
-    function deploymentCount() external view returns (uint256) {
-        return DeterministicChunkFactory(factoryAddress).deploymentCount();
-    }
-
-    function userTiers(address user) external view returns (uint8) {
-        return DeterministicChunkFactory(factoryAddress).userTiers(user);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
@@ -375,6 +356,25 @@ contract ChunkFactoryFacet is IChunkFactory {
         return factoryAddress;
     }
 
+    // -------- Public getters exposed by state variables in v2 --------
+    function deploymentCount() external view override returns (uint256) {
+        return DeterministicChunkFactory(factoryAddress).deploymentCount();
+    }
+
+    function userTiers(address user) external view override returns (uint8) {
+        return DeterministicChunkFactory(factoryAddress).userTiers(user);
+    }
+
+    // Convenience owner getter provided by v2
+    function owner() external view override returns (address) {
+        return IChunkFactory(factoryAddress).owner();
+    }
+
+    // -------- Funds / control --------
+    function withdrawRefund() external override {
+        DeterministicChunkFactory(factoryAddress).withdrawRefund();
+    }
+
     // ─────────────────────────────────────────────────────────────────────────────
     // ERC165 SUPPORTS-INTERFACE
     // ─────────────────────────────────────────────────────────────────────────────
@@ -389,7 +389,7 @@ contract ChunkFactoryFacet is IChunkFactory {
 
     function getFacetFunctionSelectors() external pure returns (bytes4[] memory selectors) {
         // Update this list to match EXACTLY what the facet exposes
-        selectors = new bytes4[](37);
+        selectors = new bytes4[](34);
         uint i;
         // IChunkFactory interface functions
         selectors[i++] = IChunkFactory.stage.selector;
@@ -402,33 +402,28 @@ contract ChunkFactoryFacet is IChunkFactory {
         selectors[i++] = IChunkFactory.predictAddressBatch.selector;
         selectors[i++] = IChunkFactory.read.selector;
         selectors[i++] = IChunkFactory.exists.selector;
-        selectors[i++] = IChunkFactory.isDeployed.selector; // keep consistent naming used in interface
+        selectors[i++] = IChunkFactory.isDeployedContract.selector;
         selectors[i++] = IChunkFactory.validateBytecodeSize.selector;
         selectors[i++] = IChunkFactory.verifySystemIntegrity.selector;
-        selectors[i++] = IChunkFactory.getDeploymentFee.selector;
-        selectors[i++] = IChunkFactory.getDeploymentCount.selector;
-        selectors[i++] = IChunkFactory.getUserTier.selector;
+        selectors[i++] = IChunkFactory.deploymentCount.selector;
+        selectors[i++] = IChunkFactory.userTiers.selector;
         selectors[i++] = IChunkFactory.owner.selector;
-        selectors[i++] = IChunkFactory.setTierFee.selector;
         selectors[i++] = IChunkFactory.withdrawFees.selector;
+        selectors[i++] = IChunkFactory.withdrawRefund.selector;
         selectors[i++] = IChunkFactory.pause.selector;
         selectors[i++] = IChunkFactory.unpause.selector;
+        selectors[i++] = IChunkFactory.setTierFee.selector;
+        selectors[i++] = IChunkFactory.setUserTier.selector;
+        selectors[i++] = IChunkFactory.setIdempotentMode.selector;
+        selectors[i++] = IChunkFactory.setFeeRecipient.selector;
+        selectors[i++] = IChunkFactory.setBaseFeeWei.selector;
+        selectors[i++] = IChunkFactory.setFeesEnabled.selector;
+        selectors[i++] = IChunkFactory.setMaxSingleTransfer.selector;
+        selectors[i++] = IChunkFactory.transferDefaultAdmin.selector;
+        selectors[i++] = IChunkFactory.addAuthorizedRecipient.selector;
+        selectors[i++] = IChunkFactory.removeAuthorizedRecipient.selector;
 
-        // Additional admin/state forwarders exposed by this facet (not in interface)
-        selectors[i++] = this.withdrawRefund.selector;
-        selectors[i++] = this.setUserTier.selector;
-        selectors[i++] = this.setIdempotentMode.selector;
-        selectors[i++] = this.setFeeRecipient.selector;
-        selectors[i++] = this.setBaseFeeWei.selector;
-        selectors[i++] = this.setFeesEnabled.selector;
-        selectors[i++] = this.setMaxSingleTransfer.selector;
-        selectors[i++] = this.transferDefaultAdmin.selector;
-        selectors[i++] = this.addAuthorizedRecipient.selector;
-        selectors[i++] = this.removeAuthorizedRecipient.selector;
-        selectors[i++] = this.deploymentCount.selector;
-        selectors[i++] = this.userTiers.selector;
-
-        // PayRox helpers added by this facet
+        // PayRox helpers from this facet
         selectors[i++] = this.getExpectedManifestHash.selector;
         selectors[i++] = this.getExpectedFactoryBytecodeHash.selector;
         selectors[i++] = this.getManifestDispatcher.selector;
