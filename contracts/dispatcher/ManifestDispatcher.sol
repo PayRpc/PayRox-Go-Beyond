@@ -91,6 +91,7 @@ contract ManifestDispatcher is
     error InvalidProof();
     error ActivationDelayOutOfRange(uint64 newDelay);
     error InvalidSecurityLevel(uint8 level);
+    error FacetUnknown(address facet);
 
     // ───────────────────────────────────────────────────────────────────────────
     // Events (contract-specific + some from interfaces are reused)
@@ -640,5 +641,26 @@ contract ManifestDispatcher is
             sels[j] = key;
         }
         return keccak256(abi.encodePacked(facet.codehash, sels));
+    }
+
+    /// @notice Apply a single route update (low-level, bypassing Merkle proof).
+    function applyRouteOne(
+        bytes4 selector,
+        address facetAddr,
+        bytes32 codehash,
+        bytes32[] calldata proof,
+        bool[] calldata isRight_
+    ) external onlyRole(APPLY_ROLE) whenNotPaused {
+        bytes4[] memory selectors = new bytes4[](1);
+        address[] memory facets_ = new address[](1);
+        bytes32[] memory codehashes = new bytes32[](1);
+        bytes32[][] memory proofs = new bytes32[][](1);
+        bool[][] memory isRight = new bool[][](1);
+        selectors[0] = selector;
+        facets_[0] = facetAddr;
+        codehashes[0] = codehash;
+        proofs[0] = proof;
+        isRight[0] = isRight_;
+        this.applyRoutes(selectors, facets_, codehashes, proofs, isRight);
     }
 }
