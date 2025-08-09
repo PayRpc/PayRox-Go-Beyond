@@ -32,7 +32,7 @@ jobs:
         
     - name: 📚 Install dependencies
       working-directory: tools/ai-assistant/backend
-      run: npm ci
+      run: npm install --no-audit --no-fund
       
     - name: 🔍 Find PayRox manifests
       id: find-manifests

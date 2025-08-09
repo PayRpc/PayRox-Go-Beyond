@@ -205,6 +205,27 @@ contract ChunkFactoryFacet is IChunkFactory {
         return bytecode.length > 0 && bytecode.length <= 49_152;
     }
 
+    /**
+     * @notice Get total number of deployments recorded by the factory
+     */
+    function deploymentCount() external view override returns (uint256) {
+        return DeterministicChunkFactory(factoryAddress).deploymentCount();
+    }
+
+    /**
+     * @notice Get the user tier from the factory
+     */
+    function userTiers(address user) external view override returns (uint8) {
+        return DeterministicChunkFactory(factoryAddress).userTiers(user);
+    }
+
+    /**
+     * @notice Get the owner/admin address from the factory
+     */
+    function owner() external view override returns (address) {
+        return DeterministicChunkFactory(factoryAddress).owner();
+    }
+
     // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
     // ADMINISTRATION FUNCTIONS
     // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
@@ -214,6 +235,13 @@ contract ChunkFactoryFacet is IChunkFactory {
      */
     function withdrawFees() external override {
         DeterministicChunkFactory(factoryAddress).withdrawFees();
+    }
+
+    /**
+     * @notice Withdraw any refundable funds from batch operations
+     */
+    function withdrawRefund() external override {
+        DeterministicChunkFactory(factoryAddress).withdrawRefund();
     }
 
     /**
@@ -354,25 +382,6 @@ contract ChunkFactoryFacet is IChunkFactory {
      */
     function getFactoryAddress() external view returns (address) {
         return factoryAddress;
-    }
-
-    // -------- Public getters exposed by state variables in v2 --------
-    function deploymentCount() external view override returns (uint256) {
-        return DeterministicChunkFactory(factoryAddress).deploymentCount();
-    }
-
-    function userTiers(address user) external view override returns (uint8) {
-        return DeterministicChunkFactory(factoryAddress).userTiers(user);
-    }
-
-    // Convenience owner getter provided by v2
-    function owner() external view override returns (address) {
-        return IChunkFactory(factoryAddress).owner();
-    }
-
-    // -------- Funds / control --------
-    function withdrawRefund() external override {
-        DeterministicChunkFactory(factoryAddress).withdrawRefund();
     }
 
     // ─────────────────────────────────────────────────────────────────────────────

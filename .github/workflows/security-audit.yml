@@ -11,7 +11,7 @@ on:
     - cron: "0 2 * * 1" # Weekly security scan
 
 env:
-  NODE_VERSION: "22"
+  NODE_VERSION: "18"
   FOUNDRY_PROFILE: "ci"
 
 jobs:
@@ -36,7 +36,7 @@ jobs:
           cache: "npm"
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci || npm install --no-audit --no-fund
 
       - name: Check for contract changes
         id: changes
@@ -101,7 +101,7 @@ jobs:
           cache: "npm"
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci || npm install --no-audit --no-fund
 
       - name: Restore compilation cache
         uses: actions/cache@v4
@@ -197,7 +197,7 @@ jobs:
           cache: "npm"
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci || npm install --no-audit --no-fund
 
       - name: Compile contracts for Mythril
         run: npx hardhat compile
@@ -313,7 +313,7 @@ jobs:
           cache: "npm"
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci || npm install --no-audit --no-fund
 
       - name: Run basic security checks
         run: |
