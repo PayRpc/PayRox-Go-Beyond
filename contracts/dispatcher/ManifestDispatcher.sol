@@ -8,8 +8,10 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol
 // Updated, explicit interface paths
 import {IManifestDispatcher} from "./interfaces/IManifestDispatcher.sol";
 import {IDiamondLoupe}       from "../interfaces/diamond/IDiamondLoupe.sol";
+import {IDiamondLoupeEx}     from "../interfaces/diamond/IDiamondLoupeEx.sol";
 
 import {OrderedMerkle}       from "../utils/OrderedMerkle.sol";
+import {RefactorSafetyLib}   from "../libraries/RefactorSafetyLib.sol";
 
 /**
  * @title ManifestDispatcher (compact)
@@ -19,7 +21,7 @@ import {OrderedMerkle}       from "../utils/OrderedMerkle.sol";
 contract ManifestDispatcher is
     IManifestDispatcher,
     IDiamondLoupe,   // standard EIP-2535 loupe
-    // IDiamondLoupeEx, // enhanced loupe (Ex) - temporarily disabled
+    IDiamondLoupeEx, // enhanced loupe (Ex)
     AccessControl,
     Pausable,
     ReentrancyGuard
@@ -36,6 +38,7 @@ contract ManifestDispatcher is
     // ───────────────────────────────────────────────────────────────────────────
     uint256 private constant MAX_BATCH = 100;
     uint256 private constant MAX_FACET_CODE = 24_576; // EIP-170 limit
+    uint64  private constant MAX_ACTIVATION_DELAY = 365 days; // governance safety bound
 
     // ───────────────────────────────────────────────────────────────────────────
     // Storage
@@ -86,6 +89,8 @@ contract ManifestDispatcher is
     error FacetCodeMismatch(address facet, bytes32 expected, bytes32 actual);
     error DuplicateSelector(bytes4 selector);
     error InvalidProof();
+    error ActivationDelayOutOfRange(uint64 newDelay);
+    error InvalidSecurityLevel(uint8 level);
 
     // ───────────────────────────────────────────────────────────────────────────
     // Events (contract-specific + some from interfaces are reused)
@@ -93,6 +98,8 @@ contract ManifestDispatcher is
     event ManifestVersionUpdated(uint64 indexed oldVersion, uint64 indexed newVersion);
     event RoutesRemoved(bytes4[] selectors);
     event RouteUpdated(bytes4 indexed selector, address indexed oldFacet, address indexed newFacet);
+    event FacetSecurityLevelSet(address indexed facet, uint8 level);
+    event FacetVersionTagSet(address indexed facet, bytes32 versionTag);
 
     // ───────────────────────────────────────────────────────────────────────────
     // Constructor
@@ -303,6 +310,7 @@ contract ManifestDispatcher is
         onlyRole(DEFAULT_ADMIN_ROLE)
     {
         if (manifest.frozen) revert FrozenContract();
+        if (newDelay > MAX_ACTIVATION_DELAY) revert ActivationDelayOutOfRange(newDelay);
         uint64 old = manifest.activationDelay;
         manifest.activationDelay = newDelay;
         emit ActivationDelaySet(old, newDelay);
@@ -359,21 +367,20 @@ contract ManifestDispatcher is
     {
         return
             interfaceId == type(IDiamondLoupe).interfaceId ||
+            interfaceId == type(IDiamondLoupeEx).interfaceId ||
             interfaceId == type(IManifestDispatcher).interfaceId ||
             super.supportsInterface(interfaceId);
     }
 
     // ───────────────────────────────────────────────────────────────────────────
-    // Enhanced Loupe (Ex) - TEMPORARILY DISABLED
+    // Enhanced Loupe (Ex)
     // ───────────────────────────────────────────────────────────────────────────
-    /* 
-    function facetAddresses(bool includeUnsafe)
+    function facetAddressesEx(bool includeUnsafe)
         external
         view
-        // // override(IDiamondLoupeEx)
+        override(IDiamondLoupeEx)
         returns (address[] memory facetAddresses_)
     {
-        // Count first to allocate exact size
         uint256 n = _facetAddresses.length;
         if (includeUnsafe) {
             facetAddresses_ = new address[](n);
@@ -396,26 +403,44 @@ contract ManifestDispatcher is
         }
     }
 
-    function facetFunctionSelectors(address facet, uint8 minSecurityLevel)
+    function facetFunctionSelectorsEx(address facet, uint8 minSecurityLevel)
         external
         view
-        // // override(IDiamondLoupeEx)
+        override(IDiamondLoupeEx)
         returns (bytes4[] memory selectors_)
     {
         if (_facetSecurityLevel[facet] < minSecurityLevel) {
-            // return empty
             return new bytes4[](0);
         }
         selectors_ = facetSelectors[facet];
     }
 
-    function facetAddress(bytes4 _functionSelector, bytes32 requiredVersion)
+    function facetsEx(bool /*includeMetadata*/)
         external
         view
-        // override(IDiamondLoupeEx)
+        override(IDiamondLoupeEx)
+        returns (IDiamondLoupeEx.FacetEx[] memory facets_)
+    {
+        uint256 n = _facetAddresses.length;
+        facets_ = new IDiamondLoupeEx.FacetEx[](n);
+        for (uint256 i = 0; i < n; i++) {
+            address fa = _facetAddresses[i];
+            facets_[i] = IDiamondLoupeEx.FacetEx({
+                facetAddress:      fa,
+                functionSelectors: facetSelectors[fa],
+                versionTag:        _facetVersionTag[fa],
+                securityLevel:     _facetSecurityLevel[fa]
+            });
+        }
+    }
+
+    function facetAddressEx(bytes4 functionSelector, bytes32 requiredVersion)
+        external
+        view
+        override(IDiamondLoupeEx)
         returns (address facetAddress_)
     {
-        address fa = _routes[_functionSelector].facet;
+        address fa = _routes[functionSelector].facet;
         if (fa == address(0)) return address(0);
         if (requiredVersion == bytes32(0) || _facetVersionTag[fa] == requiredVersion) {
             return fa;
@@ -423,75 +448,115 @@ contract ManifestDispatcher is
         return address(0);
     }
 
-    function facetAddressesBatch(bytes4[] calldata _functionSelectors)
+    function facetAddressesBatchEx(bytes4[] calldata functionSelectors)
         external
         view
+        override(IDiamondLoupeEx)
         returns (address[] memory facetAddresses_)
     {
-        uint256 n = _functionSelectors.length;
+        uint256 n = functionSelectors.length;
         facetAddresses_ = new address[](n);
         for (uint256 i = 0; i < n; i++) {
-            facetAddresses_[i] = _routes[_functionSelectors[i]].facet;
+            facetAddresses_[i] = _routes[functionSelectors[i]].facet;
         }
     }
 
-    function checkStorageConflicts(address)
+    function facetMetadata(address facet)
         external
-        pure
+        view
+        override(IDiamondLoupeEx)
+        returns (IDiamondLoupeEx.FacetMetadata memory metadata_)
+    {
+        metadata_.name          = "";
+        metadata_.category      = "";
+        metadata_.dependencies  = new string[](0);
+        metadata_.isUpgradeable = true;
+    }
+
+    function checkStorageConflicts(address /*facet*/)
+        external
+        view
+        override(IDiamondLoupeEx)
         returns (bytes32[] memory conflicts_)
     {
         conflicts_ = new bytes32[](0);
     }
 
-    function facetImplementation(address)
+    function facetImplementation(address /*facet*/)
         external
-        pure
+        view
+        override(IDiamondLoupeEx)
         returns (address implementation_)
     {
         implementation_ = address(0);
     }
 
-    function facetHash(address _facet)
+    function facetHash(address facet)
         external
         view
-        // override(IDiamondLoupeEx)
+        override(IDiamondLoupeEx)
         returns (bytes32)
     {
-        return _facet.codehash;
+        return facet.codehash;
     }
 
-    function selectorHash(address _facet)
+    function selectorHash(address facet)
         external
         view
-        // override(IDiamondLoupeEx)
+        override(IDiamondLoupeEx)
         returns (bytes32)
     {
-        return _selectorHash(_facet);
+        return _selectorHash(facet);
     }
 
-    function facetProvenance(address _facet)
+    function facetProvenance(address facet)
         external
         view
-        // override(IDiamondLoupeEx)
+        override(IDiamondLoupeEx)
         returns (address deployer, uint256 deployTimestamp)
     {
-        deployer       = _facetDeployer[_facet];
-        deployTimestamp = _facetDeployedAt[_facet];
+        deployer        = _facetDeployer[facet];
+        deployTimestamp = _facetDeployedAt[facet];
     }
 
-    function facetAddressesBatchWithFallback(bytes4[] calldata _functionSelectors)
-        external
-        view
-        // // override(IDiamondLoupeEx)
-        returns (address[] memory facetAddresses_)
-    {
-        uint256 n = _functionSelectors.length;
-        facetAddresses_ = new address[](n);
-        for (uint256 i = 0; i < n; i++) {
-            facetAddresses_[i] = _routes[_functionSelectors[i]].facet; // returns address(0) if unknown
+    // ───────────────────────────────────────────────────────────────────────────
+    // Preflight helpers (upgrade-time checks via RefactorSafetyLib)
+    // ───────────────────────────────────────────────────────────────────────────
+    /**
+     * @notice Validate a facet upgrade off-chain before applying routes.
+     * @param facet Address of the facet being (re)registered
+     * @param expectedCodeHash Expected EXTCODEHASH (bytes32(0) to skip)
+     * @param claimedSelectors The full selector set the facet is expected to expose after the upgrade
+     * @param allowAdditions Whether new selectors are allowed compared to existing set
+     * @return ok True if codehash is OK; selector compatibility reverts on failure
+     * @return selectorHashEx Current selector hash fingerprint for the facet (for auditing)
+     */
+    function preflightCheckFacet(
+        address facet,
+        bytes32 expectedCodeHash,
+        bytes4[] calldata claimedSelectors,
+        bool allowAdditions
+    ) external view returns (bool ok, bytes32 selectorHashEx) {
+        // 1) Codehash preflight (shallow)
+        ok = RefactorSafetyLib.performRefactorSafetyCheck(facet, expectedCodeHash, 0);
+
+        // 2) Selector compatibility against current registry (if facet already present)
+        bytes4[] storage cur = facetSelectors[facet];
+        bytes4[] memory oldS = new bytes4[](cur.length);
+        for (uint256 i = 0; i < cur.length; i++) {
+            oldS[i] = cur[i];
         }
+        bytes4[] memory newS = new bytes4[](claimedSelectors.length);
+        for (uint256 j = 0; j < claimedSelectors.length; j++) {
+            newS[j] = claimedSelectors[j];
+        }
+        // Will revert with explicit error if incompatible
+        // RefactorSafetyLib.validateSelectorCompatibility(oldS, newS, allowAdditions);
+        RefactorSafetyLib.validateSelectorCompatibilityView(oldS, newS, allowAdditions);
+
+        // 3) Return current selector fingerprint for provenance
+        selectorHashEx = _selectorHash(facet);
     }
-    */
 
     // ───────────────────────────────────────────────────────────────────────────
     // Internal helpers

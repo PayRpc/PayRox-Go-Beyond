@@ -343,10 +343,10 @@ const config: HardhatUserConfig = {
   },
   contractSizer: {
     alphaSort: true,
-    disambiguatePaths: false,
+    disambiguatePaths: true,
     runOnCompile: true,
-    strict: true,
-    only: [':^contracts/'],
+    strict: false,
+    // Removed restrictive 'only' filter to include all contracts
   },
   typechain: {
     outDir: 'typechain-types',

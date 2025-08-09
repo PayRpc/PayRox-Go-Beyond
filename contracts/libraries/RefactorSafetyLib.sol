@@ -66,6 +66,7 @@ library RefactorSafetyLib {
                 }
             }
             if (!found) {
+                // provide explicit mismatch information (actual=0x00000000 indicates missing)
                 revert SelectorMismatch(oldSelectors[i], bytes4(0));
             }
         }
@@ -75,6 +76,24 @@ library RefactorSafetyLib {
         }
 
         emit SelectorCompatibilityVerified(newSelectors, true);
+    }
+
+    /**
+     * @notice Hash a selector set in a deterministic way for off-chain comparison.
+     * @dev Sorts a memory copy (insertion sort) to avoid order sensitivity, then keccak256.
+     */
+    function hashSelectors(bytes4[] memory selectors) internal pure returns (bytes32) {
+        uint256 n = selectors.length;
+        for (uint256 i = 1; i < n; i++) {
+            bytes4 key = selectors[i];
+            uint256 j = i;
+            while (j > 0 && uint32(selectors[j - 1]) > uint32(key)) {
+                selectors[j] = selectors[j - 1];
+                unchecked { --j; }
+            }
+            selectors[j] = key;
+        }
+        return keccak256(abi.encodePacked(selectors));
     }
 
     // ─────────────────── Gas Guard (Optional) ───────────────────
@@ -112,12 +131,38 @@ library RefactorSafetyLib {
         uint256 requiredVersion
     ) internal view returns (bool passed) {
         passed = (expectedCodeHash == bytes32(0) || facetAddress.codehash == expectedCodeHash);
-        // Note: we don’t have a canonical on-chain version; we log the caller-supplied one.
         bytes32 facetId = keccak256(abi.encodePacked(facetAddress));
-        // Cannot emit from `view` in a library callsite without a state change in caller;
-        // leaving event in place for non-view contexts. Callers may wrap this for logging.
-        // emit RefactorSafetyCheck(facetId, requiredVersion, passed);
+        // emit RefactorSafetyCheck(facetId, requiredVersion, passed); // optional; see note in base
+        facetId; requiredVersion; // silence unused vars if event disabled
         return passed;
+    }
+
+    /**
+     * @notice Ensures all old selectors still exist in the new set.
+     *         If `allowAdditions` is false, new set must be same length as old.
+     * @dev Pure variant of `validateSelectorCompatibility`; no emits, for use in view contexts.
+     */
+    function validateSelectorCompatibilityView(
+        bytes4[] memory oldSelectors,
+        bytes4[] memory newSelectors,
+        bool allowAdditions
+    ) internal pure returns (bool) {
+        for (uint256 i = 0; i < oldSelectors.length; i++) {
+            bool found = false;
+            for (uint256 j = 0; j < newSelectors.length; j++) {
+                if (oldSelectors[i] == newSelectors[j]) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                revert SelectorMismatch(oldSelectors[i], bytes4(0));
+            }
+        }
+        if (!allowAdditions && newSelectors.length != oldSelectors.length) {
+            revert RefactorSafetyFailed("Selector additions not permitted");
+        }
+        return true;
     }
 }
 
